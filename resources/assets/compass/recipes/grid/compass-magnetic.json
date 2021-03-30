@@ -1,0 +1,14 @@
+{
+  "ingredientPattern": "S,K,B",
+  "width": 1,
+  "height": 3,
+  "ingredients": {
+    "S": {type: "Block", code: "game:nugget-magnetite" },
+    "K": {type: "Item", code: "game:stick" },
+    "B": {type: "Block", code: "game:bowl-burned" }
+  },
+  "output": {
+    "type": "item",
+    "code": "compass-magnetic"
+  }
+}

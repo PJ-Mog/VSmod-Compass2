@@ -1,0 +1,12 @@
+{
+  "type": "code",
+  "side": "Universal",
+  "modid": "compass",
+  "name": "Compass",
+  "authors": [
+    "goxmeor"
+  ],
+  "description": "TODO: write me",
+  "version": "0.2.0",
+  "dependency": {}
+}
