@@ -1,0 +1,13 @@
+{
+  "ingredientPattern": "G,C,G",
+  "width": 1,
+  "height": 3,
+  "ingredients": {
+    "G": {type: "Item", code: "game:gear-temporal" },
+    "C": {type: "Item", code: "compass-magnetic" },
+  },
+  "output": {
+    "type": "item",
+    "code": "compass-relative"
+  }
+}

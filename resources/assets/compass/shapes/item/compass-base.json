@@ -8,7 +8,9 @@
   textureSizes: {},
   textures: {
     wood: 'game:block/wood-generic',
-    cap: 'game:block/plant/mushroom/flyagaric/cap' // TODO: move this into compass-magnetic-needle.json (but then i need to figure out texture sources for TesselateShape)
+    cap: 'game:block/plant/mushroom/flyagaric/cap', // TODO: move this into compass-magnetic-needle.json (but then i need to figure out texture sources for TesselateShape)
+    green: 'game:block/fire-green', // TODO: move this into compass-magnetic-needle.json (but then i need to figure out texture sources for TesselateShape)
+    blue: 'game:block/fire-blue', // TODO: move this into compass-magnetic-needle.json (but then i need to figure out texture sources for TesselateShape)
   },
   elements: [
     {

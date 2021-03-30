@@ -1,3 +1,5 @@
 {
-  "item-compass-magnetic": "Magnetic Compass"
+  "item-compass-magnetic": "Magnetic Compass",
+  "item-compass-relative": "Relative Compass",
+  "item-compass-origin": "Origin Compass",
 }

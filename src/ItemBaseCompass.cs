@@ -1,13 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 
 namespace Compass {
-  class CompassMagneticItem : Item {
+  abstract class ItemBaseCompass : Item {
     private int MAX_ANGLED_MESHES = 60;
     MeshRef[] meshrefs;
     public override void OnLoaded(ICoreAPI api) {
@@ -20,8 +18,8 @@ namespace Compass {
 
       string key = Code.ToString() + "-meshes";
 
-      var baseShape = capi.Assets.TryGet("compass:shapes/" + this.Shape.Base.Path + ".json")?.ToObject<Shape>();
-      var needleShape = capi.Assets.TryGet("compass:shapes/" + this.Shape.Base.Path + "-needle.json")?.ToObject<Shape>();
+      var baseShape = capi.Assets.TryGet("compass:shapes/item/compass-base.json")?.ToObject<Shape>();
+      var needleShape = GetNeedleShape();
 
       capi.Tesselator.TesselateShape(this, baseShape, out MeshData compassBaseMeshData, new Vec3f(0, 0, 0));
 
@@ -38,20 +36,26 @@ namespace Compass {
         return meshrefs;
       });
 
-      // handle weird bug in VS where GUI shapes are drawn as mirror images (for an example, see the Sundial sea shell)
+      // handle weird bug in VS where GUI shapes are drawn as mirror images: https://github.com/anegostudios/VintageStory-Issues/issues/839
       GuiTransform.ScaleXYZ.X *= -1;
     }
 
+    public abstract Shape GetNeedleShape();
+
+    public abstract double? GetCompassAngleRadians(ICoreClientAPI capi, ItemStack itemstack);
+
     public override void OnBeforeRender(ICoreClientAPI capi, ItemStack itemstack, EnumItemRenderTarget target, ref ItemRenderInfo renderinfo) {
-      double angle = 0;
+      double? angle = null;
       if (target == EnumItemRenderTarget.Gui || target == EnumItemRenderTarget.HandFp) {
-        angle = -capi.World.Player.CameraYaw;
+        angle = GetCompassAngleRadians(capi, itemstack);
       }
       else {
-        // TODO: think of a good solution for Ground and HandTp?
-        angle = 0;
+        // TODO: think of a good solution for Ground and HandTp
+        angle = null;
       }
-      renderinfo.ModelRef = meshrefs[(int)GameMath.Mod(angle / (Math.PI * 2) * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES)];
+      double resolvedAngle = angle ?? ((double)capi.World.ElapsedMilliseconds / 500);
+      var bestMeshrefIndex = (int)GameMath.Mod(resolvedAngle / (Math.PI * 2) * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
+      renderinfo.ModelRef = meshrefs[bestMeshrefIndex];
     }
 
   }
