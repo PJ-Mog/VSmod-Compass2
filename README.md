@@ -14,7 +14,7 @@ Crafted using 1 Magnetic Compass and 2 Temporal Gears. It remembers where it was
 
 ## Origin Compass
 
-Crafted using 1 Relative Compass and 2 Temporal Gears. That means it'll cost 4 gears total. Always points to the world's default spawn. If the default spawn has a radius, it points to the center of it. This will be the same spot for all players on the server.
+Crafted using 1 Relative Compass and 2 Temporal Gears. That means it'll cost 4 gears total. It always points to the world's default spawn. If the default spawn has a radius, it points to the center of it. This will be the same spot for all players on the server.
 
 ## Known Issues
 
@@ -22,4 +22,4 @@ Compasses don't point in the correct direction when dropped on the ground, or pr
 
 ## Collaboration?
 
-I am no artist. If you would like to improve the looks of the shapes, please contact me on the Vintage Story Discord (my name is Gox.)
+I am no artist. If you would like to help improve the look of anything, please contact me on the Vintage Story Discord (my name is Gox.) Let's talk before you create a Pull Request?
