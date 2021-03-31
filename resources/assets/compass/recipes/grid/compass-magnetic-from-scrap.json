@@ -3,7 +3,7 @@
   "width": 1,
   "height": 3,
   "ingredients": {
-    "S": {type: "Item", code: "game:metal-scraps" },
+    "S": {type: "Block", code: "game:metal-scraps" },
     "K": {type: "Item", code: "game:stick" },
     "B": {type: "Block", code: "game:bowl-burned" }
   },
