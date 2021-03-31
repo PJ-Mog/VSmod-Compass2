@@ -53,7 +53,8 @@ namespace Compass {
         // TODO: think of a good solution for Ground and HandTp
         angle = null;
       }
-      double resolvedAngle = angle ?? ((double)capi.World.ElapsedMilliseconds / 500);
+      double milli = capi.World.ElapsedMilliseconds;
+      double resolvedAngle = angle ?? (milli / 500 + Math.Sin(milli / 150) + Math.Sin(milli / 432) * 3);
       var bestMeshrefIndex = (int)GameMath.Mod(resolvedAngle / (Math.PI * 2) * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
       renderinfo.ModelRef = meshrefs[bestMeshrefIndex];
     }

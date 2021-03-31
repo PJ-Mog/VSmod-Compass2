@@ -8,7 +8,6 @@
 	"textureSizes": {
 	},
   textures: {
-    cap: 'game:block/plant/mushroom/flyagaric/cap'
   },
   "elements": [
 		{
@@ -19,12 +18,12 @@
 			"rotationOrigin": [ 8.0, 1.5, 8.0 ],
 			"rotationY": 89.9802127184967,
 			"faces": {
-				"north": { "texture": "#cap", "uv": [ 8.0, 1.0, 11.0, 2.0 ] },
-				"east": { "texture": "#cap", "uv": [ 11.0, 1.0, 12.0, 2.0 ] },
-				"south": { "texture": "#cap", "uv": [ 12.0, 1.0, 15.0, 2.0 ] },
-				"west": { "texture": "#cap", "uv": [ 15.0, 1.0, 16.0, 2.0 ] },
-				"up": { "texture": "#cap", "uv": [ 8.0, 0.0, 11.0, 1.0 ] },
-				"down": { "texture": "#cap", "uv": [ 11.0, 0.0, 14.0, 1.0 ] }
+				"north": { "texture": "#magnetic", "uv": [ 8.0, 1.0, 11.0, 2.0 ] },
+				"east": { "texture": "#magnetic", "uv": [ 11.0, 1.0, 12.0, 2.0 ] },
+				"south": { "texture": "#magnetic", "uv": [ 12.0, 1.0, 15.0, 2.0 ] },
+				"west": { "texture": "#magnetic", "uv": [ 15.0, 1.0, 16.0, 2.0 ] },
+				"up": { "texture": "#magnetic", "uv": [ 8.0, 0.0, 11.0, 1.0 ] },
+				"down": { "texture": "#magnetic", "uv": [ 11.0, 0.0, 14.0, 1.0 ] }
 			}
 		}
 	]}

@@ -6,7 +6,7 @@
   "authors": [
     "goxmeor"
   ],
-  "description": "TODO: write me",
-  "version": "0.2.0",
+  "description": "Adds craftable compasses",
+  "version": "1.0.0",
   "dependency": {}
 }
