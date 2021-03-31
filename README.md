@@ -6,6 +6,8 @@ This mod adds three craftable compasses to the game:
 
 Crafted using 1 (fired) clay bowl, 1 magnetite nugget, and 1 stick. It always points north.
 
+Alternate recipe: use 1 metal scrap instead of magnetite.
+
 ## Relative Compass
 
 Crafted using 1 Magnetic Compass and 2 Temporal Gears. It remembers where it was crafted and always points to that spot.
