@@ -44,10 +44,32 @@ namespace Compass {
 
     public abstract double? GetCompassAngleRadians(ICoreClientAPI capi, ItemStack itemstack);
 
+    public virtual void OnNewPlayerCompass(IWorldAccessor world, ItemSlot slot, IPlayer player) {
+      // pass
+    }
+
+    public override void OnModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {
+      if (world.Side == EnumAppSide.Server) {
+        var attrs = slot.Itemstack.Attributes;
+        if (!attrs.HasAttribute("compass-owned")) {
+          var player = (slot.Inventory as InventoryBasePlayer)?.Player;
+          if (player != null) {
+            attrs.SetBool("compass-owned", true);
+            OnNewPlayerCompass(world, slot, player);
+          }
+        }
+      }
+    }
+
     public override void OnBeforeRender(ICoreClientAPI capi, ItemStack itemstack, EnumItemRenderTarget target, ref ItemRenderInfo renderinfo) {
       double? angle = null;
       if (target == EnumItemRenderTarget.Gui || target == EnumItemRenderTarget.HandFp) {
-        angle = GetCompassAngleRadians(capi, itemstack);
+        if (itemstack.Attributes.HasAttribute("compass-owned")) {
+          angle = GetCompassAngleRadians(capi, itemstack);
+        }
+        else {
+          angle = null; // e.g. compass is being rendered in Handbook
+        }
       }
       else {
         // TODO: think of a good solution for Ground and HandTp
