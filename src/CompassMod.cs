@@ -25,6 +25,10 @@ namespace Compass {
       api.RegisterItemClass("ItemMagneticCompass", typeof(ItemMagneticCompass));
       api.RegisterItemClass("ItemRelativeCompass", typeof(ItemRelativeCompass));
       api.RegisterItemClass("ItemOriginCompass", typeof(ItemOriginCompass));
+
+      api.RegisterBlockClass("BlockMagneticCompass", typeof(BlockMagneticCompass));
+      api.RegisterBlockClass("BlockRelativeCompass", typeof(BlockRelativeCompass));
+      api.RegisterBlockClass("BlockOriginCompass", typeof(BlockOriginCompass));
     }
   }
 }
