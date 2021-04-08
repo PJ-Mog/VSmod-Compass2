@@ -5,7 +5,7 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 
 namespace Compass {
-  abstract class BlockBaseCompass : Block {
+  abstract class BlockCompass : Block {
     public override void OnLoaded(ICoreAPI api) {
       if (api.Side == EnumAppSide.Client) {
         OnLoadedClientSide(api as ICoreClientAPI);

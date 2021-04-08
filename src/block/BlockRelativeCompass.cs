@@ -4,7 +4,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
 namespace Compass {
-  class BlockRelativeCompass : BlockBaseCompass {
+  class BlockRelativeCompass : BlockCompass {
     private BlockPos targetPos;
 
     public override float GetNeedleAngleRadians(BlockPos fromPos) {

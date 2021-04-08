@@ -18,7 +18,7 @@ namespace Compass {
         renderer = new CompassNeedleRenderer(api as ICoreClientAPI, Pos, GenMesh("needle"));
 
 
-        BlockBaseCompass compass = api.World.BlockAccessor.GetBlock(Pos) as BlockBaseCompass;
+        BlockCompass compass = api.World.BlockAccessor.GetBlock(Pos) as BlockCompass;
         if (compass != null) {
           this.AngleRad = compass.GetNeedleAngleRadians(Pos);
           renderer.AngleRad = this.AngleRad;
