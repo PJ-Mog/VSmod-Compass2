@@ -3,11 +3,11 @@
   "width": 1,
   "height": 3,
   "ingredients": {
-    "G": {type: "Item", code: "game:gear-temporal" },
-    "C": {type: "Item", code: "compass-origin" },
+    "G": {"type": "item", "code": "game:gear-temporal" },
+    "C": {"type": "block", "code": "compass-origin" }
   },
   "output": {
-    "type": "item",
+    "type": "block",
     "code": "compass-relative"
   }
 }

@@ -1,13 +1,9 @@
-using Vintagestory.API.Client;
-using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
 
 namespace Compass {
   class BlockMagneticCompass : BlockBaseCompass {
-    public override double? GetCompassAngleRadians(ICoreClientAPI capi, ItemStack itemstack) {
-      return -capi.World.Player.CameraYaw;
-    }
-    public override Shape GetNeedleShape() {
-      return api.Assets.TryGet("compass:shapes/block/compass-needle-magnetic.json")?.ToObject<Shape>();
+    public override float GetNeedleAngleRadians(BlockPos fromPos) {
+      return 0.0f;
     }
   }
 }

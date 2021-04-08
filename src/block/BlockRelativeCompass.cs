@@ -1,36 +1,20 @@
 using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
 
 namespace Compass {
   class BlockRelativeCompass : BlockBaseCompass {
-    // public override void OnCreatedByCrafting(ItemSlot[] allInputslots, ItemSlot outputSlot, GridRecipe byRecipe) {
-    //   outputSlot.Itemstack.Attributes.SetDouble("x", outputSlot.Inventory);
-    // }
-    // public override void OnConsumedByCrafting(ItemSlot[] allInputSlots, ItemSlot stackInSlot, GridRecipe gridRecipe, CraftingRecipeIngredient fromIngredient, IPlayer byPlayer, int quantity) {
-    //   base.OnConsumedByCrafting(allInputSlots, stackInSlot, gridRecipe, fromIngredient, byPlayer, quantity);
-    // }
-    public override Shape GetNeedleShape() {
-      return api.Assets.TryGet("compass:shapes/block/compass-needle-relative.json")?.ToObject<Shape>();
+    private BlockPos targetPos;
+
+    public override float GetNeedleAngleRadians(BlockPos fromPos) {
+      if (targetPos == null) return 0;
+      return GetAngleRadians(fromPos, this.targetPos);
     }
 
-    public override void OnNewPlayerCompass(IWorldAccessor world, ItemSlot slot, IPlayer player) {
-      var attrs = slot.Itemstack.Attributes;
-      var blockPos = player.Entity.Pos.AsBlockPos;
-      attrs.SetInt("compass-target-x", blockPos.X);
-      attrs.SetInt("compass-target-z", blockPos.Z);
-    }
-
-    public override double? GetCompassAngleRadians(ICoreClientAPI capi, ItemStack itemstack) {
-      var playerPos = capi.World.Player.Entity.Pos.AsBlockPos;
-      var targetX = itemstack.Attributes.GetInt("compass-target-x");
-      var targetZ = itemstack.Attributes.GetInt("compass-target-z");
-
-      var dX = playerPos.X - targetX;
-      var dZ = playerPos.Z - targetZ;
-      if (dX * dX + dZ * dZ < 2 * 2) { return null; }
-
-      return Math.Atan2(dX, dZ) - capi.World.Player.CameraYaw;
+    public override void OnBlockPlaced(IWorldAccessor world, BlockPos blockPos, ItemStack byItemStack = null) {
+      this.targetPos = GetCompassCraftedPos(byItemStack);
+      base.OnBlockPlaced(world, blockPos, byItemStack);
     }
   }
 }

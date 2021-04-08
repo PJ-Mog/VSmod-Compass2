@@ -3,12 +3,12 @@
   "width": 1,
   "height": 3,
   "ingredients": {
-    "S": {type: "Block", code: "game:metal-scraps" },
-    "K": {type: "Item", code: "game:stick" },
-    "B": {type: "Block", code: "game:bowl-burned" }
+    "S": {"type": "block", "code": "game:metal-scraps" },
+    "K": {"type": "item", "code": "game:stick" },
+    "B": {"type": "block", "code": "game:bowl-burned" }
   },
   "output": {
-    "type": "item",
+    "type": "block",
     "code": "compass-magnetic"
   }
 }

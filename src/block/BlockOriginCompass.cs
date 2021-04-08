@@ -5,18 +5,9 @@ using Vintagestory.API.MathTools;
 
 namespace Compass {
   class BlockOriginCompass : BlockBaseCompass {
-    public override Shape GetNeedleShape() {
-      return api.Assets.TryGet("compass:shapes/block/compass-needle-origin.json")?.ToObject<Shape>();
-    }
-    public override double? GetCompassAngleRadians(ICoreClientAPI capi, ItemStack itemstack) {
-      var playerPos = capi.World.Player.Entity.Pos.AsBlockPos;
-      var originPos = capi.World.DefaultSpawnPosition.AsBlockPos;
-
-      var dX = playerPos.X - originPos.X;
-      var dZ = playerPos.Z - originPos.Z;
-      if (dX * dX + dZ * dZ < 2 * 2) { return null; }
-
-      return Math.Atan2(dX, dZ) - capi.World.Player.CameraYaw;
+    public override float GetNeedleAngleRadians(BlockPos fromPos) {
+      var originPos = api.World.DefaultSpawnPosition.AsBlockPos;
+      return GetAngleRadians(fromPos, originPos);
     }
   }
 }
