@@ -9,6 +9,7 @@
     "*-origin": "BlockOriginCompass"
   },
   "entityClass": "BlockEntityCompass",
+  "behaviors": [ { "name": "RightClickPickup" } ],
   "blockmaterial": "Ceramic",
   "resistance": "0.75",
   "creativeinventory": { "general": ["*"], "blocks": ["*"] },
