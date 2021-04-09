@@ -1,39 +1,37 @@
 using Vintagestory.API.Common;
 using Vintagestory.API.Client;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 
 namespace Compass {
 
   public class BlockEntityCompass : BlockEntity {
-
-    internal float AngleRad;
+    internal BlockCompass ownBlock;
     CompassNeedleRenderer renderer;
 
     public override void Initialize(ICoreAPI api)
     {
       base.Initialize(api);
       
+      this.ownBlock = Api.World.BlockAccessor.GetBlock(Pos) as BlockCompass;
+
       if (api.Side == EnumAppSide.Client)
       {
         renderer = new CompassNeedleRenderer(api as ICoreClientAPI, Pos, GenMesh("needle"));
-
-
-        BlockCompass compass = api.World.BlockAccessor.GetBlock(Pos) as BlockCompass;
-        if (compass != null) {
-          this.AngleRad = compass.GetNeedleAngleRadians(Pos);
-          renderer.AngleRad = this.AngleRad;
-        }
-
         (api as ICoreClientAPI).Event.RegisterRenderer(renderer, EnumRenderStage.Opaque, "compass");
+      }
+    }
 
-        if (compassBaseMesh == null)
-        {
-            compassBaseMesh = GenMesh("base");
+    public override void OnBlockPlaced(ItemStack byItemStack = null) {
+      BlockCompass blockCompass = byItemStack?.Block as BlockCompass;
+
+      if (Api.Side == EnumAppSide.Client) {
+        if (blockCompass != null) {
+          this.renderer.AngleRad = blockCompass.GetNeedleAngleRadians(Pos);
         }
-        if (compassNeedleMesh == null)
-        {
-            compassNeedleMesh = GenMesh("needle");
-        }
+        if (compassBaseMesh == null) compassBaseMesh = GenMesh("base");
+        if (compassNeedleMesh == null) compassNeedleMesh = GenMesh("needle");
+        MarkDirty(true);
       }
     }
 
@@ -77,19 +75,39 @@ namespace Compass {
     }
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve) {
-        base.FromTreeAttributes(tree, worldAccessForResolve);
-        if (tree.HasAttribute("AngleRad")) AngleRad = tree.GetFloat("AngleRad");
-    }
-
-    public override void ToTreeAttributes(ITreeAttribute tree) {
-        base.ToTreeAttributes(tree);
-        tree.SetFloat("AngleRad", AngleRad);
+      base.FromTreeAttributes(tree, worldAccessForResolve);
+      if (Api?.Side == EnumAppSide.Client) {
+        if (this.ownBlock != null) {
+          this.renderer.AngleRad = ownBlock.GetNeedleAngleRadians(Pos);
+          MarkDirty(true);
+        }
+        if (compassBaseMesh == null) {
+          GenMesh("base");
+          MarkDirty(true);
+        }
+        if (compassNeedleMesh == null) {
+          GenMesh("needle");
+          MarkDirty(true);
+        }
+      }
     }
 
     public override void OnBlockUnloaded() {
         base.OnBlockUnloaded();
 
         renderer?.Dispose();
+    }
+
+    public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tessThreadTesselator) {
+      if (compassBaseMesh == null) {
+        compassBaseMesh = GenMesh("base");
+      }
+      if (compassNeedleMesh == null) {
+        compassNeedleMesh = GenMesh("needle");
+      }
+
+      mesher.AddMeshData(compassBaseMesh);
+      return true;
     }
   }
 }

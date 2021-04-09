@@ -10,7 +10,7 @@ namespace Compass {
         MeshRef meshref;
         public Matrixf ModelMat = new Matrixf();
 
-        public float AngleRad;
+        public float AngleRad = 0;
 
         public CompassNeedleRenderer(ICoreClientAPI coreClientAPI, BlockPos pos, MeshData mesh) {
             this.api = coreClientAPI;
