@@ -50,16 +50,9 @@ namespace Compass {
       return stack;
     }
 
-    // public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
-    //   // TODO REVIEW MEAL BOWL CODE
-    //   // this.
-    //   var stacks = new ItemStack[] { this.Attributes.AsObject<ItemStack>(new ItemStack(this), "compass") };
-    //   api.Logger.Debug("COMPASS: " + stacks[0].Attributes.GetInt("compass-crafted-x"));
-    //   // var block = world.BlockAccessor.GetBlock(pos) as BlockCompass;
-    //   // var stack = new ItemStack(block, 1);
-    //   // SetCompassCraftedPos(stacks[0], GetCompassCraftedPos(stack));
-    //   return stacks;
-    // }
+    public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
+      return new ItemStack[] { OnPickBlock(world, pos) };
+    }
 
     public static void SetCompassCraftedPos(ItemStack compassStack, BlockPos pos) {
       var attrs = compassStack.Attributes;
