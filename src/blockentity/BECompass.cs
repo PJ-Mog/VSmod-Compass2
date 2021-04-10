@@ -1,11 +1,13 @@
 using Vintagestory.API.Common;
 using Vintagestory.API.Client;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 
 namespace Compass {
 
   public class BlockEntityCompass : BlockEntity {
     internal BlockCompass ownBlock;
+    internal BlockPos compassCraftedPos;
     internal float AngleRad;
     CompassNeedleRenderer renderer;
 
@@ -27,6 +29,7 @@ namespace Compass {
       BlockCompass blockCompass = byItemStack?.Block as BlockCompass;
 
       if (blockCompass != null) {
+        this.compassCraftedPos = BlockCompass.GetCompassCraftedPos(byItemStack);
         this.AngleRad = blockCompass.GetNeedleAngleRadians(Pos);
       }
       if (Api.Side == EnumAppSide.Client) {
@@ -62,9 +65,12 @@ namespace Compass {
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve) {
       base.FromTreeAttributes(tree, worldAccessForResolve);
+      var x = tree.GetInt("craftedX");
+      var y = tree.GetInt("craftedY");
+      var z = tree.GetInt("craftedZ");
+      this.compassCraftedPos = new BlockPos(x, y, z);
       this.AngleRad = tree.GetFloat("AngleRad");
       if (worldAccessForResolve.Api.Side == EnumAppSide.Client) {
-        // this.renderer.AngleRad = this.AngleRad;
         if (compassBaseMesh == null) {
           GenMesh("base");
           MarkDirty(true);
@@ -78,6 +84,9 @@ namespace Compass {
 
     public override void ToTreeAttributes(ITreeAttribute tree) {
       base.ToTreeAttributes(tree);
+      tree.SetInt("craftedX", this.compassCraftedPos.X);
+      tree.SetInt("craftedY", this.compassCraftedPos.Y);
+      tree.SetInt("craftedZ", this.compassCraftedPos.Z);
       tree.SetFloat("AngleRad", this.AngleRad);
     }
 

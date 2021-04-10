@@ -1,6 +1,7 @@
 using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 
@@ -35,6 +36,30 @@ namespace Compass {
         }
       }
     }
+
+    public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos) {
+      ItemStack stack = base.OnPickBlock(world, pos);
+
+      BlockEntityCompass bec = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityCompass;
+
+      if (bec != null)
+      {
+        SetCompassCraftedPos(stack, bec.compassCraftedPos);
+      }
+
+      return stack;
+    }
+
+    // public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
+    //   // TODO REVIEW MEAL BOWL CODE
+    //   // this.
+    //   var stacks = new ItemStack[] { this.Attributes.AsObject<ItemStack>(new ItemStack(this), "compass") };
+    //   api.Logger.Debug("COMPASS: " + stacks[0].Attributes.GetInt("compass-crafted-x"));
+    //   // var block = world.BlockAccessor.GetBlock(pos) as BlockCompass;
+    //   // var stack = new ItemStack(block, 1);
+    //   // SetCompassCraftedPos(stacks[0], GetCompassCraftedPos(stack));
+    //   return stacks;
+    // }
 
     public static void SetCompassCraftedPos(ItemStack compassStack, BlockPos pos) {
       var attrs = compassStack.Attributes;
