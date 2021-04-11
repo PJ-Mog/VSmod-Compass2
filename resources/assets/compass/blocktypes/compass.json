@@ -1,5 +1,5 @@
 {
-  "code": "compass",
+  "code": "compass-placeable",
   "variantgroups": [
     { "code": "type", "states": ["magnetic", "relative", "origin" ] }
   ],

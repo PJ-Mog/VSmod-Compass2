@@ -40,6 +40,15 @@ namespace Compass {
       GuiTransform.ScaleXYZ.X *= -1;
     }
 
+    public override void OnUnloaded(ICoreAPI api) {
+      if (api.Side == EnumAppSide.Client) {
+        for (var meshIndex = 0; meshIndex < MAX_ANGLED_MESHES; meshIndex += 1) {
+          meshrefs[meshIndex]?.Dispose();
+          meshrefs[meshIndex] = null;
+        }
+      }
+    }
+
     public abstract Shape GetNeedleShape();
 
     public abstract double? GetCompassAngleRadians(ICoreClientAPI capi, ItemStack itemstack);

@@ -9,6 +9,6 @@
   },
   "output": {
     "type": "block",
-    "code": "compass-magnetic"
+    "code": "compass-placeable-magnetic"
   }
 }
