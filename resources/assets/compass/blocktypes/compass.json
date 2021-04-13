@@ -9,7 +9,7 @@
     "*-origin": "BlockOriginCompass"
   },
   "entityClass": "BlockEntityCompass",
-  "behaviors": [ { "name": "RightClickPickup" } ],
+  "behaviors": [ { "name": "RightClickPickup" }, { "name": "Unstable", "properties": { "attachedToFaces": ["down"] } } ],
   "blockmaterial": "Ceramic",
   "resistance": "0.75",
   "creativeinventory": { "general": ["*"], "blocks": ["*"] },
@@ -27,6 +27,7 @@
 		"all": false
 	},
   "maxstacksize": 1,
+  "lightabsorption": 0,
   "glowLevelByType": {
     "*-relative": 255,
     "*-origin": 255
