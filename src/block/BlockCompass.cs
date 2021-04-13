@@ -54,7 +54,7 @@ namespace Compass {
       }
     }
 
-    public abstract float GetNeedleAngleRadians(BlockPos fromPos);
+    public abstract float GetNeedleAngleRadians(BlockPos fromPos, ItemStack compass);
 
     protected static float GetAngleRadians(BlockPos fromPos, BlockPos toPos) {
       return (float)Math.Atan2(fromPos.X - toPos.X, fromPos.Z - toPos.Z);
@@ -113,7 +113,7 @@ namespace Compass {
       if (target == EnumItemRenderTarget.Gui || target == EnumItemRenderTarget.HandFp) {
         if (HasPosSet(itemstack)) {
           var player = capi.World.Player;
-          angle = GetNeedleAngleRadians(player.Entity.Pos.AsBlockPos) - player.CameraYaw;
+          angle = GetNeedleAngleRadians(player.Entity.Pos.AsBlockPos, itemstack) - player.CameraYaw;
         }
         else {
           angle = null; // e.g. compass is being rendered in Handbook

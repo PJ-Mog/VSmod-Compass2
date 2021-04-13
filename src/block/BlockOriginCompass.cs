@@ -5,7 +5,7 @@ using Vintagestory.API.MathTools;
 
 namespace Compass {
   class BlockOriginCompass : BlockCompass {
-    public override float GetNeedleAngleRadians(BlockPos fromPos) {
+    public override float GetNeedleAngleRadians(BlockPos fromPos, ItemStack compass) {
       var originPos = api.World.DefaultSpawnPosition.AsBlockPos;
       return GetAngleRadians(fromPos, originPos);
     }

@@ -5,16 +5,8 @@ using Vintagestory.API.MathTools;
 
 namespace Compass {
   class BlockRelativeCompass : BlockCompass {
-    private BlockPos targetPos;
-
-    public override float GetNeedleAngleRadians(BlockPos fromPos) {
-      if (targetPos == null) return 0;
-      return GetAngleRadians(fromPos, this.targetPos);
-    }
-
-    public override void OnBlockPlaced(IWorldAccessor world, BlockPos blockPos, ItemStack byItemStack = null) {
-      this.targetPos = GetCompassCraftedPos(byItemStack);
-      base.OnBlockPlaced(world, blockPos, byItemStack);
+    public override float GetNeedleAngleRadians(BlockPos fromPos, ItemStack compass) {
+      return GetAngleRadians(fromPos, GetCompassCraftedPos(compass));
     }
   }
 }
