@@ -12,7 +12,7 @@
   "behaviors": [ { "name": "RightClickPickup" }, { "name": "Unstable", "properties": { "attachedToFaces": ["down"] } } ],
   "blockmaterial": "Ceramic",
   "resistance": "0.75",
-  "creativeinventory": { "general": ["*"], "blocks": ["*"] },
+  "creativeinventory": { "general": ["*"] },
   "shape": { "base": "block/compass/base" },
   "texturesByType": {
     "all": { "base": { "base": "game:block/clay/ceramic-dark" } },
@@ -34,7 +34,7 @@
   },
   "fpHandTransform": {
     "translation": { "x": -0.35, "y": 0.4, "z": 0 },
-    "rotation": { "x": 174, "y": 104, "z": -140 },
+    "rotation": { "x": 174, "y": 45, "z": -140 },
     "scale": 1.76
   },
   "guiTransform": {
