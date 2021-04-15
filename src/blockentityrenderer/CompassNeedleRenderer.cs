@@ -10,7 +10,7 @@ namespace Compass {
         MeshRef meshref;
         public Matrixf ModelMat = new Matrixf();
 
-        public float AngleRad = 0;
+        public float? AngleRad = 0;
 
         public CompassNeedleRenderer(ICoreClientAPI coreClientAPI, BlockPos pos, MeshData mesh) {
             this.api = coreClientAPI;
@@ -43,12 +43,13 @@ namespace Compass {
             IStandardShaderProgram prog = rpi.PreparedStandardShader(pos.X, pos.Y, pos.Z);
             prog.Tex2D = api.BlockTextureAtlas.AtlasTextureIds[0];
 
+            var renderAngle = AngleRad ?? GetWildSpinAngle(api);
 
             prog.ModelMatrix = ModelMat
                 .Identity()
                 .Translate(pos.X - camPos.X, pos.Y - camPos.Y, pos.Z - camPos.Z)
                 .Translate(0.5f, 11f / 16f, 0.5f)
-                .RotateY(AngleRad)
+                .RotateY(renderAngle)
                 .Translate(-0.5f, -11f / 16f, -0.5f)
                 .Values
             ;
@@ -58,5 +59,9 @@ namespace Compass {
             rpi.RenderMesh(meshref);
             prog.Stop();
         }
+    private float GetWildSpinAngle(ICoreClientAPI api) {
+      var compass = api.World.BlockAccessor.GetBlock(pos) as BlockCompass;
+      return compass.GetWildSpinAngle(api);
     }
+  }
 }

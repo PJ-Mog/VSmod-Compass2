@@ -123,10 +123,15 @@ namespace Compass {
         // TODO: think of a good solution for Ground and HandTp
         angle = null;
       }
-      double milli = capi.World.ElapsedMilliseconds;
-      float resolvedAngle = angle ?? ((float)(milli / 500) + ((float)Math.Sin(milli / 150)) + ((float)Math.Sin(milli / 432)) * 3);
+      float resolvedAngle = angle ?? GetWildSpinAngle(capi);
       var bestMeshrefIndex = (int)GameMath.Mod(resolvedAngle / (Math.PI * 2) * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
       renderinfo.ModelRef = meshrefs[bestMeshrefIndex];
+    }
+
+    public virtual float GetWildSpinAngle(ICoreAPI api) {
+      double milli = api.World.ElapsedMilliseconds;
+      float angle = (float)((milli / 500) + (Math.Sin(milli / 150)) + (Math.Sin(milli / 432)) * 3);
+      return angle;
     }
   }
 }

@@ -8,19 +8,19 @@ namespace Compass {
   public class BlockEntityCompass : BlockEntity {
     internal BlockCompass ownBlock;
     internal BlockPos compassCraftedPos;
-    internal float AngleRad;
+    internal float? AngleRad;
     CompassNeedleRenderer renderer;
 
     public override void Initialize(ICoreAPI api)
     {
       base.Initialize(api);
-      
+
       this.ownBlock = Api.World.BlockAccessor.GetBlock(Pos) as BlockCompass;
 
       if (api.Side == EnumAppSide.Client)
       {
         renderer = new CompassNeedleRenderer(api as ICoreClientAPI, Pos, GenMesh("needle"));
-        renderer.AngleRad = this.AngleRad;
+        renderer.AngleRad = AngleRad;
         (api as ICoreClientAPI).Event.RegisterRenderer(renderer, EnumRenderStage.Opaque, "compass");
       }
     }
@@ -69,7 +69,7 @@ namespace Compass {
       var y = tree.GetInt("craftedY");
       var z = tree.GetInt("craftedZ");
       this.compassCraftedPos = new BlockPos(x, y, z);
-      this.AngleRad = tree.GetFloat("AngleRad");
+      this.AngleRad = tree.TryGetFloat("AngleRad");
       if (worldAccessForResolve.Api.Side == EnumAppSide.Client) {
         if (compassBaseMesh == null) {
           GenMesh("base");
@@ -87,7 +87,7 @@ namespace Compass {
       tree.SetInt("craftedX", this.compassCraftedPos.X);
       tree.SetInt("craftedY", this.compassCraftedPos.Y);
       tree.SetInt("craftedZ", this.compassCraftedPos.Z);
-      tree.SetFloat("AngleRad", this.AngleRad);
+      if (this.AngleRad != null) tree.SetFloat("AngleRad", (float)this.AngleRad);
     }
 
     public override void OnBlockUnloaded() {
