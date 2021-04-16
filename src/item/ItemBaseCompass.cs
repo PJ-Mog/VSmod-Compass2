@@ -2,6 +2,7 @@ using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace Compass {
@@ -89,6 +90,19 @@ namespace Compass {
       var bestMeshrefIndex = (int)GameMath.Mod(resolvedAngle / (Math.PI * 2) * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
       renderinfo.ModelRef = meshrefs[bestMeshrefIndex];
     }
-
+    public override ItemStack OnTransitionNow(ItemSlot slot, TransitionableProperties props) {
+      ItemStack placeableCompass = props.TransitionedStack.ResolvedItemstack;
+      if (!slot.Empty) {
+        var x = slot.Itemstack?.Attributes.TryGetInt("compass-target-x");
+        var z = slot.Itemstack?.Attributes.TryGetInt("compass-target-z");
+        if (x != null && z != null) {
+          var targetPos = new BlockPos((int)x, 0, (int)z);
+          var y = ((ICoreServerAPI)api).World.BlockAccessor.GetTerrainMapheightAt(targetPos);
+          targetPos.Y = y;
+          BlockCompass.SetCompassCraftedPos(placeableCompass, targetPos);
+        }
+      }
+      return placeableCompass;
+    }
   }
 }
