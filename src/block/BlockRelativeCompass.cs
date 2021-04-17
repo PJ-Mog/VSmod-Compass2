@@ -3,9 +3,12 @@ using Vintagestory.API.MathTools;
 
 namespace Compass {
   class BlockRelativeCompass : BlockCompass {
-    private static AssetLocation update = new AssetLocation("compass:recipes/grid/update.json");
-    public override float GetNeedleAngleRadians(BlockPos fromPos, ItemStack compass) {
-      return GetAngleRadians(fromPos, GetCompassCraftedPos(compass));
+    public override float GetNeedle2DAngleRadians(BlockPos fromPos, ItemStack compassStack) {
+      return Get2DAngleRadians(fromPos, GetTargetPos(compassStack));
+    }
+
+    public override BlockPos GetTargetPos(ItemStack compassStack) {
+      return GetCompassCraftedPos(compassStack);
     }
   }
 }

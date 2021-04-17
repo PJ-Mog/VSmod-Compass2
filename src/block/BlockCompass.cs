@@ -8,9 +8,15 @@ using Vintagestory.API.Util;
 namespace Compass {
   abstract class BlockCompass : Block {
     int MAX_ANGLED_MESHES = 60;
+    protected static string ATTR_INT_CRAFTED_POS_X = "compass-crafted-x";
+    protected static string ATTR_INT_CRAFTED_POS_Y = "compass-crafted-y";
+    protected static string ATTR_INT_CRAFTED_POS_Z = "compass-crafted-z";
     MeshRef[] meshrefs;
-    MeshData BaseMesh;
-    MeshData NeedleMesh;
+
+    protected virtual float MIN_DISTANCE_TO_SHOW_DIRECTION {
+      get { return 2; }
+    }
+
     public override void OnLoaded(ICoreAPI api) {
       if (api.Side == EnumAppSide.Client) {
         OnLoadedClientSide(api as ICoreClientAPI);
@@ -54,15 +60,26 @@ namespace Compass {
       }
     }
 
-    public abstract float GetNeedleAngleRadians(BlockPos fromPos, ItemStack compass);
+    public abstract float GetNeedle2DAngleRadians(BlockPos fromPos, ItemStack compass);
 
-    protected static float GetAngleRadians(BlockPos fromPos, BlockPos toPos) {
+    protected static float Get2DAngleRadians(BlockPos fromPos, BlockPos toPos) {
       return (float)Math.Atan2(fromPos.X - toPos.X, fromPos.Z - toPos.Z);
     }
 
+    public virtual float Get2DDistanceToTarget(BlockPos fromPos, ItemStack compassStack) {
+      var targetPos = GetTargetPos(compassStack);
+      if (targetPos == null) return float.MaxValue;
+      var dX = fromPos.X - targetPos.X;
+      var dZ = fromPos.Z - targetPos.Z;
+      return (float)Math.Sqrt(dX * dX + dZ * dZ);
+    }
+
+    // Should return null if either the target is not set or if the target is not a discrete position.
+    public abstract BlockPos GetTargetPos(ItemStack compassStack);
+
     public override void OnModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {
       if (world.Side == EnumAppSide.Server) {
-        if (!HasPosSet(slot.Itemstack)) {
+        if (!IsCrafted(slot.Itemstack)) {
           var player = (slot.Inventory as InventoryBasePlayer)?.Player;
           if (player != null) {
             SetCompassCraftedPos(slot.Itemstack, player.Entity.Pos.AsBlockPos);
@@ -90,41 +107,41 @@ namespace Compass {
 
     public static void SetCompassCraftedPos(ItemStack compassStack, BlockPos pos) {
       var attrs = compassStack.Attributes;
-      attrs.SetInt("compass-crafted-x", pos.X);
-      attrs.SetInt("compass-crafted-y", pos.Y);
-      attrs.SetInt("compass-crafted-z", pos.Z);
+      attrs.SetInt(ATTR_INT_CRAFTED_POS_X, pos.X);
+      attrs.SetInt(ATTR_INT_CRAFTED_POS_Y, pos.Y);
+      attrs.SetInt(ATTR_INT_CRAFTED_POS_Z, pos.Z);
     }
 
     public static BlockPos GetCompassCraftedPos(ItemStack compassStack) {
       var attrs = compassStack.Attributes;
-      var x = attrs.GetInt("compass-crafted-x");
-      var y = attrs.GetInt("compass-crafted-y");
-      var z = attrs.GetInt("compass-crafted-z");
-
-      return new BlockPos(x, y, z);
+      var x = attrs.TryGetInt(ATTR_INT_CRAFTED_POS_X);
+      var y = attrs.TryGetInt(ATTR_INT_CRAFTED_POS_Y);
+      var z = attrs.TryGetInt(ATTR_INT_CRAFTED_POS_Z);
+      if (x == null || y == null || z == null) return null;
+      return new BlockPos((int)x, (int)y, (int)z);
     }
 
-    public static bool HasPosSet(ItemStack compassStack) {
-      return compassStack.Attributes.HasAttribute("compass-crafted-z");
+    public static bool IsCrafted(ItemStack compassStack) {
+      return compassStack.Attributes.HasAttribute(ATTR_INT_CRAFTED_POS_X);
     }
 
-    public override void OnBeforeRender(ICoreClientAPI capi, ItemStack itemstack, EnumItemRenderTarget target, ref ItemRenderInfo renderinfo) {
-      float? angle = null;
-      if (target == EnumItemRenderTarget.Gui || target == EnumItemRenderTarget.HandFp) {
-        if (HasPosSet(itemstack)) {
-          var player = capi.World.Player;
-          angle = GetNeedleAngleRadians(player.Entity.Pos.AsBlockPos, itemstack) - player.CameraYaw;
-        }
-        else {
-          angle = null; // e.g. compass is being rendered in Handbook
-        }
+    protected virtual bool ShouldPointToTarget(ICoreClientAPI capi, ItemStack compassStack, EnumItemRenderTarget renderTarget) {
+      return (renderTarget == EnumItemRenderTarget.Gui || renderTarget == EnumItemRenderTarget.HandFp)
+             && IsCrafted(compassStack)
+             && Get2DDistanceToTarget(capi.World.Player.Entity.Pos.AsBlockPos, compassStack) >= MIN_DISTANCE_TO_SHOW_DIRECTION;
+    }
+
+    public override void OnBeforeRender(ICoreClientAPI capi, ItemStack compassStack, EnumItemRenderTarget renderTarget, ref ItemRenderInfo renderinfo) {
+      float angle;
+      if (ShouldPointToTarget(capi, compassStack, renderTarget)) {
+        var player = capi.World.Player;
+        angle = GetNeedle2DAngleRadians(player.Entity.Pos.AsBlockPos, compassStack) - player.CameraYaw;
       }
       else {
         // TODO: think of a good solution for Ground and HandTp
-        angle = null;
+        angle = GetWildSpinAngle(capi);
       }
-      float resolvedAngle = angle ?? GetWildSpinAngle(capi);
-      var bestMeshrefIndex = (int)GameMath.Mod(resolvedAngle / (Math.PI * 2) * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
+      var bestMeshrefIndex = (int)GameMath.Mod(angle / (Math.PI * 2) * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
       renderinfo.ModelRef = meshrefs[bestMeshrefIndex];
     }
 
