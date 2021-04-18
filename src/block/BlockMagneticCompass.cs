@@ -10,5 +10,9 @@ namespace Compass {
     public override BlockPos GetTargetPos(ItemStack compassStack) {
       return null;
     }
+
+    public override void SetTargetPos(ItemStack compassStack, BlockPos targetPos) {
+      return;
+    }
   }
 }

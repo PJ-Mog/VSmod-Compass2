@@ -93,14 +93,8 @@ namespace Compass {
     public override ItemStack OnTransitionNow(ItemSlot slot, TransitionableProperties props) {
       ItemStack placeableCompass = props.TransitionedStack.ResolvedItemstack;
       if (!slot.Empty) {
-        var x = slot.Itemstack?.Attributes.TryGetInt("compass-target-x");
-        var z = slot.Itemstack?.Attributes.TryGetInt("compass-target-z");
-        if (x != null && z != null) {
-          var targetPos = new BlockPos((int)x, 0, (int)z);
-          var y = ((ICoreServerAPI)api).World.BlockAccessor.GetTerrainMapheightAt(targetPos);
-          targetPos.Y = y;
-          BlockCompass.SetCompassCraftedPos(placeableCompass, targetPos);
-        }
+        BlockCompass.SetIsCrafted(placeableCompass, slot.Itemstack.Attributes.HasAttribute("compass-owned"));
+        BlockCompass.SetCraftedByPlayerUID(placeableCompass, BlockCompass.UNKNOWN_PLAYER_UID);
       }
       return placeableCompass;
     }

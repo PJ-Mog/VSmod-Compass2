@@ -1,6 +1,8 @@
 using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 
 namespace Compass {
   class ItemRelativeCompass : ItemBaseCompass {
@@ -31,6 +33,19 @@ namespace Compass {
       if (dX * dX + dZ * dZ < 2 * 2) { return null; }
 
       return Math.Atan2(dX, dZ) - capi.World.Player.CameraYaw;
+    }
+
+    public override ItemStack OnTransitionNow(ItemSlot slot, TransitionableProperties props) {
+      ItemStack compassStack = base.OnTransitionNow(slot, props);
+      var x = slot.Itemstack?.Attributes.TryGetInt("compass-target-x");
+      var z = slot.Itemstack?.Attributes.TryGetInt("compass-target-z");
+      if (x != null && z != null) {
+        var targetPos = new BlockPos((int)x, 0, (int)z);
+        var y = ((ICoreServerAPI)api).World.BlockAccessor.GetTerrainMapheightAt(targetPos);
+        targetPos.Y = y;
+        (compassStack.Collectible as BlockCompass).SetTargetPos(compassStack, targetPos);
+      }
+      return base.OnTransitionNow(slot, props);
     }
   }
 }

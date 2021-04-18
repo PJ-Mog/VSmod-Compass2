@@ -1,7 +1,6 @@
 using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 
@@ -20,9 +19,13 @@ namespace Compass {
 
   abstract class BlockCompass : Block {
     int MAX_ANGLED_MESHES = 60;
-    protected static string ATTR_INT_CRAFTED_POS_X = "compass-crafted-x";
-    protected static string ATTR_INT_CRAFTED_POS_Y = "compass-crafted-y";
-    protected static string ATTR_INT_CRAFTED_POS_Z = "compass-crafted-z";
+    public static readonly string ATTR_BOOL_CRAFTED = "compass-is-crafted";
+    public static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
+    public static readonly string ATTR_INT_TARGET_POS_X = "compass-target-x";
+    public static readonly string ATTR_INT_TARGET_POS_Y = "compass-target-y";
+    public static readonly string ATTR_INT_TARGET_POS_Z = "compass-target-z";
+
+    internal static readonly string UNKNOWN_PLAYER_UID = "UNKNOWN";
     MeshRef[] meshrefs;
 
     protected virtual float MIN_DISTANCE_TO_SHOW_DIRECTION {
@@ -72,69 +75,103 @@ namespace Compass {
       }
     }
 
-    public abstract float GetNeedle2DAngleRadians(BlockPos fromPos, ItemStack compass);
+    public virtual float GetNeedle2DAngleRadians(BlockPos fromPos, ItemStack compassStack) {
+      return Get2DAngleRadians(fromPos, GetTargetPos(compassStack));
+    }
 
     protected static float Get2DAngleRadians(BlockPos fromPos, BlockPos toPos) {
       return (float)Math.Atan2(fromPos.X - toPos.X, fromPos.Z - toPos.Z);
     }
 
     public virtual float Get2DDistanceToTarget(BlockPos fromPos, ItemStack compassStack) {
+      // if the compass's target is not a discrete location, distance is max value
       var targetPos = GetTargetPos(compassStack);
       if (targetPos == null) return float.MaxValue;
+
       var dX = fromPos.X - targetPos.X;
       var dZ = fromPos.Z - targetPos.Z;
       return (float)Math.Sqrt(dX * dX + dZ * dZ);
     }
 
     // Should return null if either the target is not set or if the target is not a discrete position.
-    public abstract BlockPos GetTargetPos(ItemStack compassStack);
-
-    public override void OnModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {
-      if (world.Side == EnumAppSide.Server) {
-        if (!IsCrafted(slot.Itemstack)) {
-          var player = (slot.Inventory as InventoryBasePlayer)?.Player;
-          if (player != null) {
-            SetCompassCraftedPos(slot.Itemstack, player.Entity.Pos.AsBlockPos);
-          }
-        }
-      }
+    public virtual BlockPos GetTargetPos(ItemStack compassStack) {
+      if (compassStack == null) return null;
+      var attrs = compassStack.Attributes;
+      var x = attrs.TryGetInt(ATTR_INT_TARGET_POS_X);
+      var y = attrs.TryGetInt(ATTR_INT_TARGET_POS_Y);
+      var z = attrs.TryGetInt(ATTR_INT_TARGET_POS_Z);
+      if (x == null || y == null || z == null) return null;
+      return new BlockPos((int)x, (int)y, (int)z);
     }
 
+    public virtual void SetTargetPos(ItemStack compassStack, BlockPos targetPos) {
+      if (compassStack == null || targetPos == null) return;
+      var attrs = compassStack.Attributes;
+      attrs.SetInt(ATTR_INT_TARGET_POS_X, targetPos.X);
+      attrs.SetInt(ATTR_INT_TARGET_POS_Y, targetPos.Y);
+      attrs.SetInt(ATTR_INT_TARGET_POS_Z, targetPos.Z);
+    }
+
+    // Sealed to ensure inheriting classes always call certain functions to properly detect when a compass is created and placed in a player's inventory.
+    // Override #OnBeforeModifiedInInventorySlot, #OnSuccessfullyCrafted, and/or #OnAfterModifiedInInventorySlot instead.
+    sealed public override void OnModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {
+      OnBeforeModifiedInInventorySlot(world, slot, extractedStack);
+      var player = (slot.Inventory as InventoryBasePlayer)?.Player;
+      if (world.Side == EnumAppSide.Server && !IsCrafted(slot.Itemstack) && player != null) {
+        SetIsCrafted(slot.Itemstack, true);
+        SetCraftedByPlayerUID(slot.Itemstack, player.PlayerUID);
+        OnSuccessfullyCrafted(world, slot, extractedStack);
+      }
+      OnAfterModifiedInInventorySlot(world, slot, extractedStack);
+    }
+
+    public virtual void OnBeforeModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {}
+    public virtual void OnAfterModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {}
+
     public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos) {
-      ItemStack stack = base.OnPickBlock(world, pos);
+      ItemStack compassStack = base.OnPickBlock(world, pos);
 
       BlockEntityCompass bec = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityCompass;
 
       if (bec != null)
       {
-        SetCompassCraftedPos(stack, bec.compassCraftedPos);
+        SetIsCrafted(compassStack, bec.IsCrafted);
+        SetCraftedByPlayerUID(compassStack, bec.CraftedByPlayerUID);
+        SetTargetPos(compassStack, bec.TargetPos);
       }
 
-      return stack;
+      return compassStack;
     }
 
     public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
       return new ItemStack[] { OnPickBlock(world, pos) };
     }
 
-    public static void SetCompassCraftedPos(ItemStack compassStack, BlockPos pos) {
-      var attrs = compassStack.Attributes;
-      attrs.SetInt(ATTR_INT_CRAFTED_POS_X, pos.X);
-      attrs.SetInt(ATTR_INT_CRAFTED_POS_Y, pos.Y);
-      attrs.SetInt(ATTR_INT_CRAFTED_POS_Z, pos.Z);
+    // Called from OnModifiedInInventorySlot (server side) when the compass is first placed into a player's inventory and successfully marked as crafted
+    public virtual void OnSuccessfullyCrafted(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {
+      var player = (slot.Inventory as InventoryBasePlayer)?.Player;
+      if (player == null) return;
+      SetTargetPos(slot.Itemstack, player.Entity.Pos.AsBlockPos);
     }
 
-    public static BlockPos GetCompassCraftedPos(ItemStack compassStack) {
-      var attrs = compassStack.Attributes;
-      var x = attrs.TryGetInt(ATTR_INT_CRAFTED_POS_X);
-      var y = attrs.TryGetInt(ATTR_INT_CRAFTED_POS_Y);
-      var z = attrs.TryGetInt(ATTR_INT_CRAFTED_POS_Z);
-      if (x == null || y == null || z == null) return null;
-      return new BlockPos((int)x, (int)y, (int)z);
+    internal static bool SetIsCrafted(ItemStack compassStack, bool isCrafted) {
+      if (compassStack == null) return false;
+      compassStack.Attributes.SetBool(ATTR_BOOL_CRAFTED, isCrafted);
+      return true;
     }
 
     public static bool IsCrafted(ItemStack compassStack) {
-      return compassStack.Attributes.HasAttribute(ATTR_INT_CRAFTED_POS_X);
+      return compassStack?.Attributes.GetBool(ATTR_BOOL_CRAFTED) ?? false;
+    }
+
+    internal static bool SetCraftedByPlayerUID(ItemStack compassStack, string craftedByPlayerUID) {
+      if (compassStack == null || craftedByPlayerUID == null || craftedByPlayerUID.Length == 0) return false;
+      compassStack.Attributes.SetString(ATTR_STR_CRAFTED_BY_PLAYER_UID, craftedByPlayerUID);
+      return true;
+    }
+
+    public static string GetCraftedByPlayerUID(ItemStack compassStack) {
+      return compassStack?.Attributes.GetString(ATTR_STR_CRAFTED_BY_PLAYER_UID);
     }
 
     public virtual bool ShouldPointToTarget(BlockPos fromPos, ItemStack compassStack) {
