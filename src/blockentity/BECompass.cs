@@ -30,7 +30,9 @@ namespace Compass {
 
       if (blockCompass != null) {
         this.compassCraftedPos = BlockCompass.GetCompassCraftedPos(byItemStack);
-        this.AngleRad = blockCompass.GetNeedle2DAngleRadians(Pos, byItemStack);
+        if (byItemStack != null && blockCompass.ShouldPointToTarget(Pos, byItemStack)) {
+          this.AngleRad = blockCompass.GetNeedle2DAngleRadians(Pos, byItemStack);
+        }
       }
       if (Api.Side == EnumAppSide.Client) {
         this.renderer.AngleRad = this.AngleRad;

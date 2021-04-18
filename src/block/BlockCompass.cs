@@ -6,6 +6,18 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 
 namespace Compass {
+  public enum EnumTargetType : int {
+    Stationary = 0,
+    MovingFrequentUpdate = 500,
+    Moving = 1000,
+    MovingInfrequentUpdate = 5000
+  }
+
+  public static class EnumTargetTypeExtensions {
+    public static bool IsDynamicTarget(this EnumTargetType targetType) { return targetType != EnumTargetType.Stationary; }
+    public static int GetUpdateFrequencyMillis(this EnumTargetType targetType) { return (int)targetType; }
+  }
+
   abstract class BlockCompass : Block {
     int MAX_ANGLED_MESHES = 60;
     protected static string ATTR_INT_CRAFTED_POS_X = "compass-crafted-x";
@@ -125,16 +137,15 @@ namespace Compass {
       return compassStack.Attributes.HasAttribute(ATTR_INT_CRAFTED_POS_X);
     }
 
-    protected virtual bool ShouldPointToTarget(ICoreClientAPI capi, ItemStack compassStack, EnumItemRenderTarget renderTarget) {
-      return (renderTarget == EnumItemRenderTarget.Gui || renderTarget == EnumItemRenderTarget.HandFp)
-             && IsCrafted(compassStack)
-             && Get2DDistanceToTarget(capi.World.Player.Entity.Pos.AsBlockPos, compassStack) >= MIN_DISTANCE_TO_SHOW_DIRECTION;
+    public virtual bool ShouldPointToTarget(BlockPos fromPos, ItemStack compassStack) {
+      return IsCrafted(compassStack)
+             && Get2DDistanceToTarget(fromPos, compassStack) >= MIN_DISTANCE_TO_SHOW_DIRECTION;
     }
 
     public override void OnBeforeRender(ICoreClientAPI capi, ItemStack compassStack, EnumItemRenderTarget renderTarget, ref ItemRenderInfo renderinfo) {
       float angle;
-      if (ShouldPointToTarget(capi, compassStack, renderTarget)) {
-        var player = capi.World.Player;
+      var player = capi.World.Player;
+      if ((renderTarget == EnumItemRenderTarget.Gui || renderTarget == EnumItemRenderTarget.HandFp) && ShouldPointToTarget(player.Entity.Pos.AsBlockPos, compassStack)) {
         angle = GetNeedle2DAngleRadians(player.Entity.Pos.AsBlockPos, compassStack) - player.CameraYaw;
       }
       else {
@@ -145,7 +156,7 @@ namespace Compass {
       renderinfo.ModelRef = meshrefs[bestMeshrefIndex];
     }
 
-    public virtual float GetWildSpinAngle(ICoreAPI api) {
+    public static float GetWildSpinAngle(ICoreAPI api) {
       double milli = api.World.ElapsedMilliseconds;
       float angle = (float)((milli / 500) + (Math.Sin(milli / 150)) + (Math.Sin(milli / 432)) * 3);
       return angle;
