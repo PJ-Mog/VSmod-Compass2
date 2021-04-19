@@ -1,11 +1,13 @@
 {
-  "ingredientPattern": "G,C,G",
-  "width": 1,
+  "name": "compass-origin",
+  "ingredientPattern": "CG_______",
+  "width": 3,
   "height": 3,
   "ingredients": {
     "G": {"type": "item", "code": "game:gear-temporal" },
     "C": {"type": "block", "code": "compass-placeable-magnetic" }
   },
+  "shapeless": true,
   "output": {
     "type": "block",
     "code": "compass-placeable-origin"
