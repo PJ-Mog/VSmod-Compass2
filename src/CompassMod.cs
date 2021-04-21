@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using HarmonyLib;
-using ProtoBuf;
-using Vintagestory.API.Client;
-using Vintagestory.API.Common;
-using Vintagestory.API.Config;
+﻿using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
-using Vintagestory.Client.NoObf;
-using Vintagestory.Common;
 
 [assembly: ModInfo("Compass")]
 
 namespace Compass {
   public class CompassMod : ModSystem {
     private ModConfig config;
+
+    private AssetLocation scrapRecipeAssetLoc = new AssetLocation("compass", "recipes/grid/compass-magnetic-from-scrap.json");
+    private AssetLocation originRecipeAssetLoc = new AssetLocation("compass", "recipes/grid/compass-origin.json");
+    private AssetLocation relativeRecipeAssetLoc = new AssetLocation("compass", "recipes/grid/compass-relative.json");
+
     public override void Start(ICoreAPI api) {
       api.Logger.Debug("[Compass] Start");
       base.Start(api);
@@ -32,21 +29,26 @@ namespace Compass {
       api.RegisterBlockEntityClass("BlockEntityCompass", typeof(BlockEntityCompass));
 
       if (api.Side == EnumAppSide.Server) {
-        ((ICoreServerAPI)api).Event.ServerRunPhase(EnumServerRunPhase.GameReady, () => {
-          var compassRecipes = ((ICoreServerAPI)api).World.GridRecipes.FindAll(r => r.Name.Domain == "compass");
-          var originRecipe = compassRecipes.Find(r => r.Name.ToShortString().Contains("origin"));
-          var relativeRecipe = compassRecipes.Find(r => r.Name.ToShortString().Contains("relative"));
-          var scrapRecipe = compassRecipes.Find(r => r.Name.ToShortString().Contains("scrap"));
+        var sapi = (ICoreServerAPI)api;
+        sapi.Event.ServerRunPhase(EnumServerRunPhase.GameReady, () => {
+          var compassModGridRecipes = sapi.World.GridRecipes.FindAll(gr => gr.Name.Domain == "compass");
+          var scrap = compassModGridRecipes.Find(gr => gr.Name.Path == scrapRecipeAssetLoc.Path);
+          var origin = compassModGridRecipes.Find(gr => gr.Name.Path == originRecipeAssetLoc.Path);
+          var relative = compassModGridRecipes.Find(gr => gr.Name.Path == relativeRecipeAssetLoc.Path);
 
-          originRecipe.IngredientPattern = "C".PadRight(config.OriginCompassGears + 1, 'G').PadRight(9, '_');
-          originRecipe.ResolveIngredients(api.World);
-          originRecipe.Enabled = config.EnableOriginRecipe;
+          if (!config.EnableScrapRecipe) sapi.World.GridRecipes.Remove(scrap);
 
-          relativeRecipe.IngredientPattern = "C".PadRight(config.RelativeCompassGears + 1, 'G').PadRight(9, '_');
-          relativeRecipe.ResolveIngredients(api.World);
-          relativeRecipe.Enabled = config.EnableRelativeRecipe;
+          if (!config.EnableOriginRecipe) sapi.World.GridRecipes.Remove(origin);
+          else {
+            origin.IngredientPattern = "C".PadRight(GameMath.Clamp(config.OriginCompassGears, 1, 8) + 1, 'G').PadRight(9, '_');
+            origin.ResolveIngredients(sapi.World);
+          }
 
-          scrapRecipe.Enabled = config.EnableScrapRecipe;
+          if (!config.EnableRelativeRecipe) sapi.World.GridRecipes.Remove(relative);
+          else {
+            relative.IngredientPattern = "C".PadRight(GameMath.Clamp(config.RelativeCompassGears, 1, 8) + 1, 'G').PadRight(9, '_');
+            relative.ResolveIngredients(sapi.World);
+          }
         });
       }
     }
