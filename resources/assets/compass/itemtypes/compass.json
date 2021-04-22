@@ -8,7 +8,7 @@
     "*-relative": "ItemRelativeCompass",
     "*-origin": "ItemOriginCompass",
   },
-  creativeinventory: { general: ['*'], items: ["*"] },
+  creativeinventory: { general: [''], items: [""] },
   shape: { base: 'item/compass-base' },
   maxstacksize: 1,
   glowLevelByType: {
@@ -35,5 +35,12 @@
   tpHandTransform: {
     translation: { x: -2.1, y: -1.6, z: -1.4 },
     rotation: { x: 0, y: 0, z: -69 }
-  }
+  },
+  "transitionableProps": [{
+    "type": "cure",
+    "freshHours": { "avg": 0 },
+    "transitionHours": { "avg": 0.01 },
+    "transitionedStack": { "type": "block", "code": "compass:compass-placeable-{type}" },
+    "transitionRatio": 1
+  }]
 }

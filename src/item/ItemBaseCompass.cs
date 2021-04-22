@@ -2,6 +2,7 @@ using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace Compass {
@@ -38,6 +39,15 @@ namespace Compass {
 
       // handle weird bug in VS where GUI shapes are drawn as mirror images: https://github.com/anegostudios/VintageStory-Issues/issues/839
       GuiTransform.ScaleXYZ.X *= -1;
+    }
+
+    public override void OnUnloaded(ICoreAPI api) {
+      if (api.Side == EnumAppSide.Client) {
+        for (var meshIndex = 0; meshIndex < MAX_ANGLED_MESHES; meshIndex += 1) {
+          meshrefs[meshIndex]?.Dispose();
+          meshrefs[meshIndex] = null;
+        }
+      }
     }
 
     public abstract Shape GetNeedleShape();
@@ -80,6 +90,13 @@ namespace Compass {
       var bestMeshrefIndex = (int)GameMath.Mod(resolvedAngle / (Math.PI * 2) * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
       renderinfo.ModelRef = meshrefs[bestMeshrefIndex];
     }
-
+    public override ItemStack OnTransitionNow(ItemSlot slot, TransitionableProperties props) {
+      ItemStack placeableCompass = props.TransitionedStack.ResolvedItemstack;
+      if (!slot.Empty) {
+        BlockCompass.SetIsCrafted(placeableCompass, slot.Itemstack.Attributes.HasAttribute("compass-owned"));
+        BlockCompass.SetCraftedByPlayerUID(placeableCompass, BlockCompass.UNKNOWN_PLAYER_UID);
+      }
+      return placeableCompass;
+    }
   }
 }

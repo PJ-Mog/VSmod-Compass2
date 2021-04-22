@@ -1,5 +1,11 @@
 {
-  "item-compass-magnetic": "Magnetic Compass",
-  "item-compass-relative": "Relative Compass",
-  "item-compass-origin": "Origin Compass",
+  "item-compass-magnetic": "Magnetic Compass [DEPRECATED]",
+  "itemdesc-compass-magnetic": "Older version of compass, should automatically convert in a moment.",
+  "item-compass-relative": "Relative Compass [DEPRECATED]",
+  "itemdesc-compass-relative": "Older version of compass, should automatically convert in a moment.",
+  "item-compass-origin": "Origin Compass [DEPRECATED]",
+  "itemdesc-compass-origin": "Older version of compass, should automatically convert in a moment..",
+  "block-compass-placeable-magnetic": "Magnetic Compass",
+  "block-compass-placeable-relative": "Relative Compass",
+  "block-compass-placeable-origin": "Origin Compass"
 }

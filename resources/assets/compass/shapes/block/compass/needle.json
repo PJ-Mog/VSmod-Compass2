@@ -1,0 +1,31 @@
+{
+	"editor": {
+		"allAngles": false,
+		"entityTextureMode": true
+	},
+	"textureWidth": 16,
+	"textureHeight": 16,
+	"textureSizes": {
+	},
+	"textures": {
+		"needle": "game:item/resource/nugget/magnetite"
+	},
+	"elements": [
+    {
+      "name": "needle",
+      "from": [ 7.5007, 1.0, 7.4993 ], 
+      "to": [ 10.5007, 2.0, 8.4993 ], 
+      "uv": [ 8.0, 0.0 ],
+      "rotationOrigin": [ 8.0, 1.5, 8.0 ],
+      "rotationY": 90,
+      "faces": {
+        "north": { "texture": "#needle", "uv": [ 8.0, 1.0, 11.0, 2.0 ] },
+        "east": { "texture": "#needle", "uv": [ 11.0, 1.0, 12.0, 2.0 ] },
+        "south": { "texture": "#needle", "uv": [ 12.0, 1.0, 15.0, 2.0 ] },
+        "west": { "texture": "#needle", "uv": [ 15.0, 1.0, 16.0, 2.0 ] },
+        "up": { "texture": "#needle", "uv": [ 8.0, 0.0, 11.0, 1.0 ] },
+        "down": { "texture": "#needle", "uv": [ 11.0, 0.0, 14.0, 1.0 ] }
+      }
+    }
+  ]
+}
