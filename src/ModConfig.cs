@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 
 namespace Compass {
   public class ModConfig {
@@ -17,6 +18,8 @@ namespace Compass {
     public int OriginCompassGears = 2;
     public string RelativeCompassGearsDesc = "Number of Temporal Gears required to craft the Relative Compass. Min: 1, Max: 8";
     public int RelativeCompassGears = 2;
+    public string AllowCompassesInOffhandDesc = "Allow a player to place a compass in their offhand slot.";
+    public bool AllowCompassesInOffhand = true;
 
     // static helper methods
     public static string filename = "CompassMod.json";
@@ -65,6 +68,42 @@ namespace Compass {
     }
     public static void Save(ICoreAPI api, ModConfig config) {
       api.StoreModConfig(config, filename);
+    }
+
+    public static void ApplyConfigs(ICoreAPI api, ModConfig config) {
+      if (api.Side == EnumAppSide.Server) {
+        var sapi = (ICoreServerAPI)api;
+        sapi.Event.ServerRunPhase(EnumServerRunPhase.GameReady, () => {
+          var scrapRecipeAssetLoc = new AssetLocation("compass", "recipes/grid/compass-magnetic-from-scrap.json");
+          var originRecipeAssetLoc = new AssetLocation("compass", "recipes/grid/compass-origin.json");
+          var relativeRecipeAssetLoc = new AssetLocation("compass", "recipes/grid/compass-relative.json");
+          var compassModGridRecipes = sapi.World.GridRecipes.FindAll(gr => gr.Name.Domain == "compass");
+          var scrap = compassModGridRecipes.Find(gr => gr.Name.Path == scrapRecipeAssetLoc.Path);
+          var origin = compassModGridRecipes.Find(gr => gr.Name.Path == originRecipeAssetLoc.Path);
+          var relative = compassModGridRecipes.Find(gr => gr.Name.Path == relativeRecipeAssetLoc.Path);
+
+          if (!config.EnableScrapRecipe) sapi.World.GridRecipes.Remove(scrap);
+
+          if (!config.EnableOriginRecipe) sapi.World.GridRecipes.Remove(origin);
+          else {
+            origin.IngredientPattern = "C".PadRight(GameMath.Clamp(config.OriginCompassGears, 1, 8) + 1, 'G').PadRight(9, '_');
+            origin.ResolveIngredients(sapi.World);
+          }
+
+          if (!config.EnableRelativeRecipe) sapi.World.GridRecipes.Remove(relative);
+          else {
+            relative.IngredientPattern = "C".PadRight(GameMath.Clamp(config.RelativeCompassGears, 1, 8) + 1, 'G').PadRight(9, '_');
+            relative.ResolveIngredients(sapi.World);
+          }
+
+          if (config.AllowCompassesInOffhand) {
+            var allCompassModBlockAssetLocs = sapi.World.Collectibles.FindAll(c => c.Code.Domain.Equals("compass") && c.Code.ToShortString().Contains("compass"));
+            foreach (var collectible in allCompassModBlockAssetLocs) {
+              collectible.StorageFlags = collectible.StorageFlags | EnumItemStorageFlags.Offhand;
+            }
+          }
+        });
+      }
     }
   }
 }
