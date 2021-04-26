@@ -24,6 +24,10 @@ namespace Compass {
     public static readonly string ATTR_INT_TARGET_POS_X = "compass-target-x";
     public static readonly string ATTR_INT_TARGET_POS_Y = "compass-target-y";
     public static readonly string ATTR_INT_TARGET_POS_Z = "compass-target-z";
+    public static readonly string ATTR_INT_ENTITY_POS_X = "compass-entity-x";
+    public static readonly string ATTR_INT_ENTITY_POS_Y = "compass-entity-y";
+    public static readonly string ATTR_INT_ENTITY_POS_Z = "compass-entity-z";
+    public static readonly string ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
 
     internal static readonly string UNKNOWN_PLAYER_UID = "UNKNOWN";
     MeshRef[] meshrefs;
@@ -112,6 +116,33 @@ namespace Compass {
       attrs.SetInt(ATTR_INT_TARGET_POS_Z, targetPos.Z);
     }
 
+    public virtual BlockPos GetEntityPos(ItemStack compassStack) {
+      if (compassStack == null) return null;
+      var attrs = compassStack.Attributes;
+      var x = attrs.TryGetInt(ATTR_INT_ENTITY_POS_X);
+      var y = attrs.TryGetInt(ATTR_INT_ENTITY_POS_Y);
+      var z = attrs.TryGetInt(ATTR_INT_ENTITY_POS_Z);
+      if (x == null || y == null || z == null) return null;
+      return new BlockPos((int)x, (int)y, (int)z);
+    }
+
+    public virtual void SetEntityPos(ItemStack compassStack, BlockPos entityPos) {
+      if (compassStack == null || entityPos == null) return;
+      var attrs = compassStack.Attributes;
+      attrs.SetInt(ATTR_INT_ENTITY_POS_X, entityPos.X);
+      attrs.SetInt(ATTR_INT_ENTITY_POS_Y, entityPos.Y);
+      attrs.SetInt(ATTR_INT_ENTITY_POS_Z, entityPos.Z);
+    }
+
+    public virtual float GetEntityYaw(ItemStack compassStack) {
+      return compassStack?.Attributes.TryGetFloat(ATTR_FLOAT_ENTITY_YAW) ?? 0;
+    }
+
+    public virtual void SetEntityYaw(ItemStack compassStack, float entityYaw) {
+      if (compassStack == null) return;
+      compassStack.Attributes.SetFloat(ATTR_FLOAT_ENTITY_YAW, entityYaw);
+    }
+
     // Sealed to ensure inheriting classes always call certain functions to properly detect when a compass is created and placed in a player's inventory.
     // Override #OnBeforeModifiedInInventorySlot, #OnSuccessfullyCrafted, and/or #OnAfterModifiedInInventorySlot instead.
     sealed public override void OnModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {
@@ -181,12 +212,28 @@ namespace Compass {
 
     public override void OnBeforeRender(ICoreClientAPI capi, ItemStack compassStack, EnumItemRenderTarget renderTarget, ref ItemRenderInfo renderinfo) {
       float angle;
-      var player = capi.World.Player;
-      if ((renderTarget == EnumItemRenderTarget.Gui || renderTarget == EnumItemRenderTarget.HandFp) && ShouldPointToTarget(player.Entity.Pos.AsBlockPos, compassStack)) {
-        angle = GetNeedle2DAngleRadians(player.Entity.Pos.AsBlockPos, compassStack) - player.CameraYaw;
+      var viewingPlayer = capi.World.Player;
+      BlockPos fromPos = null;
+      float yawCorrection = 0;
+      switch (renderTarget) {
+        case EnumItemRenderTarget.Gui:
+        case EnumItemRenderTarget.HandFp:
+          fromPos = viewingPlayer.Entity.Pos.AsBlockPos;
+          yawCorrection = viewingPlayer.CameraYaw;
+          break;
+        case EnumItemRenderTarget.HandTp:
+          fromPos = GetEntityPos(compassStack);
+          yawCorrection = GetEntityYaw(compassStack);
+          break;
+        case EnumItemRenderTarget.Ground:
+          fromPos = GetEntityPos(compassStack);
+          renderinfo.Transform.Rotate = false; // this item will always drop to the ground in the same orientation
+          break;
+      }
+      if (ShouldPointToTarget(fromPos, compassStack)) {
+        angle = GetNeedle2DAngleRadians(fromPos, compassStack) - yawCorrection;
       }
       else {
-        // TODO: think of a good solution for Ground and HandTp
         angle = GetWildSpinAngle(capi);
       }
       var bestMeshrefIndex = (int)GameMath.Mod(angle / (Math.PI * 2) * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
@@ -197,6 +244,17 @@ namespace Compass {
       double milli = api.World.ElapsedMilliseconds;
       float angle = (float)((milli / 500) + (Math.Sin(milli / 150)) + (Math.Sin(milli / 432)) * 3);
       return angle;
+    }
+
+    public override void OnGroundIdle(EntityItem entityItem) {
+      base.OnGroundIdle(entityItem);
+      SetEntityPos(entityItem.Itemstack, entityItem.Pos.AsBlockPos);
+    }
+
+    public override void OnHeldIdle(ItemSlot slot, EntityAgent byEntity) {
+      base.OnHeldIdle(slot, byEntity);
+      SetEntityPos(slot.Itemstack, byEntity.Pos.AsBlockPos);
+      SetEntityYaw(slot.Itemstack, byEntity.BodyYaw);
     }
   }
 }
