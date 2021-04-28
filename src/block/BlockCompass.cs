@@ -33,8 +33,8 @@ namespace Compass {
     internal static readonly string UNKNOWN_PLAYER_UID = "UNKNOWN";
     MeshRef[] meshrefs;
 
-    protected virtual float MIN_DISTANCE_TO_SHOW_DIRECTION {
-      get { return 2; }
+    protected virtual float MIN_DISTANCE_SQUARED_TO_SHOW_DIRECTION {
+      get { return 4; }
     }
 
     public override void OnLoaded(ICoreAPI api) {
@@ -86,14 +86,14 @@ namespace Compass {
       return (float)Math.Atan2(fromPos.X - toPos.X, fromPos.Z - toPos.Z);
     }
 
-    public virtual float Get2DDistanceToTarget(BlockPos fromPos, ItemStack compassStack) {
+    public virtual float Get2DDistanceSquaredToTarget(BlockPos fromPos, ItemStack compassStack) {
       // if the compass's target is not a discrete location, distance is max value
       var targetPos = GetTargetPos(compassStack);
       if (targetPos == null) return float.MaxValue;
 
       var dX = fromPos.X - targetPos.X;
       var dZ = fromPos.Z - targetPos.Z;
-      return (float)Math.Sqrt(dX * dX + dZ * dZ);
+      return (float)(dX * dX + dZ * dZ);
     }
 
     // Should return null if either the target is not set or if the target is not a discrete position.
@@ -226,7 +226,7 @@ namespace Compass {
 
     public virtual bool ShouldPointToTarget(BlockPos fromPos, ItemStack compassStack) {
       return IsCrafted(compassStack)
-             && Get2DDistanceToTarget(fromPos, compassStack) >= MIN_DISTANCE_TO_SHOW_DIRECTION;
+             && Get2DDistanceSquaredToTarget(fromPos, compassStack) >= MIN_DISTANCE_SQUARED_TO_SHOW_DIRECTION;
     }
 
     public override void OnBeforeRender(ICoreClientAPI capi, ItemStack compassStack, EnumItemRenderTarget renderTarget, ref ItemRenderInfo renderinfo) {
