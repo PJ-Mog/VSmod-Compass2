@@ -2,6 +2,7 @@ using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace Compass {
@@ -79,9 +80,7 @@ namespace Compass {
       }
     }
 
-    public virtual float GetNeedle2DAngleRadians(BlockPos fromPos, ItemStack compassStack) {
-      return Get2DAngleRadians(fromPos, GetTargetPos(compassStack));
-    }
+    public abstract float GetNeedle2DAngleRadians(BlockPos fromPos, ItemStack compassStack);
 
     protected static float Get2DAngleRadians(BlockPos fromPos, BlockPos toPos) {
       return (float)Math.Atan2(fromPos.X - toPos.X, fromPos.Z - toPos.Z);
@@ -109,11 +108,20 @@ namespace Compass {
     }
 
     public virtual void SetTargetPos(ItemStack compassStack, BlockPos targetPos) {
-      if (compassStack == null || targetPos == null) return;
+      if (compassStack == null) return;
+      if (targetPos == null) UnsetTargetPos(compassStack);
       var attrs = compassStack.Attributes;
       attrs.SetInt(ATTR_INT_TARGET_POS_X, targetPos.X);
       attrs.SetInt(ATTR_INT_TARGET_POS_Y, targetPos.Y);
       attrs.SetInt(ATTR_INT_TARGET_POS_Z, targetPos.Z);
+    }
+
+    public virtual void UnsetTargetPos(ItemStack compassStack) {
+      if (compassStack == null) return;
+      var attrs = compassStack.Attributes;
+      attrs.RemoveAttribute(ATTR_INT_TARGET_POS_X);
+      attrs.RemoveAttribute(ATTR_INT_TARGET_POS_Y);
+      attrs.RemoveAttribute(ATTR_INT_TARGET_POS_Z);
     }
 
     public virtual BlockPos GetEntityPos(ItemStack compassStack) {
@@ -127,20 +135,35 @@ namespace Compass {
     }
 
     public virtual void SetEntityPos(ItemStack compassStack, BlockPos entityPos) {
-      if (compassStack == null || entityPos == null) return;
+      if (compassStack == null) return;
+      if (entityPos == null) UnsetEntityPos(compassStack);
       var attrs = compassStack.Attributes;
       attrs.SetInt(ATTR_INT_ENTITY_POS_X, entityPos.X);
       attrs.SetInt(ATTR_INT_ENTITY_POS_Y, entityPos.Y);
       attrs.SetInt(ATTR_INT_ENTITY_POS_Z, entityPos.Z);
     }
 
+    public virtual void UnsetEntityPos(ItemStack compassStack) {
+      if (compassStack == null) return;
+      var attrs = compassStack.Attributes;
+      attrs.RemoveAttribute(ATTR_INT_ENTITY_POS_X);
+      attrs.RemoveAttribute(ATTR_INT_ENTITY_POS_Y);
+      attrs.RemoveAttribute(ATTR_INT_ENTITY_POS_Z);
+    }
+
     public virtual float GetEntityYaw(ItemStack compassStack) {
       return compassStack?.Attributes.TryGetFloat(ATTR_FLOAT_ENTITY_YAW) ?? 0;
     }
 
-    public virtual void SetEntityYaw(ItemStack compassStack, float entityYaw) {
+    public virtual void SetEntityYaw(ItemStack compassStack, float? entityYaw) {
       if (compassStack == null) return;
-      compassStack.Attributes.SetFloat(ATTR_FLOAT_ENTITY_YAW, entityYaw);
+      if (entityYaw == null) UnsetEntityYaw(compassStack);
+      compassStack.Attributes.SetFloat(ATTR_FLOAT_ENTITY_YAW, (float)entityYaw);
+    }
+
+    public virtual void UnsetEntityYaw(ItemStack compassStack) {
+      if (compassStack == null) return;
+      compassStack.Attributes.RemoveAttribute(ATTR_FLOAT_ENTITY_YAW);
     }
 
     // Sealed to ensure inheriting classes always call certain functions to properly detect when a compass is created and placed in a player's inventory.
@@ -151,7 +174,7 @@ namespace Compass {
       if (world.Side == EnumAppSide.Server && !IsCrafted(slot.Itemstack) && player != null) {
         SetIsCrafted(slot.Itemstack, true);
         SetCraftedByPlayerUID(slot.Itemstack, player.PlayerUID);
-        OnSuccessfullyCrafted(world, slot, extractedStack);
+        OnSuccessfullyCrafted(world as IServerWorldAccessor, player, slot);
       }
       OnAfterModifiedInInventorySlot(world, slot, extractedStack);
     }
@@ -179,11 +202,7 @@ namespace Compass {
     }
 
     // Called from OnModifiedInInventorySlot (server side) when the compass is first placed into a player's inventory and successfully marked as crafted
-    public virtual void OnSuccessfullyCrafted(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {
-      var player = (slot.Inventory as InventoryBasePlayer)?.Player;
-      if (player == null) return;
-      SetTargetPos(slot.Itemstack, player.Entity.Pos.AsBlockPos);
-    }
+    public virtual void OnSuccessfullyCrafted(IServerWorldAccessor world, IPlayer byPlayer, ItemSlot slot) {}
 
     internal static bool SetIsCrafted(ItemStack compassStack, bool isCrafted) {
       if (compassStack == null) return false;
