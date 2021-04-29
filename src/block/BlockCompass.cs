@@ -109,11 +109,15 @@ namespace Compass {
 
     public virtual void SetTargetPos(ItemStack compassStack, BlockPos targetPos) {
       if (compassStack == null) return;
-      if (targetPos == null) UnsetTargetPos(compassStack);
-      var attrs = compassStack.Attributes;
-      attrs.SetInt(ATTR_INT_TARGET_POS_X, targetPos.X);
-      attrs.SetInt(ATTR_INT_TARGET_POS_Y, targetPos.Y);
-      attrs.SetInt(ATTR_INT_TARGET_POS_Z, targetPos.Z);
+      if (targetPos == null) {
+        UnsetTargetPos(compassStack);
+      }
+      else {
+        var attrs = compassStack.Attributes;
+        attrs.SetInt(ATTR_INT_TARGET_POS_X, targetPos.X);
+        attrs.SetInt(ATTR_INT_TARGET_POS_Y, targetPos.Y);
+        attrs.SetInt(ATTR_INT_TARGET_POS_Z, targetPos.Z);
+      }
     }
 
     public virtual void UnsetTargetPos(ItemStack compassStack) {
@@ -136,11 +140,15 @@ namespace Compass {
 
     public virtual void SetEntityPos(ItemStack compassStack, BlockPos entityPos) {
       if (compassStack == null) return;
-      if (entityPos == null) UnsetEntityPos(compassStack);
-      var attrs = compassStack.Attributes;
-      attrs.SetInt(ATTR_INT_ENTITY_POS_X, entityPos.X);
-      attrs.SetInt(ATTR_INT_ENTITY_POS_Y, entityPos.Y);
-      attrs.SetInt(ATTR_INT_ENTITY_POS_Z, entityPos.Z);
+      if (entityPos == null) {
+        UnsetEntityPos(compassStack);
+      }
+      else {
+        var attrs = compassStack.Attributes;
+        attrs.SetInt(ATTR_INT_ENTITY_POS_X, entityPos.X);
+        attrs.SetInt(ATTR_INT_ENTITY_POS_Y, entityPos.Y);
+        attrs.SetInt(ATTR_INT_ENTITY_POS_Z, entityPos.Z);
+      }
     }
 
     public virtual void UnsetEntityPos(ItemStack compassStack) {
@@ -157,8 +165,12 @@ namespace Compass {
 
     public virtual void SetEntityYaw(ItemStack compassStack, float? entityYaw) {
       if (compassStack == null) return;
-      if (entityYaw == null) UnsetEntityYaw(compassStack);
-      compassStack.Attributes.SetFloat(ATTR_FLOAT_ENTITY_YAW, (float)entityYaw);
+      if (entityYaw == null) {
+        UnsetEntityYaw(compassStack);
+      }
+      else {
+        compassStack.Attributes.SetFloat(ATTR_FLOAT_ENTITY_YAW, (float)entityYaw);
+      }
     }
 
     public virtual void UnsetEntityYaw(ItemStack compassStack) {
