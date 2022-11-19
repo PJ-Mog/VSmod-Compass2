@@ -249,7 +249,7 @@ namespace Compass {
         case EnumItemRenderTarget.Gui:
         case EnumItemRenderTarget.HandFp:
           fromPos = viewingPlayer.Entity.Pos.AsBlockPos;
-          yawCorrection = viewingPlayer.CameraYaw;
+          yawCorrection = viewingPlayer.Entity.Pos.Yaw;
           break;
         case EnumItemRenderTarget.HandTp:
           fromPos = GetEntityPos(compassStack);
