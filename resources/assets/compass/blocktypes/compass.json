@@ -1,7 +1,7 @@
 {
-  "code": "compass-placeable",
+  "code": "compass",
   "variantgroups": [
-    { "code": "type", "states": ["magnetic", "relative", "origin" ] }
+    { "code": "type", "states": ["magnetic", "relative", "origin"] }
   ],
   "classByType": {
     "*-magnetic": "BlockMagneticCompass",
@@ -21,11 +21,11 @@
     "*-origin" : { "needle": { "base": "game:block/fire-blue" } }
   },
   "sidesolid": {
-		"all": false
-	},
-	"sideopaque": {
-		"all": false
-	},
+    "all": false
+  },
+  "sideopaque": {
+    "all": false
+  },
   "maxstacksize": 1,
   "lightabsorption": 0,
   "glowLevelByType": {

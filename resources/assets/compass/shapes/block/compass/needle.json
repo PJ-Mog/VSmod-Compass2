@@ -1,16 +1,16 @@
 {
-	"editor": {
-		"allAngles": false,
-		"entityTextureMode": true
-	},
-	"textureWidth": 16,
-	"textureHeight": 16,
-	"textureSizes": {
-	},
-	"textures": {
-		"needle": "game:item/resource/nugget/magnetite"
-	},
-	"elements": [
+  "editor": {
+    "allAngles": false,
+    "entityTextureMode": true
+  },
+  "textureWidth": 16,
+  "textureHeight": 16,
+  "textureSizes": {
+  },
+  "textures": {
+    "needle": "game:item/resource/nugget/magnetite"
+  },
+  "elements": [
     {
       "name": "needle",
       "from": [ 7.5007, 1.0, 7.4993 ], 
