@@ -5,7 +5,7 @@
   "ingredients": {
     "S": {"type": "block", "code": "game:metal-scraps" },
     "K": {"type": "item", "code": "game:stick" },
-    "B": {"type": "block", "code": "game:bowl-burned" }
+    "B": {"type": "block", "code": "game:bowl-fired" }
   },
   "output": {
     "type": "block",
