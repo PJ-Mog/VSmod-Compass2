@@ -16,12 +16,10 @@ namespace Compass {
       get { return Block.LastCodePart(); }
     }
 
-    public override void Initialize(ICoreAPI api)
-    {
+    public override void Initialize(ICoreAPI api) {
       base.Initialize(api);
 
-      if (api.Side == EnumAppSide.Client)
-      {
+      if (api.Side == EnumAppSide.Client) {
         renderer = new CompassNeedleRenderer(api as ICoreClientAPI, Pos, GenMesh("needle"));
         renderer.AngleRad = AngleRad;
         (api as ICoreClientAPI).Event.RegisterRenderer(renderer, EnumRenderStage.Opaque, "compass");
@@ -76,11 +74,11 @@ namespace Compass {
     }
 
     internal MeshData GenMesh(string type = "base") {
-        if ((Block?.BlockId ?? 0) == 0) return null;
-        MeshData mesh;
-        ITesselatorAPI mesher = ((ICoreClientAPI)Api).Tesselator;
+      if ((Block?.BlockId ?? 0) == 0) return null;
+      MeshData mesh;
+      ITesselatorAPI mesher = ((ICoreClientAPI)Api).Tesselator;
 
-        mesher.TesselateShape(Block, Api.Assets.TryGet("compass:shapes/block/compass/" + type + ".json").ToObject<Shape>(), out mesh);
+      mesher.TesselateShape(Block, Api.Assets.TryGet("compass:shapes/block/compass/" + type + ".json").ToObject<Shape>(), out mesh);
 
       return mesh;
     }
@@ -94,7 +92,8 @@ namespace Compass {
       var z = tree.TryGetInt(BlockCompass.ATTR_INT_TARGET_POS_Z);
       if (x == null || y == null || z == null) {
         this.TargetPos = null;
-      } else {
+      }
+      else {
         this.TargetPos = new BlockPos((int)x, (int)y, (int)z);
       }
       this.AngleRad = tree.TryGetFloat("AngleRad");
@@ -114,9 +113,9 @@ namespace Compass {
     }
 
     public override void OnBlockUnloaded() {
-        base.OnBlockUnloaded();
+      base.OnBlockUnloaded();
 
-        renderer?.Dispose();
+      renderer?.Dispose();
     }
 
     public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tessThreadTesselator) {

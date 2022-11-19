@@ -1,0 +1,9 @@
+{
+  "editor.detectIndentation": false,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.wrappingIndent": "deepIndent",
+  "editor.formatOnPaste": false,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "ms-dotnettools.csharp"
+}

@@ -1,53 +1,59 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<TargetFramework>net452</TargetFramework>
-	</PropertyGroup>
-	
-	<ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetGameVersion>1.17</TargetGameVersion>
+    <EnvironmentStyle>Rice</EnvironmentStyle>
+    <!-- <EnvironmentStyle>Copygirl</EnvironmentStyle> -->
+    <VSPath Condition="'$(EnvironmentStyle)' == 'Copygirl'">$(VINTAGE_STORY)</VSPath>
+    <VSPath Condition="'$(EnvironmentStyle)' == 'Rice'">$(VINTAGE_STORY_DEV)/$(TargetGameVersion)</VSPath>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Reference Include="VintagestoryAPI">
+      <HintPath>$(VSPath)/VintagestoryAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VSEssentials">
+      <HintPath>$(VSPath)/Mods/VSEssentials.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VSSurvivalMod">
+      <HintPath>$(VSPath)/Mods/VSSurvivalMod.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- <Reference Include="Harmony">
+      <HintPath>$(VSPath)/Lib/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference> -->
+    <Reference Include="Newtonsoft">
+      <HintPath>$(VSPath)/Lib/Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- <Reference Include="ProtoBuf">
+      <HintPath>$(VSPath)/Lib/protobuf-net.dll</HintPath>
+      <Private>false</Private>
+    </Reference> -->
+  </ItemGroup>
 
-		<Reference Include="VintagestoryLib">
-			<HintPath>$(VINTAGE_STORY)/VintagestoryLib.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <None Include="resources/**">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
-		<Reference Include="VintagestoryAPI">
-			<HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="VintagestoryAPI">
-			<HintPath>$(VINTAGE_STORY)/Mods/VSEssentials.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="VintagestoryAPI">
-			<HintPath>$(VINTAGE_STORY)/Mods/VSSurvivalMod.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="protobuf-net">
-			<HintPath>$(VINTAGE_STORY)/Lib/protobuf-net.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="harmony">
-			<HintPath>$(VINTAGE_STORY)/Lib/0Harmony.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Newtonsoft.Json">
-			<HintPath>$(VINTAGE_STORY)/Lib/Newtonsoft.Json.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<!-- <Reference Include="cairo">
-			<HintPath>$(VINTAGE_STORY)/Lib/cairo-sharp.dll</HintPath>
-			<Private>false</Private>
-		</Reference> -->
-	</ItemGroup>
-	
-	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<None Include="resources/**">
-			<Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
-	
-	<Target Name="Package" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release'">
-		<ZipDirectory DestinationFile="bin/$(TargetName)-UNVERSIONED.zip" SourceDirectory="$(TargetDir)" Overwrite="true" />
-	</Target>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <None Include="resources/**">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="PackageRelease" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release'">
+    <ZipDirectory DestinationFile="bin/RELEASE/$(TargetName)_for_$(TargetGameVersion).rc.zip" SourceDirectory="$(TargetDir)" Overwrite="false" />
+  </Target>
+
+  <Target Name="Package" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Debug'">
+    <ZipDirectory DestinationFile="bin/Debug/zip/DEBUG_$(TargetName).zip" SourceDirectory="$(TargetDir)" Overwrite="true" />
+  </Target>
 </Project>

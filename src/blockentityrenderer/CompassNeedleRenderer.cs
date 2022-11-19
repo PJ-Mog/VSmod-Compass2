@@ -17,7 +17,7 @@ namespace Compass {
     }
 
     public double RenderOrder {
-        get { return 0.5; }
+      get { return 0.5; }
     }
 
     public int RenderRange {

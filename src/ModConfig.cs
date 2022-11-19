@@ -26,10 +26,11 @@ namespace Compass {
     public static ModConfig Load(ICoreAPI api) {
       ModConfig config = null;
       try {
-        for(int attempts = 1; attempts < 4; attempts++) {
+        for (int attempts = 1; attempts < 4; attempts++) {
           try {
             config = api.LoadModConfig<ModConfig>(filename);
-          } catch (JsonReaderException e) {
+          }
+          catch (JsonReaderException e) {
             var badLineNum = e.LineNumber;
             api.Logger.Error($"[CompassMod Error] Unable to parse config JSON. Attempt {attempts} to salvage the file...");
             var configFilepath = Path.Combine(GamePaths.ModConfig, filename);
@@ -49,10 +50,12 @@ namespace Compass {
         }
         try {
           config = api.LoadModConfig<ModConfig>(filename);
-        } catch (JsonReaderException) {
+        }
+        catch (JsonReaderException) {
           api.Logger.Error("[CompassMod Error] Unable to salvage config.");
         }
-      } catch (System.Exception e) {
+      }
+      catch (System.Exception e) {
         api.Logger.Error("[CompassMod Error] Something went really wrong with reading the config file.");
         File.WriteAllText(Path.Combine(GamePaths.Logs, "compass-mod-logs.txt"), e.ToString());
       }

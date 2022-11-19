@@ -2,23 +2,32 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Client (.NET)",
+      "name": "Launch Client (.NET) [1.17]",
+      "type": "clr",
+      "request": "launch",
+      "preLaunchTask": "Build (Debug)",
+      "program": "${env:VINTAGE_STORY_DEV}/1.17/Vintagestory.exe",
+      "args": [
+        "--playStyle" , "preset-surviveandbuild",
+        "--openWorld" , "modding test world 1.17",
+        "--addModPath", "${workspaceFolder}/bin/Debug/zip"
+      ],
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": "Launch Client (.NET) [Copygirl style]",
       "type": "clr",
       "request": "launch",
       "preLaunchTask": "Build (Debug)",
       "program": "${env:VINTAGE_STORY}/Vintagestory.exe",
       "args": [
-        "--playStyle",
-        "preset-wildernesssurvival",
-        "--openWorld",
-        "moddev",
-        "--addModPath",
-        "${workspaceFolder}/bin/Debug/net452",
-        "--addOrigin",
-        "${workspaceFolder}/resources/assets",
+        "--playStyle" , "preset-surviveandbuild",
+        "--openWorld" , "modding test world cpg",
+        "--addModPath", "${workspaceFolder}/bin/Debug/zip"
       ],
       "console": "internalConsole",
-      "internalConsoleOptions": "openOnSessionStart",
+      "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }

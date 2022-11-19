@@ -1,13 +1,19 @@
 {
   "type": "code",
-  "side": "Universal",
-  "modid": "compass",
   "name": "Compass",
+  "modid": "compass",
+  "version": "2.0.0",
+  "description": "A variety of compasses to guide you.",
+  "website": "https://github.com/PJ-Mog/VSMod-Compass",
   "authors": [
-    "goxmeor",
-    "JapanHasRice"
+    "JapanHasRice",
+    "goxmeor"
   ],
-  "description": "Adds craftable compasses",
-  "version": "1.3.0",
-  "dependency": {}
+  "contributors": [],
+  "dependency": {
+    "game": "1.17.9",
+    "survival": ""
+  },
+  "side": "Universal",
+  "requiredOnClient": true
 }

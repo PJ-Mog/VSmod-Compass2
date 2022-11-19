@@ -191,16 +191,15 @@ namespace Compass {
       OnAfterModifiedInInventorySlot(world, slot, extractedStack);
     }
 
-    public virtual void OnBeforeModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {}
-    public virtual void OnAfterModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {}
+    public virtual void OnBeforeModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) { }
+    public virtual void OnAfterModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) { }
 
     public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos) {
       ItemStack compassStack = base.OnPickBlock(world, pos);
 
       BlockEntityCompass bec = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityCompass;
 
-      if (bec != null)
-      {
+      if (bec != null) {
         SetIsCrafted(compassStack, bec.IsCrafted);
         SetCraftedByPlayerUID(compassStack, bec.CraftedByPlayerUID);
         SetTargetPos(compassStack, bec.TargetPos);
@@ -214,7 +213,7 @@ namespace Compass {
     }
 
     // Called from OnModifiedInInventorySlot (server side) when the compass is first placed into a player's inventory and successfully marked as crafted
-    public virtual void OnSuccessfullyCrafted(IServerWorldAccessor world, IPlayer byPlayer, ItemSlot slot) {}
+    public virtual void OnSuccessfullyCrafted(IServerWorldAccessor world, IPlayer byPlayer, ItemSlot slot) { }
 
     internal static bool SetIsCrafted(ItemStack compassStack, bool isCrafted) {
       if (compassStack == null) return false;

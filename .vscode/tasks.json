@@ -3,36 +3,45 @@
   "tasks": [
     {
       "label": "Build (Debug)",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "presentation": {
-        "reveal": "silent"
-      },
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "silent" },
       "problemMatcher": "$msCompile",
       "type": "process",
       "command": "dotnet",
-      "args": [
-        "build",
-        "-c",
-        "Debug"
+      "args": [ "build", "-c", "Debug" ],
+      "dependsOn":[
+        "Create build directory (Debug)"
       ]
     },
     {
       "label": "Build (Release)",
       "group": "build",
-      "presentation": {
-        "reveal": "silent"
-      },
+      "presentation": { "reveal": "silent" },
       "problemMatcher": "$msCompile",
       "type": "process",
       "command": "dotnet",
-      "args": [
-        "build",
-        "-c",
-        "Release"
+      "args": [ "build", "-c", "Release" ],
+      "dependsOn":[
+        "Create build directory (Release)"
       ]
+    },
+    {
+      "label": "Create build directory (Debug)",
+      "presentation": { "reveal": "silent" },
+      "type": "shell",
+      "windows": {
+        "command": "cmd",
+        "args": ["/C", "if not exist .\\bin\\Debug\\zip mkdir .\\bin\\Debug\\zip"]
+      }
+    },
+    {
+      "label": "Create build directory (Release)",
+      "presentation": { "reveal": "silent" },
+      "type": "shell",
+      "windows": {
+        "command": "cmd",
+        "args": ["/C", "if not exist .\\bin\\RELEASE mkdir .\\bin\\RELEASE"]
+      }
     }
   ]
 }
