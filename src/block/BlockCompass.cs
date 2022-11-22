@@ -22,12 +22,8 @@ namespace Compass {
     int MAX_ANGLED_MESHES = 60;
     public static readonly string ATTR_BOOL_CRAFTED = "compass-is-crafted";
     public static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
-    public static readonly string ATTR_INT_TARGET_POS_X = "compass-target-x";
-    public static readonly string ATTR_INT_TARGET_POS_Y = "compass-target-y";
-    public static readonly string ATTR_INT_TARGET_POS_Z = "compass-target-z";
-    public static readonly string ATTR_INT_ENTITY_POS_X = "compass-entity-x";
-    public static readonly string ATTR_INT_ENTITY_POS_Y = "compass-entity-y";
-    public static readonly string ATTR_INT_ENTITY_POS_Z = "compass-entity-z";
+    public static readonly string ATTR_BYTES_TARGET_BLOCK_POS = "compass-target-block-pos";
+    public static readonly string ATTR_BYTES_TARGET_ENTITY_POS = "compass-target-entity-pos";
     public static readonly string ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
 
     internal static readonly string UNKNOWN_PLAYER_UID = "UNKNOWN";
@@ -89,7 +85,7 @@ namespace Compass {
     public virtual float Get2DDistanceSquaredToTarget(BlockPos fromPos, ItemStack compassStack) {
       // if the compass's target is not a discrete location, distance is max value
       var targetPos = GetTargetPos(compassStack);
-      if (targetPos == null) return float.MaxValue;
+      if (targetPos == null) { return float.MaxValue; }
 
       var dX = fromPos.X - targetPos.X;
       var dZ = fromPos.Z - targetPos.Z;
@@ -98,65 +94,37 @@ namespace Compass {
 
     // Should return null if either the target is not set or if the target is not a discrete position.
     public virtual BlockPos GetTargetPos(ItemStack compassStack) {
-      if (compassStack == null) return null;
-      var attrs = compassStack.Attributes;
-      var x = attrs.TryGetInt(ATTR_INT_TARGET_POS_X);
-      var y = attrs.TryGetInt(ATTR_INT_TARGET_POS_Y);
-      var z = attrs.TryGetInt(ATTR_INT_TARGET_POS_Z);
-      if (x == null || y == null || z == null) return null;
-      return new BlockPos((int)x, (int)y, (int)z);
+      var bytes = compassStack?.Attributes.GetBytes(ATTR_BYTES_TARGET_BLOCK_POS);
+      if (bytes == null) { return null; }
+      return SerializerUtil.Deserialize<BlockPos>(bytes);
     }
 
     public virtual void SetTargetPos(ItemStack compassStack, BlockPos targetPos) {
-      if (compassStack == null) return;
+      if (compassStack == null) { return; }
+      var attrs = compassStack.Attributes;
       if (targetPos == null) {
-        UnsetTargetPos(compassStack);
+        attrs.RemoveAttribute(ATTR_BYTES_TARGET_BLOCK_POS);
       }
       else {
-        var attrs = compassStack.Attributes;
-        attrs.SetInt(ATTR_INT_TARGET_POS_X, targetPos.X);
-        attrs.SetInt(ATTR_INT_TARGET_POS_Y, targetPos.Y);
-        attrs.SetInt(ATTR_INT_TARGET_POS_Z, targetPos.Z);
+        attrs.SetBytes(ATTR_BYTES_TARGET_BLOCK_POS, SerializerUtil.Serialize(targetPos));
       }
-    }
-
-    public virtual void UnsetTargetPos(ItemStack compassStack) {
-      if (compassStack == null) return;
-      var attrs = compassStack.Attributes;
-      attrs.RemoveAttribute(ATTR_INT_TARGET_POS_X);
-      attrs.RemoveAttribute(ATTR_INT_TARGET_POS_Y);
-      attrs.RemoveAttribute(ATTR_INT_TARGET_POS_Z);
     }
 
     public virtual BlockPos GetEntityPos(ItemStack compassStack) {
-      if (compassStack == null) return null;
-      var attrs = compassStack.Attributes;
-      var x = attrs.TryGetInt(ATTR_INT_ENTITY_POS_X);
-      var y = attrs.TryGetInt(ATTR_INT_ENTITY_POS_Y);
-      var z = attrs.TryGetInt(ATTR_INT_ENTITY_POS_Z);
-      if (x == null || y == null || z == null) return null;
-      return new BlockPos((int)x, (int)y, (int)z);
+      var bytes = compassStack?.Attributes.GetBytes(ATTR_BYTES_TARGET_ENTITY_POS);
+      if (bytes == null) { return null; }
+      return SerializerUtil.Deserialize<BlockPos>(bytes);
     }
 
     public virtual void SetEntityPos(ItemStack compassStack, BlockPos entityPos) {
-      if (compassStack == null) return;
+      if (compassStack == null) { return; }
+      var attrs = compassStack.Attributes;
       if (entityPos == null) {
-        UnsetEntityPos(compassStack);
+        attrs.RemoveAttribute(ATTR_BYTES_TARGET_ENTITY_POS);
       }
       else {
-        var attrs = compassStack.Attributes;
-        attrs.SetInt(ATTR_INT_ENTITY_POS_X, entityPos.X);
-        attrs.SetInt(ATTR_INT_ENTITY_POS_Y, entityPos.Y);
-        attrs.SetInt(ATTR_INT_ENTITY_POS_Z, entityPos.Z);
+        attrs.SetBytes(ATTR_BYTES_TARGET_ENTITY_POS, SerializerUtil.Serialize(entityPos));
       }
-    }
-
-    public virtual void UnsetEntityPos(ItemStack compassStack) {
-      if (compassStack == null) return;
-      var attrs = compassStack.Attributes;
-      attrs.RemoveAttribute(ATTR_INT_ENTITY_POS_X);
-      attrs.RemoveAttribute(ATTR_INT_ENTITY_POS_Y);
-      attrs.RemoveAttribute(ATTR_INT_ENTITY_POS_Z);
     }
 
     public virtual float GetEntityYaw(ItemStack compassStack) {
@@ -164,18 +132,13 @@ namespace Compass {
     }
 
     public virtual void SetEntityYaw(ItemStack compassStack, float? entityYaw) {
-      if (compassStack == null) return;
+      if (compassStack == null) { return; }
       if (entityYaw == null) {
-        UnsetEntityYaw(compassStack);
+        compassStack.Attributes.RemoveAttribute(ATTR_FLOAT_ENTITY_YAW);
       }
       else {
         compassStack.Attributes.SetFloat(ATTR_FLOAT_ENTITY_YAW, (float)entityYaw);
       }
-    }
-
-    public virtual void UnsetEntityYaw(ItemStack compassStack) {
-      if (compassStack == null) return;
-      compassStack.Attributes.RemoveAttribute(ATTR_FLOAT_ENTITY_YAW);
     }
 
     // Sealed to ensure inheriting classes always call certain functions to properly detect when a compass is created and placed in a player's inventory.
@@ -216,7 +179,7 @@ namespace Compass {
     public virtual void OnSuccessfullyCrafted(IServerWorldAccessor world, IPlayer byPlayer, ItemSlot slot) { }
 
     internal static bool SetIsCrafted(ItemStack compassStack, bool isCrafted) {
-      if (compassStack == null) return false;
+      if (compassStack == null) { return false; }
       compassStack.Attributes.SetBool(ATTR_BOOL_CRAFTED, isCrafted);
       return true;
     }
@@ -226,7 +189,7 @@ namespace Compass {
     }
 
     internal static bool SetCraftedByPlayerUID(ItemStack compassStack, string craftedByPlayerUID) {
-      if (compassStack == null || craftedByPlayerUID == null || craftedByPlayerUID.Length == 0) return false;
+      if (compassStack == null || craftedByPlayerUID == null || craftedByPlayerUID.Length == 0) { return false; }
       compassStack.Attributes.SetString(ATTR_STR_CRAFTED_BY_PLAYER_UID, craftedByPlayerUID);
       return true;
     }
