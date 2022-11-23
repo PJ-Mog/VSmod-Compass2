@@ -20,7 +20,7 @@ namespace Compass {
 
   abstract class BlockCompass : Block {
     const double TWO_PI = Math.PI * 2;
-    int MAX_ANGLED_MESHES = 60;
+    const int MAX_ANGLED_MESHES = 60;
     public static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
     public static readonly string ATTR_BYTES_TARGET_BLOCK_POS = "compass-target-block-pos";
     public static readonly string ATTR_BYTES_TARGET_ENTITY_POS = "compass-target-entity-pos";
@@ -78,7 +78,7 @@ namespace Compass {
 
     public abstract float GetNeedleYawToTargetRadians(BlockPos fromPos, ItemStack compassStack);
 
-    public int GetBestMatchMeshRefIndex(float angleTowardsTarget, float yawOfCompass) {
+    public int GetBestMatchMeshRefIndex(float angleTowardsTarget, float yawOfCompass = 0) {
       return (int)GameMath.Mod((angleTowardsTarget - yawOfCompass) / TWO_PI * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
     }
 

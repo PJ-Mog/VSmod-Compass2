@@ -1,10 +1,10 @@
 {
   "type": "code",
-  "name": "Compass",
-  "modid": "compass",
+  "name": "Compass2",
+  "modid": "compass2",
   "version": "2.0.0",
   "description": "A variety of compasses to guide you.",
-  "website": "https://github.com/PJ-Mog/VSMod-Compass",
+  "website": "https://github.com/PJ-Mog/VSMod-Compass2",
   "authors": [
     "JapanHasRice",
     "goxmeor"
