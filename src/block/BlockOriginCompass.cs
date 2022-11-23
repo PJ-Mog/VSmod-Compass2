@@ -3,8 +3,8 @@ using Vintagestory.API.MathTools;
 
 namespace Compass {
   class BlockOriginCompass : BlockCompass {
-    public override float GetNeedle2DAngleRadians(BlockPos fromPos, ItemStack compassStack) {
-      return Get2DAngleRadians(fromPos, GetTargetPos(compassStack));
+    public override float GetNeedleYawToTargetRadians(BlockPos fromPos, ItemStack compassStack) {
+      return GetYawRadians(fromPos, GetTargetPos(compassStack));
     }
 
     public override BlockPos GetTargetPos(ItemStack compassStack) {

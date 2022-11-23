@@ -19,8 +19,8 @@ namespace Compass {
   }
 
   abstract class BlockCompass : Block {
+    const double TWO_PI = Math.PI * 2;
     int MAX_ANGLED_MESHES = 60;
-    public static readonly string ATTR_BOOL_CRAFTED = "compass-is-crafted";
     public static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
     public static readonly string ATTR_BYTES_TARGET_BLOCK_POS = "compass-target-block-pos";
     public static readonly string ATTR_BYTES_TARGET_ENTITY_POS = "compass-target-entity-pos";
@@ -29,8 +29,8 @@ namespace Compass {
     internal static readonly string UNKNOWN_PLAYER_UID = "UNKNOWN";
     MeshRef[] meshrefs;
 
-    protected virtual float MIN_DISTANCE_SQUARED_TO_SHOW_DIRECTION {
-      get { return 4; }
+    protected static int MIN_MANHATTAN_DISTANCE_TO_SHOW_DIRECTION {
+      get { return 3; }
     }
 
     public override void OnLoaded(ICoreAPI api) {
@@ -51,7 +51,7 @@ namespace Compass {
       meshrefs = ObjectCacheUtil.GetOrCreate(capi, key, () => {
         for (var angleIndex = 0; angleIndex < MAX_ANGLED_MESHES; angleIndex += 1) {
 
-          float angle = (float)((double)angleIndex / MAX_ANGLED_MESHES * 360);
+          float angle = ((float)angleIndex / MAX_ANGLED_MESHES * 360);
           capi.Tesselator.TesselateShape(this, needleShape, out MeshData meshData, new Vec3f(0, angle, 0));
 
           meshData.AddMeshData(compassBaseMeshData);
@@ -76,20 +76,32 @@ namespace Compass {
       }
     }
 
-    public abstract float GetNeedle2DAngleRadians(BlockPos fromPos, ItemStack compassStack);
+    public abstract float GetNeedleYawToTargetRadians(BlockPos fromPos, ItemStack compassStack);
 
-    protected static float Get2DAngleRadians(BlockPos fromPos, BlockPos toPos) {
+    public int GetBestMatchMeshRefIndex(float angleTowardsTarget, float yawOfCompass) {
+      return (int)GameMath.Mod((angleTowardsTarget - yawOfCompass) / TWO_PI * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
+    }
+
+    public float GetNeedleAngleToDisplay(BlockPos fromPos, ItemStack compassStack) {
+      if (ShouldPointToTarget(fromPos, compassStack)) {
+        return GetNeedleYawToTargetRadians(fromPos, compassStack);
+      }
+      return GetWildSpinAngle(api);
+    }
+
+    // Not null-safe
+    public static float GetYawRadians(BlockPos fromPos, BlockPos toPos) {
       return (float)Math.Atan2(fromPos.X - toPos.X, fromPos.Z - toPos.Z);
     }
 
-    public virtual float Get2DDistanceSquaredToTarget(BlockPos fromPos, ItemStack compassStack) {
-      // if the compass's target is not a discrete location, distance is max value
-      var targetPos = GetTargetPos(compassStack);
-      if (targetPos == null) { return float.MaxValue; }
+    public virtual int GetHorizontalManhattanDistance(BlockPos fromPos, ItemStack compassStack) {
+      return GetHorizontalManhattanDistance(fromPos, GetTargetPos(compassStack));
+    }
 
-      var dX = fromPos.X - targetPos.X;
-      var dZ = fromPos.Z - targetPos.Z;
-      return (float)(dX * dX + dZ * dZ);
+    // Null-safe
+    public static int GetHorizontalManhattanDistance(BlockPos fromPos, BlockPos toPos) {
+      if (fromPos == null || toPos == null) { return MIN_MANHATTAN_DISTANCE_TO_SHOW_DIRECTION; }
+      return Math.Abs(fromPos.X - toPos.X) + Math.Abs(fromPos.Z - toPos.Z);
     }
 
     // Should return null if either the target is not set or if the target is not a discrete position.
@@ -147,7 +159,6 @@ namespace Compass {
       OnBeforeModifiedInInventorySlot(world, slot, extractedStack);
       var player = (slot.Inventory as InventoryBasePlayer)?.Player;
       if (world.Side == EnumAppSide.Server && !IsCrafted(slot.Itemstack) && player != null) {
-        SetIsCrafted(slot.Itemstack, true);
         SetCraftedByPlayerUID(slot.Itemstack, player.PlayerUID);
         OnSuccessfullyCrafted(world as IServerWorldAccessor, player, slot);
       }
@@ -163,7 +174,6 @@ namespace Compass {
       BlockEntityCompass bec = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityCompass;
 
       if (bec != null) {
-        SetIsCrafted(compassStack, bec.IsCrafted);
         SetCraftedByPlayerUID(compassStack, bec.CraftedByPlayerUID);
         SetTargetPos(compassStack, bec.TargetPos);
       }
@@ -178,14 +188,8 @@ namespace Compass {
     // Called from OnModifiedInInventorySlot (server side) when the compass is first placed into a player's inventory and successfully marked as crafted
     public virtual void OnSuccessfullyCrafted(IServerWorldAccessor world, IPlayer byPlayer, ItemSlot slot) { }
 
-    internal static bool SetIsCrafted(ItemStack compassStack, bool isCrafted) {
-      if (compassStack == null) { return false; }
-      compassStack.Attributes.SetBool(ATTR_BOOL_CRAFTED, isCrafted);
-      return true;
-    }
-
     public static bool IsCrafted(ItemStack compassStack) {
-      return compassStack?.Attributes.GetBool(ATTR_BOOL_CRAFTED) ?? false;
+      return compassStack?.Attributes.HasAttribute(ATTR_STR_CRAFTED_BY_PLAYER_UID) ?? false;
     }
 
     internal static bool SetCraftedByPlayerUID(ItemStack compassStack, string craftedByPlayerUID) {
@@ -199,12 +203,12 @@ namespace Compass {
     }
 
     public virtual bool ShouldPointToTarget(BlockPos fromPos, ItemStack compassStack) {
-      return IsCrafted(compassStack)
-             && Get2DDistanceSquaredToTarget(fromPos, compassStack) >= MIN_DISTANCE_SQUARED_TO_SHOW_DIRECTION;
+      return fromPos != null
+             && IsCrafted(compassStack)
+             && GetHorizontalManhattanDistance(fromPos, compassStack) >= MIN_MANHATTAN_DISTANCE_TO_SHOW_DIRECTION;
     }
 
     public override void OnBeforeRender(ICoreClientAPI capi, ItemStack compassStack, EnumItemRenderTarget renderTarget, ref ItemRenderInfo renderinfo) {
-      float angle;
       var viewingPlayer = capi.World.Player;
       BlockPos fromPos = null;
       float yawCorrection = 0;
@@ -223,14 +227,8 @@ namespace Compass {
           renderinfo.Transform.Rotate = false; // this item will always drop to the ground in the same orientation
           break;
       }
-      if (ShouldPointToTarget(fromPos, compassStack)) {
-        angle = GetNeedle2DAngleRadians(fromPos, compassStack) - yawCorrection;
-      }
-      else {
-        angle = GetWildSpinAngle(capi);
-      }
-      var bestMeshrefIndex = (int)GameMath.Mod(angle / (Math.PI * 2) * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
-      renderinfo.ModelRef = meshrefs[bestMeshrefIndex];
+      float angle = GetNeedleAngleToDisplay(fromPos, compassStack);
+      renderinfo.ModelRef = meshrefs[GetBestMatchMeshRefIndex(angle, yawCorrection)];
     }
 
     public static float GetWildSpinAngle(ICoreAPI api) {

@@ -7,7 +7,6 @@ using Vintagestory.API.Util;
 namespace Compass {
 
   public class BlockEntityCompass : BlockEntity {
-    public bool IsCrafted;
     public string CraftedByPlayerUID;
     public BlockPos TargetPos;
     internal float? AngleRad;
@@ -32,11 +31,10 @@ namespace Compass {
       BlockCompass blockCompass = byItemStack?.Block as BlockCompass;
 
       if (blockCompass != null && byItemStack != null) {
-        this.IsCrafted = BlockCompass.IsCrafted(byItemStack);
         this.CraftedByPlayerUID = BlockCompass.GetCraftedByPlayerUID(byItemStack);
         this.TargetPos = blockCompass.GetTargetPos(byItemStack);
         if (blockCompass.ShouldPointToTarget(Pos, byItemStack)) {
-          this.AngleRad = blockCompass.GetNeedle2DAngleRadians(this.Pos, byItemStack);
+          this.AngleRad = blockCompass.GetNeedleYawToTargetRadians(this.Pos, byItemStack);
         }
       }
       if (Api.Side == EnumAppSide.Client) {
@@ -86,7 +84,6 @@ namespace Compass {
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve) {
       base.FromTreeAttributes(tree, worldAccessForResolve);
-      this.IsCrafted = tree.GetBool(BlockCompass.ATTR_BOOL_CRAFTED);
       this.CraftedByPlayerUID = tree.GetString(BlockCompass.ATTR_STR_CRAFTED_BY_PLAYER_UID);
       this.TargetPos = SerializerUtil.Deserialize<BlockPos>(tree.GetBytes(BlockCompass.ATTR_BYTES_TARGET_BLOCK_POS));
       this.AngleRad = tree.TryGetFloat("AngleRad");
@@ -95,7 +92,6 @@ namespace Compass {
 
     public override void ToTreeAttributes(ITreeAttribute tree) {
       base.ToTreeAttributes(tree);
-      tree.SetBool(BlockCompass.ATTR_BOOL_CRAFTED, this.IsCrafted);
       tree.SetString(BlockCompass.ATTR_STR_CRAFTED_BY_PLAYER_UID, this.CraftedByPlayerUID);
       tree.SetBytes(BlockCompass.ATTR_BYTES_TARGET_BLOCK_POS, SerializerUtil.Serialize(this.TargetPos));
       if (this.AngleRad != null) tree.SetFloat("AngleRad", (float)this.AngleRad);
