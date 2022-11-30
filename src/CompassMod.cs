@@ -1,18 +1,23 @@
+using Compass.Common;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
 namespace Compass {
   public class CompassMod : ModSystem {
+    public const string NETWORK_CHANNEL = "compass2";
     private Config config;
+    public PlayerPosHandler PlayerPosHandler;
 
     public override void Start(ICoreAPI api) {
       base.Start(api);
 
       config = Config.LoadOrCreateDefault(api);
+      PlayerPosHandler = new PlayerPosHandler(api);
 
       api.RegisterBlockClass("BlockMagneticCompass", typeof(BlockMagneticCompass));
       api.RegisterBlockClass("BlockRelativeCompass", typeof(BlockRelativeCompass));
       api.RegisterBlockClass("BlockOriginCompass", typeof(BlockOriginCompass));
+      api.RegisterBlockClass("BlockPlayerCompass", typeof(BlockPlayerCompass));
 
       api.RegisterBlockEntityClass("BlockEntityCompass", typeof(BlockEntityCompass));
     }

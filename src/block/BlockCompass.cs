@@ -6,18 +6,6 @@ using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace Compass {
-  public enum EnumTargetType : int {
-    Stationary = 0,
-    MovingFrequentUpdate = 500,
-    Moving = 1000,
-    MovingInfrequentUpdate = 5000
-  }
-
-  public static class EnumTargetTypeExtensions {
-    public static bool IsDynamicTarget(this EnumTargetType targetType) { return targetType != EnumTargetType.Stationary; }
-    public static int GetUpdateFrequencyMillis(this EnumTargetType targetType) { return (int)targetType; }
-  }
-
   abstract class BlockCompass : Block {
     const double TWO_PI = Math.PI * 2;
     const int MAX_ANGLED_MESHES = 60;

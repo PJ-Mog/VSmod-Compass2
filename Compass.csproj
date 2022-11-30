@@ -29,10 +29,10 @@
       <HintPath>$(VSPath)/Lib/Newtonsoft.Json.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <!-- <Reference Include="ProtoBuf">
+    <Reference Include="ProtoBuf">
       <HintPath>$(VSPath)/Lib/protobuf-net.dll</HintPath>
       <Private>false</Private>
-    </Reference> -->
+    </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">

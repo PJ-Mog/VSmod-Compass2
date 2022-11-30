@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
-namespace Compass {
+namespace Compass.Common {
   public class Config {
     public const string DEFAULT_FILENAME = "CompassMod.json";
 

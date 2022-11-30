@@ -1,12 +1,13 @@
 {
   "code": "compass",
   "variantgroups": [
-    { "code": "type", "states": ["magnetic", "relative", "origin"] }
+    { "code": "type", "states": ["magnetic", "relative", "origin", "player"] }
   ],
   "classByType": {
     "*-magnetic": "BlockMagneticCompass",
     "*-relative": "BlockRelativeCompass",
-    "*-origin": "BlockOriginCompass"
+    "*-origin": "BlockOriginCompass",
+    "*-player": "BlockPlayerCompass"
   },
   "entityClass": "BlockEntityCompass",
   "behaviors": [ { "name": "RightClickPickup" }, { "name": "Unstable", "properties": { "attachedToFaces": ["down"] } } ],
@@ -18,7 +19,8 @@
     "all": { "base": { "base": "game:block/clay/ceramic-dark" } },
     "*-magnetic": { "needle": { "base": "game:item/resource/nugget/magnetite" } },
     "*-relative": { "needle": { "base": "game:item/resource/nugget/malachite" } },
-    "*-origin" : { "needle": { "base": "game:block/fire-blue" } }
+    "*-origin": { "needle": { "base": "game:block/fire-blue" } },
+    "*-player": { "needle": { "base": "game:block/metal/plate/gold" } }
   },
   "sidesolid": {
     "all": false
