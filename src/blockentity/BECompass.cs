@@ -10,21 +10,19 @@ namespace Compass {
     public string CraftedByPlayerUID;
     public BlockPos TargetPos;
     internal float? AngleRad;
-    CompassNeedleRenderer renderer;
-
-    public string Type {
-      get { return Block.LastCodePart(); }
-    }
+    protected CompassNeedleRenderer renderer;
 
     public override void Initialize(ICoreAPI api) {
       base.Initialize(api);
 
       if (api.Side == EnumAppSide.Client) {
-        renderer = new CompassNeedleRenderer(api as ICoreClientAPI, Pos, GenMesh("needle"));
-        renderer.AngleRad = AngleRad;
-        (api as ICoreClientAPI).Event.RegisterRenderer(renderer, EnumRenderStage.Opaque, "compass");
-        if (compassBaseMesh == null) compassBaseMesh = GenMesh("base");
+        InitializeNeedleRenderer();
       }
+    }
+
+    public virtual void InitializeNeedleRenderer() {
+      renderer = new CompassNeedleRenderer(Api as ICoreClientAPI, Pos, GenMesh("needle"), (Api) => { return AngleRad ?? BlockCompass.GetWildSpinAngle(Api); });
+      (Api as ICoreClientAPI).Event.RegisterRenderer(renderer, EnumRenderStage.Opaque, "compass");
     }
 
     public override void OnBlockPlaced(ItemStack byItemStack = null) {
@@ -37,11 +35,6 @@ namespace Compass {
           this.AngleRad = blockCompass.GetNeedleYawToTargetRadians(this.Pos, byItemStack);
         }
       }
-      if (Api.Side == EnumAppSide.Client) {
-        this.renderer.AngleRad = this.AngleRad;
-        if (compassBaseMesh == null) compassBaseMesh = GenMesh("base");
-        MarkDirty(true);
-      }
     }
 
     public override void OnBlockRemoved() {
@@ -49,27 +42,6 @@ namespace Compass {
 
       renderer?.Dispose();
       renderer = null;
-    }
-
-    MeshData compassBaseMesh {
-      get {
-        object value;
-        Api.ObjectCache.TryGetValue("compassbowlmesh", out value);
-        return (MeshData)value;
-      }
-      set {
-        Api.ObjectCache["compassbowlmesh"] = value;
-      }
-    }
-    MeshData compassNeedleMesh {
-      get {
-        object value;
-        Api.ObjectCache.TryGetValue($"compassneedlemesh-{Type}", out value);
-        return (MeshData)value;
-      }
-      set {
-        Api.ObjectCache[$"compassneedlemesh-{Type}"] = value;
-      }
     }
 
     internal MeshData GenMesh(string type = "base") {
@@ -87,7 +59,6 @@ namespace Compass {
       this.CraftedByPlayerUID = tree.GetString(BlockCompass.ATTR_STR_CRAFTED_BY_PLAYER_UID);
       this.TargetPos = SerializerUtil.Deserialize<BlockPos>(tree.GetBytes(BlockCompass.ATTR_BYTES_TARGET_BLOCK_POS));
       this.AngleRad = tree.TryGetFloat("AngleRad");
-      MarkDirty(true);
     }
 
     public override void ToTreeAttributes(ITreeAttribute tree) {
@@ -101,11 +72,6 @@ namespace Compass {
       base.OnBlockUnloaded();
 
       renderer?.Dispose();
-    }
-
-    public override bool OnTesselation(ITerrainMeshPool mesher, ITesselatorAPI tessThreadTesselator) {
-      mesher.AddMeshData(compassBaseMesh);
-      return true;
     }
   }
 }

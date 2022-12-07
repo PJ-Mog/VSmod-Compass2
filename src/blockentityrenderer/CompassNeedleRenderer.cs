@@ -8,12 +8,18 @@ namespace Compass {
     private BlockPos compassPos;
     MeshRef meshref;
     public Matrixf ModelMat = new Matrixf();
-    public float? AngleRad = null;
 
-    public CompassNeedleRenderer(ICoreClientAPI coreClientAPI, BlockPos compassPos, MeshData mesh) {
+    public delegate float GetAngleHandler(ICoreClientAPI api);
+    private GetAngleHandler GetAngle;
+
+    public CompassNeedleRenderer(ICoreClientAPI coreClientAPI, BlockPos compassPos, MeshData mesh, GetAngleHandler angleHandler) {
       this.api = coreClientAPI;
       this.compassPos = compassPos;
       this.meshref = api.Render.UploadMesh(mesh);
+      GetAngle = angleHandler;
+      if (GetAngle == null) {
+        GetAngle = FallbackGetAngleHandler;
+      }
     }
 
     public double RenderOrder {
@@ -42,8 +48,7 @@ namespace Compass {
       IStandardShaderProgram prog = rpi.PreparedStandardShader(compassPos.X, compassPos.Y, compassPos.Z);
       prog.Tex2D = api.BlockTextureAtlas.AtlasTextureIds[0];
 
-      // TODO: Decouple from BlockCompass
-      var renderAngle = AngleRad ?? BlockCompass.GetWildSpinAngle(api);
+      var renderAngle = GetAngle.Invoke(api);
 
       prog.ModelMatrix = ModelMat
         .Identity()
@@ -58,6 +63,11 @@ namespace Compass {
       prog.ProjectionMatrix = rpi.CurrentProjectionMatrix;
       rpi.RenderMesh(meshref);
       prog.Stop();
+    }
+
+    private float FallbackGetAngleHandler(ICoreClientAPI api) {
+      float milli = api.World.ElapsedMilliseconds;
+      return (float)((milli / 500) + (GameMath.FastSin(milli / 150)) + (GameMath.FastSin(milli / 432)) * 3);
     }
   }
 }
