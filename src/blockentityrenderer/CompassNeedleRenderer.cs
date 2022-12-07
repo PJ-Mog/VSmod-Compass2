@@ -9,17 +9,16 @@ namespace Compass {
     MeshRef meshref;
     public Matrixf ModelMat = new Matrixf();
 
-    public delegate float GetAngleHandler(ICoreClientAPI api);
+    public delegate float? GetAngleHandler(ICoreClientAPI api);
     private GetAngleHandler GetAngle;
 
-    public CompassNeedleRenderer(ICoreClientAPI coreClientAPI, BlockPos compassPos, MeshData mesh, GetAngleHandler angleHandler) {
-      this.api = coreClientAPI;
+    public CompassNeedleRenderer(ICoreClientAPI capi, BlockPos compassPos, MeshData mesh, GetAngleHandler angleHandler) {
+      this.api = capi;
       this.compassPos = compassPos;
       this.meshref = api.Render.UploadMesh(mesh);
       GetAngle = angleHandler;
-      if (GetAngle == null) {
-        GetAngle = FallbackGetAngleHandler;
-      }
+
+      capi.Event.RegisterRenderer(this, EnumRenderStage.Opaque, "compass-needle");
     }
 
     public double RenderOrder {
@@ -48,14 +47,14 @@ namespace Compass {
       IStandardShaderProgram prog = rpi.PreparedStandardShader(compassPos.X, compassPos.Y, compassPos.Z);
       prog.Tex2D = api.BlockTextureAtlas.AtlasTextureIds[0];
 
-      var renderAngle = GetAngle.Invoke(api);
+      var renderAngle = GetAngle?.Invoke(api) ?? FallbackGetAngleHandler(api);
 
       prog.ModelMatrix = ModelMat
         .Identity()
         .Translate(compassPos.X - camPos.X, compassPos.Y - camPos.Y, compassPos.Z - camPos.Z)
-        .Translate(0.5f, 11f / 16f, 0.5f)
+        .Translate(0.5f, 0f, 0.5f)
         .RotateY(renderAngle)
-        .Translate(-0.5f, -11f / 16f, -0.5f)
+        .Translate(-0.5f, -0f, -0.5f)
         .Values
       ;
 
