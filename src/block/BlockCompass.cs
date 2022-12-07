@@ -13,8 +13,9 @@ namespace Compass {
     public static readonly string ATTR_BYTES_TARGET_BLOCK_POS = "compass-target-block-pos";
     public static readonly string ATTR_BYTES_TARGET_ENTITY_POS = "compass-target-entity-pos";
     public static readonly string ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
-
     internal static readonly string UNKNOWN_PLAYER_UID = "UNKNOWN";
+    public virtual AssetLocation baseLoc => new AssetLocation("compass", "block/compass/base");
+    public virtual AssetLocation needleLoc => new AssetLocation("compass", "block/compass/needle");
     MeshRef[] meshrefs;
 
     protected static int MIN_MANHATTAN_DISTANCE_TO_SHOW_DIRECTION {
@@ -27,27 +28,7 @@ namespace Compass {
       }
     }
     private void OnLoadedClientSide(ICoreClientAPI capi) {
-      meshrefs = new MeshRef[MAX_ANGLED_MESHES];
-
-      string key = Code.ToString() + "-meshes";
-
-      var baseShape = capi.Assets.TryGet("compass:shapes/block/compass/base.json")?.ToObject<Shape>();
-      var needleShape = capi.Assets.TryGet("compass:shapes/block/compass/needle.json")?.ToObject<Shape>();
-
-      capi.Tesselator.TesselateShape(this, baseShape, out MeshData compassBaseMeshData, new Vec3f(0, 0, 0));
-
-      meshrefs = ObjectCacheUtil.GetOrCreate(capi, key, () => {
-        for (var angleIndex = 0; angleIndex < MAX_ANGLED_MESHES; angleIndex += 1) {
-
-          float angle = ((float)angleIndex / MAX_ANGLED_MESHES * 360);
-          capi.Tesselator.TesselateShape(this, needleShape, out MeshData meshData, new Vec3f(0, angle, 0));
-
-          meshData.AddMeshData(compassBaseMeshData);
-
-          meshrefs[angleIndex] = capi.Render.UploadMesh(meshData);
-        }
-        return meshrefs;
-      });
+      PreGenerateMeshRefs(capi);
       // handle weird bug in VS where GUI shapes are drawn as mirror images: https://github.com/anegostudios/VintageStory-Issues/issues/839
       GuiTransform.Scale = -2.75f;
       GuiTransform.Rotate = false;
@@ -62,6 +43,57 @@ namespace Compass {
           meshrefs[meshIndex] = null;
         }
       }
+    }
+
+    protected virtual void PreGenerateMeshRefs(ICoreClientAPI capi) {
+      if (meshrefs == null) {
+        meshrefs = new MeshRef[MAX_ANGLED_MESHES];
+      }
+
+      string key = Code.ToString() + "-meshes";
+
+      var compassBaseMeshData = GenBaseMesh(capi);
+
+      meshrefs = ObjectCacheUtil.GetOrCreate(capi, key, () => {
+        var needleShape = GetShape(capi, needleLoc);
+        for (var angleIndex = 0; angleIndex < MAX_ANGLED_MESHES; angleIndex += 1) {
+
+          float angle = ((float)angleIndex / MAX_ANGLED_MESHES * 360);
+          var needleMeshData = GenMesh(capi, needleShape, new Vec3f(0, angle, 0));
+
+          needleMeshData.AddMeshData(compassBaseMeshData);
+
+          meshrefs[angleIndex] = capi.Render.UploadMesh(needleMeshData);
+        }
+        return meshrefs;
+      });
+    }
+
+    public virtual MeshData GenNeedleMesh(ICoreClientAPI capi, Vec3f rotationDeg = null) {
+      var shape = GetShape(capi, needleLoc);
+      return GenMesh(capi, shape, rotationDeg);
+    }
+
+    public virtual MeshData GenBaseMesh(ICoreClientAPI capi) {
+      var shape = GetShape(capi, baseLoc);
+      return GenMesh(capi, shape);
+    }
+
+    protected Shape GetShape(ICoreClientAPI capi, AssetLocation assetLocation) {
+      var shape = Vintagestory.API.Common.Shape.TryGet(capi, assetLocation.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json"));
+      if (shape == null) {
+        capi.Logger.Error("[CompassMod] Failed to find shape {0} for {1}", assetLocation, Code);
+      }
+      return shape;
+    }
+
+    private MeshData GenMesh(ICoreClientAPI capi, Shape shape, Vec3f rotationDeg = null) {
+      if (shape == null) {
+        capi.Logger.Error("Shape for {0} could not be found.", Code);
+        return new MeshData();
+      }
+      capi.Tesselator.TesselateShape(this, shape, out MeshData mesh, rotationDeg);
+      return mesh;
     }
 
     public abstract float GetNeedleYawToTargetRadians(BlockPos fromPos, ItemStack compassStack);

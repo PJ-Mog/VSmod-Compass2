@@ -25,11 +25,7 @@ namespace Compass {
     public virtual float? GetNeedleRenderAngle(ICoreClientAPI capi) => this.AngleRad;
 
     protected virtual MeshData GenNeedleMesh(ICoreClientAPI capi) {
-      if ((Block?.BlockId ?? 0) == 0) { return new MeshData(); }
-
-      capi.Tesselator.TesselateShape(Block, Api.Assets.TryGet("compass:shapes/block/compass/needle.json").ToObject<Shape>(), out MeshData mesh);
-
-      return mesh;
+      return (Block as BlockCompass)?.GenNeedleMesh(capi);
     }
 
     public override void OnBlockPlaced(ItemStack byItemStack = null) {
