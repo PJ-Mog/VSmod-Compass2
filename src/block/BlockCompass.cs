@@ -161,12 +161,7 @@ namespace Compass {
 
       BlockEntityCompass bec = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityCompass;
 
-      if (bec != null) {
-        SetCraftedByPlayerUID(compassStack, bec.CraftedByPlayerUID);
-        SetTargetPos(compassStack, bec.TargetPos);
-      }
-
-      return compassStack;
+      return bec?.CompassStack ?? compassStack;
     }
 
     public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
