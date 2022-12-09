@@ -1,10 +1,10 @@
 using Vintagestory.API.Common;
-using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 
 namespace Compass {
   class BlockOriginCompass : BlockCompass {
-    protected override BlockPos GetTargetPos(ItemStack compassStack) {
-      return api.World.DefaultSpawnPosition.AsBlockPos;
+    protected override void OnSuccessfullyCrafted(IServerWorldAccessor world, IPlayer byPlayer, ItemSlot slot) {
+      SetTargetPos(slot.Itemstack, world.DefaultSpawnPosition.AsBlockPos);
     }
   }
 }

@@ -10,7 +10,9 @@ Alternate recipe: use 1 metal scrap instead of magnetite.
 
 ## Origin Compass
 
-Crafted using 1 Magnetic Compass and 2 Temporal Gears. It always points to the world's default spawn. If the default spawn has a radius, it points to the center of it. This will be the same spot for all players on the server.
+Crafted using 1 Magnetic Compass and 2 Temporal Gears. Points to the world's default spawn _at time of its creation_. If the default spawn has a radius, it points to the center of it.
+
+If the world's default spawn changes, existing Origin Compasses will not update.
 
 ## Relative Compass
 
