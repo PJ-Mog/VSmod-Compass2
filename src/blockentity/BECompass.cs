@@ -7,14 +7,16 @@ namespace Compass {
   public class BlockEntityCompass : BlockEntity {
     protected static readonly string ATTR_STACK = "compass-stack";
     public ItemStack CompassStack;
-    protected float? AngleRad;
+    protected float? NeedleAngleRad;
     protected IRenderer needleRenderer;
 
     public override void Initialize(ICoreAPI api) {
       base.Initialize(api);
 
       if (api.Side == EnumAppSide.Client) {
-        InitializeNeedleRenderer(api as ICoreClientAPI);
+        var capi = (ICoreClientAPI)api;
+        InitializeNeedleRenderer(capi);
+        InitializeNeedleAngleUpdater(capi);
       }
     }
 
@@ -22,7 +24,13 @@ namespace Compass {
       needleRenderer = new CompassNeedleRenderer(capi, Pos, GenNeedleMesh(capi), GetNeedleRenderAngle);
     }
 
-    public virtual float? GetNeedleRenderAngle(ICoreClientAPI capi) => this.AngleRad;
+    protected virtual void InitializeNeedleAngleUpdater(ICoreClientAPI capi) {
+      if ((this.CompassStack?.Block as BlockCompass)?.TargetType == BlockCompass.EnumTargetType.MOVING) {
+        capi.World.RegisterGameTickListener(UpdateNeedleAngle, 200);
+      }
+    }
+
+    public virtual float? GetNeedleRenderAngle(ICoreClientAPI capi) => this.NeedleAngleRad;
 
     protected virtual MeshData GenNeedleMesh(ICoreClientAPI capi) {
       return (Block as BlockCompass)?.GenNeedleMesh(capi);
@@ -32,11 +40,16 @@ namespace Compass {
       this.CompassStack = byItemStack;
       if (Api.Side == EnumAppSide.Client) {
         SetNeedleRenderAngle();
+        InitializeNeedleAngleUpdater(Api as ICoreClientAPI);
       }
     }
 
     protected virtual void SetNeedleRenderAngle() {
-      this.AngleRad = (this.CompassStack?.Block as BlockCompass)?.GetNeedleYawRadians(this.Pos, this.CompassStack);
+      this.NeedleAngleRad = (this.CompassStack?.Block as BlockCompass)?.GetNeedleYawRadians(this.Pos, this.CompassStack);
+    }
+
+    public virtual void UpdateNeedleAngle(float deltaTime) {
+      SetNeedleRenderAngle();
     }
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve) {
