@@ -38,10 +38,7 @@ namespace Compass {
     }
 
     public void SetNeedleRenderAngle() {
-      BlockCompass blockCompass = this.CompassStack?.Block as BlockCompass;
-      if (blockCompass?.ShouldPointToTarget(Pos, CompassStack) ?? false) {
-        this.AngleRad = blockCompass.GetNeedleYawToTargetRadians(this.Pos, this.CompassStack);
-      }
+      this.AngleRad = (this.CompassStack?.Block as BlockCompass)?.GetNeedleYawRadians(this.Pos, this.CompassStack);
     }
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve) {

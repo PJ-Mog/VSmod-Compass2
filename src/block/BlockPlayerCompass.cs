@@ -3,11 +3,9 @@ using Vintagestory.API.MathTools;
 
 namespace Compass {
   class BlockPlayerCompass : BlockCompass {
-    public override float GetNeedleYawToTargetRadians(BlockPos fromPos, ItemStack compassStack) {
-      return GetYawRadians(fromPos, GetTargetPos(compassStack));
-    }
+    public override EnumTargetType TargetType => EnumTargetType.MOVING;
 
-    public override BlockPos GetTargetPos(ItemStack compassStack) {
+    protected override BlockPos GetTargetPos(ItemStack compassStack) {
       return GetCachedPos(GetCraftedByPlayerUID(compassStack));
     }
 
@@ -17,7 +15,8 @@ namespace Compass {
     }
 
     public override bool ShouldPointToTarget(BlockPos fromPos, ItemStack compassStack) {
-      return GetTargetPos(compassStack) != null && base.ShouldPointToTarget(fromPos, compassStack);
+      return base.ShouldPointToTarget(fromPos, compassStack)
+             && GetTargetPos(compassStack) != null;
     }
   }
 }

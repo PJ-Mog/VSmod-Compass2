@@ -1,4 +1,4 @@
-using System;
+using Compass.Utility;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -7,43 +7,47 @@ using Vintagestory.API.Util;
 
 namespace Compass {
   abstract class BlockCompass : Block {
-    const double TWO_PI = Math.PI * 2;
     const int MAX_ANGLED_MESHES = 60;
     public static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
-    public static readonly string ATTR_BYTES_TARGET_BLOCK_POS = "compass-target-block-pos";
-    public static readonly string ATTR_BYTES_TARGET_ENTITY_POS = "compass-target-entity-pos";
-    public static readonly string ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
-    internal static readonly string UNKNOWN_PLAYER_UID = "UNKNOWN";
+    public static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
+    public static readonly string TEMP_ATTR_BYTES_ENTITY_POS = "compass-entity-pos";
+    public static readonly string TEMP_ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
     public virtual AssetLocation baseLoc => new AssetLocation("compass", "block/compass/base");
     public virtual AssetLocation needleLoc => new AssetLocation("compass", "block/compass/needle");
-    MeshRef[] meshrefs;
+    protected MeshRef[] meshrefs;
 
-    protected static int MIN_MANHATTAN_DISTANCE_TO_SHOW_DIRECTION {
+    protected virtual int MIN_DISTANCE_TO_SHOW_DIRECTION {
       get { return 3; }
     }
 
+    public enum EnumTargetType {
+      STATIONARY,
+      MOVING
+    }
+
+    public virtual EnumTargetType TargetType => EnumTargetType.STATIONARY;
+
     public override void OnLoaded(ICoreAPI api) {
       if (api.Side == EnumAppSide.Client) {
-        OnLoadedClientSide(api as ICoreClientAPI);
+        PreGenerateMeshRefs(api as ICoreClientAPI);
       }
-    }
-    private void OnLoadedClientSide(ICoreClientAPI capi) {
-      PreGenerateMeshRefs(capi);
-      // handle weird bug in VS where GUI shapes are drawn as mirror images: https://github.com/anegostudios/VintageStory-Issues/issues/839
-      GuiTransform.Scale = -2.75f;
-      GuiTransform.Rotate = false;
-      GuiTransform.Translation.Add(-2f, 0f, 0f);
-      GuiTransform.Rotation.Add(0f, 0f, 5f);
     }
 
     public override void OnUnloaded(ICoreAPI api) {
       if (api.Side == EnumAppSide.Client) {
-        for (var meshIndex = 0; meshIndex < MAX_ANGLED_MESHES; meshIndex += 1) {
-          meshrefs[meshIndex]?.Dispose();
-          meshrefs[meshIndex] = null;
-        }
+        DisposeMeshRefs(api as ICoreClientAPI);
       }
     }
+
+    public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos) {
+      return (world.BlockAccessor.GetBlockEntity(pos) as BlockEntityCompass)?.CompassStack ?? base.OnPickBlock(world, pos);
+    }
+
+    public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
+      return new ItemStack[] { OnPickBlock(world, pos) };
+    }
+
+    #region Rendering
 
     protected virtual void PreGenerateMeshRefs(ICoreClientAPI capi) {
       if (meshrefs == null) {
@@ -69,6 +73,14 @@ namespace Compass {
       });
     }
 
+    protected virtual void DisposeMeshRefs(ICoreClientAPI capi) {
+      for (var meshIndex = 0; meshIndex < MAX_ANGLED_MESHES; meshIndex += 1) {
+        meshrefs[meshIndex]?.Dispose();
+        meshrefs[meshIndex] = null;
+      }
+      meshrefs = null;
+    }
+
     public virtual MeshData GenNeedleMesh(ICoreClientAPI capi, Vec3f rotationDeg = null) {
       var shape = GetShape(capi, needleLoc);
       return GenMesh(capi, shape, rotationDeg);
@@ -87,140 +99,16 @@ namespace Compass {
       return shape;
     }
 
-    private MeshData GenMesh(ICoreClientAPI capi, Shape shape, Vec3f rotationDeg = null) {
+    protected virtual MeshData GenMesh(ICoreClientAPI capi, Shape shape, Vec3f rotationDeg = null) {
       if (shape == null) {
-        capi.Logger.Error("Shape for {0} could not be found.", Code);
         return new MeshData();
       }
       capi.Tesselator.TesselateShape(this, shape, out MeshData mesh, rotationDeg);
       return mesh;
     }
 
-    public abstract float GetNeedleYawToTargetRadians(BlockPos fromPos, ItemStack compassStack);
-
-    public int GetBestMatchMeshRefIndex(float angleTowardsTarget, float yawOfCompass = 0) {
-      return (int)GameMath.Mod((angleTowardsTarget - yawOfCompass) / TWO_PI * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
-    }
-
-    public float GetNeedleAngleToDisplay(BlockPos fromPos, ItemStack compassStack) {
-      if (ShouldPointToTarget(fromPos, compassStack)) {
-        return GetNeedleYawToTargetRadians(fromPos, compassStack);
-      }
-      return GetWildSpinAngle(api);
-    }
-
-    // Not null-safe
-    public static float GetYawRadians(BlockPos fromPos, BlockPos toPos) {
-      return (float)Math.Atan2(fromPos.X - toPos.X, fromPos.Z - toPos.Z);
-    }
-
-    public virtual int GetHorizontalManhattanDistance(BlockPos fromPos, ItemStack compassStack) {
-      return GetHorizontalManhattanDistance(fromPos, GetTargetPos(compassStack));
-    }
-
-    // Null-safe
-    public static int GetHorizontalManhattanDistance(BlockPos fromPos, BlockPos toPos) {
-      if (fromPos == null || toPos == null) { return MIN_MANHATTAN_DISTANCE_TO_SHOW_DIRECTION; }
-      return Math.Abs(fromPos.X - toPos.X) + Math.Abs(fromPos.Z - toPos.Z);
-    }
-
-    // Should return null if either the target is not set or if the target is not a discrete position.
-    public virtual BlockPos GetTargetPos(ItemStack compassStack) {
-      var bytes = compassStack?.Attributes.GetBytes(ATTR_BYTES_TARGET_BLOCK_POS);
-      if (bytes == null) { return null; }
-      return SerializerUtil.Deserialize<BlockPos>(bytes);
-    }
-
-    public virtual void SetTargetPos(ItemStack compassStack, BlockPos targetPos) {
-      if (compassStack == null) { return; }
-      var attrs = compassStack.Attributes;
-      if (targetPos == null) {
-        attrs.RemoveAttribute(ATTR_BYTES_TARGET_BLOCK_POS);
-      }
-      else {
-        attrs.SetBytes(ATTR_BYTES_TARGET_BLOCK_POS, SerializerUtil.Serialize(targetPos));
-      }
-    }
-
-    public virtual BlockPos GetEntityPos(ItemStack compassStack) {
-      var bytes = compassStack?.Attributes.GetBytes(ATTR_BYTES_TARGET_ENTITY_POS);
-      if (bytes == null) { return null; }
-      return SerializerUtil.Deserialize<BlockPos>(bytes);
-    }
-
-    public virtual void SetEntityPos(ItemStack compassStack, BlockPos entityPos) {
-      if (compassStack == null) { return; }
-      var attrs = compassStack.Attributes;
-      if (entityPos == null) {
-        attrs.RemoveAttribute(ATTR_BYTES_TARGET_ENTITY_POS);
-      }
-      else {
-        attrs.SetBytes(ATTR_BYTES_TARGET_ENTITY_POS, SerializerUtil.Serialize(entityPos));
-      }
-    }
-
-    public virtual float GetEntityYaw(ItemStack compassStack) {
-      return compassStack?.Attributes.TryGetFloat(ATTR_FLOAT_ENTITY_YAW) ?? 0;
-    }
-
-    public virtual void SetEntityYaw(ItemStack compassStack, float? entityYaw) {
-      if (compassStack == null) { return; }
-      if (entityYaw == null) {
-        compassStack.Attributes.RemoveAttribute(ATTR_FLOAT_ENTITY_YAW);
-      }
-      else {
-        compassStack.Attributes.SetFloat(ATTR_FLOAT_ENTITY_YAW, (float)entityYaw);
-      }
-    }
-
-    // Sealed to ensure inheriting classes always call certain functions to properly detect when a compass is created and placed in a player's inventory.
-    // Override #OnBeforeModifiedInInventorySlot, #OnSuccessfullyCrafted, and/or #OnAfterModifiedInInventorySlot instead.
-    sealed public override void OnModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {
-      OnBeforeModifiedInInventorySlot(world, slot, extractedStack);
-      var player = (slot.Inventory as InventoryBasePlayer)?.Player;
-      if (world.Side == EnumAppSide.Server && !IsCrafted(slot.Itemstack) && player != null) {
-        SetCraftedByPlayerUID(slot.Itemstack, player.PlayerUID);
-        OnSuccessfullyCrafted(world as IServerWorldAccessor, player, slot);
-      }
-      OnAfterModifiedInInventorySlot(world, slot, extractedStack);
-    }
-
-    public virtual void OnBeforeModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) { }
-    public virtual void OnAfterModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) { }
-
-    public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos) {
-      ItemStack compassStack = base.OnPickBlock(world, pos);
-
-      BlockEntityCompass bec = world.BlockAccessor.GetBlockEntity(pos) as BlockEntityCompass;
-
-      return bec?.CompassStack ?? compassStack;
-    }
-
-    public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
-      return new ItemStack[] { OnPickBlock(world, pos) };
-    }
-
-    // Called from OnModifiedInInventorySlot (server side) when the compass is first placed into a player's inventory and successfully marked as crafted
-    public virtual void OnSuccessfullyCrafted(IServerWorldAccessor world, IPlayer byPlayer, ItemSlot slot) { }
-
-    public static bool IsCrafted(ItemStack compassStack) {
-      return compassStack?.Attributes.HasAttribute(ATTR_STR_CRAFTED_BY_PLAYER_UID) ?? false;
-    }
-
-    internal static bool SetCraftedByPlayerUID(ItemStack compassStack, string craftedByPlayerUID) {
-      if (compassStack == null || craftedByPlayerUID == null || craftedByPlayerUID.Length == 0) { return false; }
-      compassStack.Attributes.SetString(ATTR_STR_CRAFTED_BY_PLAYER_UID, craftedByPlayerUID);
-      return true;
-    }
-
-    public static string GetCraftedByPlayerUID(ItemStack compassStack) {
-      return compassStack?.Attributes.GetString(ATTR_STR_CRAFTED_BY_PLAYER_UID);
-    }
-
-    public virtual bool ShouldPointToTarget(BlockPos fromPos, ItemStack compassStack) {
-      return fromPos != null
-             && IsCrafted(compassStack)
-             && GetHorizontalManhattanDistance(fromPos, compassStack) >= MIN_MANHATTAN_DISTANCE_TO_SHOW_DIRECTION;
+    protected int GetBestMatchMeshRefIndex(float angleTowardsTarget, float yawOfCompass = 0) {
+      return (int)GameMath.Mod((angleTowardsTarget - yawOfCompass) / GameMath.TWOPI * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
     }
 
     public override void OnBeforeRender(ICoreClientAPI capi, ItemStack compassStack, EnumItemRenderTarget renderTarget, ref ItemRenderInfo renderinfo) {
@@ -234,33 +122,132 @@ namespace Compass {
           yawCorrection = viewingPlayer.Entity.Pos.Yaw;
           break;
         case EnumItemRenderTarget.HandTp:
-          fromPos = GetEntityPos(compassStack);
-          yawCorrection = GetEntityYaw(compassStack);
+        case EnumItemRenderTarget.HandTpOff:
+          fromPos = GetCompassEntityPos(compassStack);
+          yawCorrection = GetCompassEntityYaw(compassStack);
           break;
         case EnumItemRenderTarget.Ground:
-          fromPos = GetEntityPos(compassStack);
-          renderinfo.Transform.Rotate = false; // this item will always drop to the ground in the same orientation
+          fromPos = GetCompassEntityPos(compassStack);
           break;
       }
-      float angle = GetNeedleAngleToDisplay(fromPos, compassStack);
+      float angle = GetNeedleYawRadians(fromPos, compassStack) ?? GetWildSpinAngleRadians(capi);
       renderinfo.ModelRef = meshrefs[GetBestMatchMeshRefIndex(angle, yawCorrection)];
     }
 
-    public static float GetWildSpinAngle(ICoreAPI api) {
-      double milli = api.World.ElapsedMilliseconds;
-      float angle = (float)((milli / 500) + (Math.Sin(milli / 150)) + (Math.Sin(milli / 432)) * 3);
-      return angle;
+    #endregion
+    #region NeedleLogic
+
+    //  The XZ-plane angle in radians that the compass should point.
+    //  Null if the angle cannot be calucated or if the direction should be hidden.
+    public float? GetNeedleYawRadians(BlockPos fromPos, ItemStack compassStack) {
+      if (ShouldPointToTarget(fromPos, compassStack)) {
+        return GetYawToTargetRadians(fromPos, compassStack);
+      }
+      return null;
+    }
+
+    //  The XZ-plane angle in radians to the compass's target.
+    //  Null if the angle cannot be calculated.
+    protected virtual float? GetYawToTargetRadians(BlockPos fromPos, ItemStack compassStack) {
+      return CompassMath.YawRadians(fromPos, GetTargetPos(compassStack));
+    }
+
+    public virtual bool ShouldPointToTarget(BlockPos fromPos, ItemStack compassStack) {
+      return fromPos != null
+             && IsCrafted(compassStack)
+             && GetDistanceToTarget(fromPos, compassStack) >= MIN_DISTANCE_TO_SHOW_DIRECTION;
+    }
+
+    public virtual int GetDistanceToTarget(BlockPos fromPos, ItemStack compassStack) {
+      return CompassMath.XZManhattanDistance(fromPos, GetTargetPos(compassStack)) ?? MIN_DISTANCE_TO_SHOW_DIRECTION;
+    }
+
+    //  Sealed, override #OnBeforeModifiedInInventorySlot, #OnSuccessfullyCrafted, and/or #OnAfterModifiedInInventorySlot instead.
+    sealed public override void OnModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {
+      OnBeforeModifiedInInventorySlot(world, slot, extractedStack);
+      base.OnModifiedInInventorySlot(world, slot, extractedStack);
+      var player = (slot.Inventory as InventoryBasePlayer)?.Player;
+      if (world.Side == EnumAppSide.Server && player != null && !IsCrafted(slot.Itemstack)) {
+        SetCraftedByPlayerUID(slot.Itemstack, player.PlayerUID);
+        OnSuccessfullyCrafted(world as IServerWorldAccessor, player, slot);
+      }
+      OnAfterModifiedInInventorySlot(world, slot, extractedStack);
+    }
+
+    protected virtual void OnBeforeModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) { }
+
+    //  Called server side when the compass is first placed into a player's inventory after being marked as crafted for the first time.
+    protected virtual void OnSuccessfullyCrafted(IServerWorldAccessor world, IPlayer byPlayer, ItemSlot slot) { }
+
+    protected virtual void OnAfterModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) { }
+
+    public virtual float GetWildSpinAngleRadians(ICoreAPI api) {
+      return CompassMath.GetWildSpinAngleRadians(api);
     }
 
     public override void OnGroundIdle(EntityItem entityItem) {
       base.OnGroundIdle(entityItem);
-      SetEntityPos(entityItem.Itemstack, entityItem.Pos.AsBlockPos);
+      SetCompassEntityPos(entityItem.Itemstack, entityItem.Pos.AsBlockPos);
     }
 
     public override void OnHeldIdle(ItemSlot slot, EntityAgent byEntity) {
       base.OnHeldIdle(slot, byEntity);
-      SetEntityPos(slot.Itemstack, byEntity.Pos.AsBlockPos);
-      SetEntityYaw(slot.Itemstack, byEntity.BodyYaw);
+      SetCompassEntityPos(slot.Itemstack, byEntity.Pos.AsBlockPos);
+      SetCompassEntityYaw(slot.Itemstack, byEntity.BodyYaw);
     }
+
+    #endregion
+    #region GetAndSetAttributes
+
+    protected virtual void SetCraftedByPlayerUID(ItemStack compassStack, string craftedByPlayerUID) {
+      if (craftedByPlayerUID == null) { return; }
+      compassStack?.Attributes.SetString(ATTR_STR_CRAFTED_BY_PLAYER_UID, craftedByPlayerUID);
+    }
+
+    protected virtual string GetCraftedByPlayerUID(ItemStack compassStack) {
+      return compassStack?.Attributes.GetString(ATTR_STR_CRAFTED_BY_PLAYER_UID);
+    }
+
+    public virtual bool IsCrafted(ItemStack compassStack) {
+      return compassStack?.Attributes.HasAttribute(ATTR_STR_CRAFTED_BY_PLAYER_UID) ?? false;
+    }
+
+    protected virtual void SetTargetPos(ItemStack compassStack, BlockPos targetPos) {
+      if (targetPos == null) {
+        compassStack?.Attributes.RemoveAttribute(ATTR_BYTES_TARGET_POS);
+      }
+      else {
+        compassStack?.Attributes.SetBytes(ATTR_BYTES_TARGET_POS, SerializerUtil.Serialize(targetPos));
+      }
+    }
+
+    //  The position of the compass's target.
+    //  Null if the compass has not had its target set, the target cannot be found, or the target is not a discrete position.
+    protected virtual BlockPos GetTargetPos(ItemStack compassStack) {
+      var bytes = compassStack?.Attributes.GetBytes(ATTR_BYTES_TARGET_POS);
+      if (bytes == null) { return null; }
+      return SerializerUtil.Deserialize<BlockPos>(bytes);
+    }
+
+    protected virtual void SetCompassEntityPos(ItemStack compassStack, BlockPos entityPos) {
+      if (entityPos == null) { return; }
+      compassStack?.TempAttributes.SetBytes(TEMP_ATTR_BYTES_ENTITY_POS, SerializerUtil.Serialize(entityPos));
+    }
+
+    protected virtual BlockPos GetCompassEntityPos(ItemStack compassStack) {
+      var bytes = compassStack?.TempAttributes.GetBytes(TEMP_ATTR_BYTES_ENTITY_POS);
+      if (bytes == null) { return null; }
+      return SerializerUtil.Deserialize<BlockPos>(bytes);
+    }
+
+    protected virtual void SetCompassEntityYaw(ItemStack compassStack, float entityYaw) {
+      compassStack?.TempAttributes.SetFloat(TEMP_ATTR_FLOAT_ENTITY_YAW, entityYaw);
+    }
+
+    protected virtual float GetCompassEntityYaw(ItemStack compassStack) {
+      return compassStack?.TempAttributes.GetFloat(TEMP_ATTR_FLOAT_ENTITY_YAW) ?? 0;
+    }
+
+    #endregion
   }
 }
