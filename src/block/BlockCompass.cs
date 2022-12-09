@@ -7,11 +7,11 @@ using Vintagestory.API.Util;
 
 namespace Compass {
   abstract class BlockCompass : Block {
-    const int MAX_ANGLED_MESHES = 60;
-    public static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
-    public static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
-    public static readonly string TEMP_ATTR_BYTES_ENTITY_POS = "compass-entity-pos";
-    public static readonly string TEMP_ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
+    protected static readonly int MAX_ANGLED_MESHES = 60;
+    protected static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
+    protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
+    protected static readonly string TEMP_ATTR_BYTES_ENTITY_POS = "compass-entity-pos";
+    protected static readonly string TEMP_ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
     public virtual AssetLocation baseLoc => new AssetLocation("compass", "block/compass/base");
     public virtual AssetLocation needleLoc => new AssetLocation("compass", "block/compass/needle");
     protected MeshRef[] meshrefs;

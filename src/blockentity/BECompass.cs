@@ -5,9 +5,9 @@ using Vintagestory.API.Datastructures;
 namespace Compass {
 
   public class BlockEntityCompass : BlockEntity {
-    public const string ATTR_STACK = "compass-stack";
+    protected static readonly string ATTR_STACK = "compass-stack";
     public ItemStack CompassStack;
-    internal float? AngleRad;
+    protected float? AngleRad;
     protected IRenderer needleRenderer;
 
     public override void Initialize(ICoreAPI api) {
@@ -18,7 +18,7 @@ namespace Compass {
       }
     }
 
-    public virtual void InitializeNeedleRenderer(ICoreClientAPI capi) {
+    protected virtual void InitializeNeedleRenderer(ICoreClientAPI capi) {
       needleRenderer = new CompassNeedleRenderer(capi, Pos, GenNeedleMesh(capi), GetNeedleRenderAngle);
     }
 
@@ -35,7 +35,7 @@ namespace Compass {
       }
     }
 
-    public void SetNeedleRenderAngle() {
+    protected virtual void SetNeedleRenderAngle() {
       this.AngleRad = (this.CompassStack?.Block as BlockCompass)?.GetNeedleYawRadians(this.Pos, this.CompassStack);
     }
 
