@@ -37,7 +37,10 @@ namespace Compass {
     }
 
     public override void OnBlockPlaced(ItemStack byItemStack = null) {
-      this.CompassStack = byItemStack;
+      if (byItemStack != null) {
+        this.CompassStack = byItemStack.Clone();
+        this.CompassStack.StackSize = 1;
+      }
       if (Api.Side == EnumAppSide.Client) {
         SetNeedleRenderAngle();
         InitializeNeedleAngleUpdater(Api as ICoreClientAPI);
