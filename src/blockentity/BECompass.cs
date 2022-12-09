@@ -29,10 +29,8 @@ namespace Compass {
     }
 
     public override void OnBlockPlaced(ItemStack byItemStack = null) {
-      BlockCompass blockCompass = byItemStack?.Block as BlockCompass;
-
-      if (blockCompass != null) {
-        this.CompassStack = byItemStack;
+      this.CompassStack = byItemStack;
+      if (Api.Side == EnumAppSide.Client) {
         SetNeedleRenderAngle();
       }
     }
@@ -45,7 +43,9 @@ namespace Compass {
       base.FromTreeAttributes(tree, worldAccessForResolve);
       this.CompassStack = tree.GetItemstack(ATTR_STACK);
       this.CompassStack?.ResolveBlockOrItem(worldAccessForResolve);
-      SetNeedleRenderAngle();
+      if (worldAccessForResolve.Side == EnumAppSide.Client) {
+        SetNeedleRenderAngle();
+      }
     }
 
     public override void ToTreeAttributes(ITreeAttribute tree) {
