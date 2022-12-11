@@ -1,3 +1,4 @@
+using Compass.Utility;
 using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 
@@ -12,11 +13,19 @@ namespace Compass {
     public delegate float? GetAngleHandler(ICoreClientAPI api);
     private GetAngleHandler GetAngle;
 
+    public delegate float GetBackupAngle(ICoreClientAPI api);
+    private GetBackupAngle backupAngleHandler;
+    public GetBackupAngle BackupAngleHandler {
+      get { return backupAngleHandler; }
+      set { if (value != null) backupAngleHandler = value; }
+    }
+
     public CompassNeedleRenderer(ICoreClientAPI capi, BlockPos compassPos, MeshData mesh, GetAngleHandler angleHandler) {
       this.api = capi;
       this.compassPos = compassPos;
       this.meshref = api.Render.UploadMesh(mesh);
       GetAngle = angleHandler;
+      BackupAngleHandler = CompassMath.GetWildSpinAngleRadians;
 
       capi.Event.RegisterRenderer(this, EnumRenderStage.Opaque, "compass-needle");
     }
@@ -47,7 +56,7 @@ namespace Compass {
       IStandardShaderProgram prog = rpi.PreparedStandardShader(compassPos.X, compassPos.Y, compassPos.Z);
       prog.Tex2D = api.BlockTextureAtlas.AtlasTextureIds[0];
 
-      var renderAngle = GetAngle?.Invoke(api) ?? FallbackGetAngleHandler(api);
+      var renderAngle = GetAngle?.Invoke(api) ?? BackupAngleHandler(api);
 
       prog.ModelMatrix = ModelMat
         .Identity()
@@ -62,11 +71,6 @@ namespace Compass {
       prog.ProjectionMatrix = rpi.CurrentProjectionMatrix;
       rpi.RenderMesh(meshref);
       prog.Stop();
-    }
-
-    private float FallbackGetAngleHandler(ICoreClientAPI api) {
-      float milli = api.World.ElapsedMilliseconds;
-      return (float)((milli / 500) + (GameMath.FastSin(milli / 150)) + (GameMath.FastSin(milli / 432)) * 3);
     }
   }
 }
