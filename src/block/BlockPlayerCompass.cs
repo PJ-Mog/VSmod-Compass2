@@ -3,7 +3,7 @@ using Vintagestory.API.MathTools;
 
 namespace Compass {
   class BlockPlayerCompass : BlockCompass {
-    public override EnumTargetType TargetType => EnumTargetType.MOVING;
+    public override EnumTargetType GetTargetType() => EnumTargetType.MOVING;
 
     protected override BlockPos GetTargetPos(ItemStack compassStack) {
       return GetCachedPos(GetCraftedByPlayerUID(compassStack));

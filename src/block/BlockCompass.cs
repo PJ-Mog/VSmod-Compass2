@@ -6,7 +6,7 @@ using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace Compass {
-  abstract class BlockCompass : Block {
+  abstract class BlockCompass : Block, IRenderableXZTracker {
     protected static readonly int MAX_ANGLED_MESHES = 60;
     protected static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
     protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
@@ -19,13 +19,6 @@ namespace Compass {
     protected virtual int MIN_DISTANCE_TO_SHOW_DIRECTION {
       get { return 3; }
     }
-
-    public enum EnumTargetType {
-      STATIONARY,
-      MOVING
-    }
-
-    public virtual EnumTargetType TargetType => EnumTargetType.STATIONARY;
 
     public override void OnLoaded(ICoreAPI api) {
       if (api.Side == EnumAppSide.Client) {
@@ -40,7 +33,7 @@ namespace Compass {
     }
 
     public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos) {
-      return (world.BlockAccessor.GetBlockEntity(pos) as BlockEntityCompass)?.CompassStack?.Clone() ?? base.OnPickBlock(world, pos);
+      return (world.BlockAccessor.GetBlockEntity(pos) as BlockEntityCompass)?.TrackerStack?.Clone() ?? base.OnPickBlock(world, pos);
     }
 
     public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
@@ -82,13 +75,17 @@ namespace Compass {
     }
 
     public virtual MeshData GenNeedleMesh(ICoreClientAPI capi, Vec3f rotationDeg = null) {
-      var shape = GetShape(capi, needleLoc);
+      var shape = GetNeedleShape(capi);
       return GenMesh(capi, shape, rotationDeg);
     }
 
     public virtual MeshData GenBaseMesh(ICoreClientAPI capi) {
       var shape = GetShape(capi, baseLoc);
       return GenMesh(capi, shape);
+    }
+
+    public virtual Shape GetNeedleShape(ICoreClientAPI capi) {
+      return GetShape(capi, needleLoc);
     }
 
     protected Shape GetShape(ICoreClientAPI capi, AssetLocation assetLocation) {
@@ -130,25 +127,27 @@ namespace Compass {
           fromPos = GetCompassEntityPos(compassStack);
           break;
       }
-      float angle = GetNeedleYawRadians(fromPos, compassStack) ?? GetWildSpinAngleRadians(capi);
+      float angle = GetXZAngleToPoint(fromPos, compassStack) ?? GetWildSpinAngleRadians(capi);
       renderinfo.ModelRef = meshrefs[GetBestMatchMeshRefIndex(angle, yawCorrection)];
     }
 
     #endregion
     #region NeedleLogic
 
+    public virtual EnumTargetType GetTargetType() => EnumTargetType.STATIONARY;
+
     //  The XZ-plane angle in radians that the compass should point.
     //  Null if the angle cannot be calucated or if the direction should be hidden.
-    public float? GetNeedleYawRadians(BlockPos fromPos, ItemStack compassStack) {
+    public float? GetXZAngleToPoint(BlockPos fromPos, ItemStack compassStack) {
       if (ShouldPointToTarget(fromPos, compassStack)) {
-        return GetYawToTargetRadians(fromPos, compassStack);
+        return GetXZAngleToTargetRadians(fromPos, compassStack);
       }
       return null;
     }
 
     //  The XZ-plane angle in radians to the compass's target.
     //  Null if the angle cannot be calculated.
-    protected virtual float? GetYawToTargetRadians(BlockPos fromPos, ItemStack compassStack) {
+    protected virtual float? GetXZAngleToTargetRadians(BlockPos fromPos, ItemStack compassStack) {
       return CompassMath.YawRadians(fromPos, GetTargetPos(compassStack));
     }
 

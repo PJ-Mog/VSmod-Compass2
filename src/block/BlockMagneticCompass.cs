@@ -4,7 +4,7 @@ using Vintagestory.API.MathTools;
 
 namespace Compass {
   class BlockMagneticCompass : BlockCompass {
-    protected override float? GetYawToTargetRadians(BlockPos fromPos, ItemStack compass) {
+    protected override float? GetXZAngleToTargetRadians(BlockPos fromPos, ItemStack compass) {
       return 0f;
     }
 
@@ -26,7 +26,7 @@ namespace Compass {
           yawCorrection = GetCompassEntityYaw(compassStack);
           break;
       }
-      float needleAngle = GetNeedleYawRadians(null, compassStack) ?? GetWildSpinAngleRadians(capi);
+      float needleAngle = GetXZAngleToPoint(null, compassStack) ?? GetWildSpinAngleRadians(capi);
       renderinfo.ModelRef = meshrefs[GetBestMatchMeshRefIndex(needleAngle, yawCorrection)];
     }
   }

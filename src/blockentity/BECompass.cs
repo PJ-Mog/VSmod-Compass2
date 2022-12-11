@@ -6,7 +6,7 @@ namespace Compass {
 
   public class BlockEntityCompass : BlockEntity {
     protected static readonly string ATTR_STACK = "compass-stack";
-    public ItemStack CompassStack;
+    public ItemStack TrackerStack;
     protected float? NeedleAngleRad;
     protected IRenderer needleRenderer;
 
@@ -21,34 +21,34 @@ namespace Compass {
     }
 
     protected virtual void InitializeNeedleRenderer(ICoreClientAPI capi) {
-      needleRenderer = new CompassNeedleRenderer(capi, Pos, GenNeedleMesh(capi), GetNeedleRenderAngle);
+      if (needleRenderer == null && TrackerStack != null) {
+        needleRenderer = new CompassNeedleRenderer(capi, Pos, TrackerStack.Collectible as IRenderableXZTracker, GetNeedleRenderAngle);
+      }
     }
 
     protected virtual void InitializeNeedleAngleUpdater(ICoreClientAPI capi) {
-      if ((this.CompassStack?.Block as BlockCompass)?.TargetType == BlockCompass.EnumTargetType.MOVING) {
+      if ((this.TrackerStack?.Collectible as IRenderableXZTracker)?.GetTargetType() == EnumTargetType.MOVING) {
         capi.World.RegisterGameTickListener(UpdateNeedleAngle, 200);
       }
     }
 
     public virtual float? GetNeedleRenderAngle(ICoreClientAPI capi) => this.NeedleAngleRad;
 
-    protected virtual MeshData GenNeedleMesh(ICoreClientAPI capi) {
-      return (Block as BlockCompass)?.GenNeedleMesh(capi);
-    }
-
     public override void OnBlockPlaced(ItemStack byItemStack = null) {
       if (byItemStack != null) {
-        this.CompassStack = byItemStack.Clone();
-        this.CompassStack.StackSize = 1;
+        this.TrackerStack = byItemStack.Clone();
+        this.TrackerStack.StackSize = 1;
       }
       if (Api.Side == EnumAppSide.Client) {
         SetNeedleRenderAngle();
-        InitializeNeedleAngleUpdater(Api as ICoreClientAPI);
+        var capi = Api as ICoreClientAPI;
+        InitializeNeedleRenderer(capi);
+        InitializeNeedleAngleUpdater(capi);
       }
     }
 
     protected virtual void SetNeedleRenderAngle() {
-      this.NeedleAngleRad = (this.CompassStack?.Block as BlockCompass)?.GetNeedleYawRadians(this.Pos, this.CompassStack);
+      this.NeedleAngleRad = (this.TrackerStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(this.Pos, this.TrackerStack);
     }
 
     public virtual void UpdateNeedleAngle(float deltaTime) {
@@ -57,8 +57,8 @@ namespace Compass {
 
     public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve) {
       base.FromTreeAttributes(tree, worldAccessForResolve);
-      this.CompassStack = tree.GetItemstack(ATTR_STACK);
-      this.CompassStack?.ResolveBlockOrItem(worldAccessForResolve);
+      this.TrackerStack = tree.GetItemstack(ATTR_STACK);
+      this.TrackerStack?.ResolveBlockOrItem(worldAccessForResolve);
       if (worldAccessForResolve.Side == EnumAppSide.Client) {
         SetNeedleRenderAngle();
       }
@@ -66,7 +66,7 @@ namespace Compass {
 
     public override void ToTreeAttributes(ITreeAttribute tree) {
       base.ToTreeAttributes(tree);
-      tree.SetItemstack(ATTR_STACK, this.CompassStack);
+      tree.SetItemstack(ATTR_STACK, this.TrackerStack);
     }
 
     public override void OnBlockRemoved() {
