@@ -54,8 +54,14 @@
     "rotate": false
   },
   "tpHandTransform": {
-    "translation": { "x": -2.1, "y": -1.6, "z": -1.4 },
-    "rotation": { "x": 0, "y": 0, "z": -69 }
+    "translation": { "x": -2.5, "y": -1.5, "z": -1.75 },
+    "rotation": { "x": 0, "y": 0, "z": -45 },
+    "scale": 0.30
+  },
+  "tpOffHandTransform": {
+    "translation": { "x": -2.25, "y": -1.47, "z": -1.45 },
+    "rotation": { "x": 0, "y": 0, "z": -45 },
+    "scale": 0.30
   },
   "collisionbox": { "x1": 0.25, "y1": 0, "z1": 0.25, "x2": 0.75, "y2": 0.1875, "z2": 0.75 },
   "selectionbox": { "x1": 0.25, "y1": 0, "z1": 0.25, "x2": 0.75, "y2": 0.1875, "z2": 0.75 }
