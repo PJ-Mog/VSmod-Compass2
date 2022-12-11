@@ -22,7 +22,7 @@ namespace Compass {
 
     protected virtual void InitializeNeedleRenderer(ICoreClientAPI capi) {
       if (needleRenderer == null && TrackerStack != null) {
-        needleRenderer = new CompassNeedleRenderer(capi, Pos, TrackerStack.Collectible as IRenderableXZTracker, GetNeedleRenderAngle);
+        needleRenderer = new XZTrackerNeedleRenderer(capi, Pos, TrackerStack.Collectible as IRenderableXZTracker, GetNeedleRenderAngle);
       }
     }
 

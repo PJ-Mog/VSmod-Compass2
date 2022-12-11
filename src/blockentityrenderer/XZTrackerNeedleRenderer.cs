@@ -4,7 +4,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
 namespace Compass {
-  public class CompassNeedleRenderer : IRenderer {
+  public class XZTrackerNeedleRenderer : IRenderer {
 
     private ICoreClientAPI api;
     private BlockPos compassPos;
@@ -24,7 +24,7 @@ namespace Compass {
     private double temporaryXOffset = 0.0;
     private double temporaryZOffset = 0.0;
 
-    public CompassNeedleRenderer(ICoreClientAPI capi, BlockPos compassPos, IRenderableXZTracker tracker, GetAngleHandler angleHandler) {
+    public XZTrackerNeedleRenderer(ICoreClientAPI capi, BlockPos compassPos, IRenderableXZTracker tracker, GetAngleHandler angleHandler) {
       this.api = capi;
       this.compassPos = compassPos;
       GetAngle = angleHandler;
