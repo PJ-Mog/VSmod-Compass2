@@ -1,3 +1,4 @@
+using System;
 using Compass.Utility;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -23,6 +24,16 @@ namespace Compass {
 
     private double temporaryXOffset = 0.0;
     private double temporaryZOffset = 0.0;
+
+    private const float WOBBLE_FREQUENCY = 0.0025f;
+    private const float MAX_WOBBLE_RADIANS = 0.03f;
+    private const float MAX_VELOCITY = 6f;
+    private const float MAX_SNAP_TO_TARGET_VELOCITY = 1f;
+    private const float FRICTION = 0.5f; // Must be less than snap speed
+    private const float ANGULAR_ACCELERATION = 5f;
+    private float realAngle = 0f;
+    private float angularFrequency = 0f;
+    private int rotationDirection = 1;
 
     public XZTrackerNeedleRenderer(ICoreClientAPI capi, BlockPos compassPos, IRenderableXZTracker tracker, GetAngleHandler angleHandler) {
       this.api = capi;
@@ -67,13 +78,18 @@ namespace Compass {
       IStandardShaderProgram prog = rpi.PreparedStandardShader(compassPos.X, compassPos.Y, compassPos.Z);
       prog.Tex2D = api.BlockTextureAtlas.AtlasTextureIds[0];
 
-      var renderAngle = GetAngle?.Invoke(api) ?? BackupAngleHandler(api);
+      var targetAngle = GameMath.Mod(GetAngle?.Invoke(api) ?? BackupAngleHandler(api), GameMath.TWOPI);
+      SimulateMovementTo(targetAngle, deltaTime);
+      var renderedAngle = realAngle;
+      if (realAngle == targetAngle) {
+        renderedAngle += GetWobbleAdjustment();
+      }
 
       prog.ModelMatrix = ModelMat
         .Identity()
         .Translate(compassPos.X - camPos.X, compassPos.Y - camPos.Y, compassPos.Z - camPos.Z)
         .Translate(temporaryXOffset, 0f, temporaryZOffset)
-        .RotateY(renderAngle)
+        .RotateY(renderedAngle)
         .Translate(-temporaryXOffset, -0f, -temporaryZOffset)
         .Values
       ;
@@ -82,6 +98,40 @@ namespace Compass {
       prog.ProjectionMatrix = rpi.CurrentProjectionMatrix;
       rpi.RenderMesh(meshref);
       prog.Stop();
+    }
+
+    private void SimulateMovementTo(float targetAngle, float deltaTime) {
+      if (targetAngle == realAngle && angularFrequency == 0f) {
+        return;
+      }
+
+      var normalizedAngularDistance = GameMath.Mod(targetAngle - realAngle, GameMath.TWOPI);
+      var absoluteAngularDistance = Math.Min(GameMath.TWOPI - normalizedAngularDistance, normalizedAngularDistance);
+      int directionOfAngularAcceleration = absoluteAngularDistance != normalizedAngularDistance ? -1 : 1;
+
+      angularFrequency += directionOfAngularAcceleration * ANGULAR_ACCELERATION * deltaTime * rotationDirection;
+      if (angularFrequency < 0) {
+        angularFrequency = Math.Abs(angularFrequency);
+        rotationDirection *= -1;
+      }
+      angularFrequency = GameMath.Min(angularFrequency, MAX_VELOCITY);
+
+      var angularDisplacement = angularFrequency * deltaTime;
+      if (angularDisplacement > absoluteAngularDistance) {
+        if (angularFrequency <= MAX_SNAP_TO_TARGET_VELOCITY) {
+          realAngle = targetAngle;
+          angularFrequency = 0f;
+          return;
+        }
+        angularFrequency -= FRICTION;
+        angularDisplacement -= FRICTION * deltaTime;
+      }
+      realAngle += rotationDirection * angularDisplacement;
+      realAngle = GameMath.Mod(realAngle, GameMath.TWOPI);
+    }
+
+    private float GetWobbleAdjustment() {
+      return GameMath.FastSin(api.World.ElapsedMilliseconds * WOBBLE_FREQUENCY) * MAX_WOBBLE_RADIANS;
     }
   }
 }
