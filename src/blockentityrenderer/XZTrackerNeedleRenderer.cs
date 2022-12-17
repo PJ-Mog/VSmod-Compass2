@@ -5,7 +5,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
 namespace Compass {
-  public class XZTrackerNeedleRenderer : IRenderer {
+  public class XZTrackerNeedleRenderer : IAdjustableRenderer {
 
     private ICoreClientAPI api;
     private BlockPos compassPos;
@@ -24,6 +24,8 @@ namespace Compass {
 
     private double temporaryXOffset = 0.0;
     private double temporaryZOffset = 0.0;
+    private Vec3f offset = Vec3f.Zero;
+    private float scale = 1f;
 
     private const float WOBBLE_FREQUENCY = 0.0025f;
     private const float MAX_WOBBLE_RADIANS = 0.03f;
@@ -50,6 +52,17 @@ namespace Compass {
       capi.Tesselator.TesselateShape(tracker as CollectibleObject, needleShape, out MeshData mesh);
       this.meshref = api.Render.UploadMesh(mesh);
       capi.Event.RegisterRenderer(this, EnumRenderStage.Opaque, "compass-needle");
+    }
+
+    public void SetOffset(Vec3f offset) {
+      if (offset == null) { return; }
+      this.offset = offset;
+    }
+
+    public void SetRotation(float rotation) { }
+
+    public void SetScale(float scale) {
+      this.scale = scale;
     }
 
     public double RenderOrder {
@@ -89,6 +102,8 @@ namespace Compass {
         .Identity()
         .Translate(compassPos.X - camPos.X, compassPos.Y - camPos.Y, compassPos.Z - camPos.Z)
         .Translate(temporaryXOffset, 0f, temporaryZOffset)
+        .Translate(offset.X, offset.Y, offset.Z)
+        .Scale(scale, scale, scale)
         .RotateY(renderedAngle)
         .Translate(-temporaryXOffset, -0f, -temporaryZOffset)
         .Values

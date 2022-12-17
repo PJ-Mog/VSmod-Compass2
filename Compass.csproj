@@ -21,10 +21,10 @@
       <HintPath>$(VSPath)/Mods/VSSurvivalMod.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <!-- <Reference Include="Harmony">
+    <Reference Include="Harmony">
       <HintPath>$(VSPath)/Lib/0Harmony.dll</HintPath>
       <Private>false</Private>
-    </Reference> -->
+    </Reference>
     <Reference Include="Newtonsoft">
       <HintPath>$(VSPath)/Lib/Newtonsoft.Json.dll</HintPath>
       <Private>false</Private>

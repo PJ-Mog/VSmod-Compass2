@@ -6,7 +6,7 @@ using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace Compass {
-  abstract class BlockCompass : Block, IRenderableXZTracker {
+  abstract class BlockCompass : Block, IRenderableXZTracker, IDisplayableCollectible {
     protected static readonly int MAX_ANGLED_MESHES = 60;
     protected static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
     protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
@@ -129,6 +129,20 @@ namespace Compass {
       }
       float angle = GetXZAngleToPoint(fromPos, compassStack) ?? GetWildSpinAngleRadians(capi);
       renderinfo.ModelRef = meshrefs[GetBestMatchMeshRefIndex(angle, yawCorrection)];
+    }
+
+    public IAdjustableRenderer CreateCustomRenderer(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {
+      XZTrackerNeedleRenderer renderer;
+      if (GetTargetType() == EnumTargetType.STATIONARY) {
+        float? angle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
+        renderer = new XZTrackerNeedleRenderer(capi, blockPos, this, (x) => angle);
+      }
+      else {
+        renderer = new XZTrackerNeedleRenderer(capi, blockPos, this, (x) => {
+          return (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
+        });
+      }
+      return renderer;
     }
 
     #endregion

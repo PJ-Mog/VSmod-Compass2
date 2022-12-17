@@ -1,4 +1,5 @@
 using Compass.Common;
+using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
@@ -20,6 +21,14 @@ namespace Compass {
       api.RegisterBlockClass("BlockPlayerCompass", typeof(BlockPlayerCompass));
 
       api.RegisterBlockEntityClass("BlockEntityCompass", typeof(BlockEntityCompass));
+
+      var harmony = new Harmony("japanhasrice.compass2");
+      harmony.PatchAll();
+    }
+
+    public override void Dispose() {
+      base.Dispose();
+      new Harmony("japanhasrice.compass2").UnpatchAll("japanhasrice.compass2");
     }
 
     public override void AssetsFinalize(ICoreAPI api) {

@@ -10,7 +10,20 @@
     "*-player": "BlockPlayerCompass"
   },
   "entityClass": "BlockEntityCompass",
-  "behaviors": [ { "name": "RightClickPickup" }, { "name": "Unstable", "properties": { "attachedToFaces": ["down"] } } ],
+  "behaviors": [
+    { "name": "RightClickPickup" },
+    { "name": "Unstable", "properties": { "attachedToFaces": ["down"] } },
+    { "name": "Unplaceable" },
+    { "name": "GroundStorable", "properties": {
+      "layout": "Quadrants",
+      "collisionBox": { "x1": 0, "y1": 0, "z1": 0, "x2": 1, "y2": 0.125, "z2": 1 }
+      }
+    }
+  ],
+  "attributes": {
+    "displaycaseable": true,
+    "shelvable": true
+  },
   "blockmaterial": "Ceramic",
   "resistance": "0.75",
   "creativeinventory": { "general": ["*"] },
