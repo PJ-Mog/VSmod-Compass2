@@ -28,7 +28,7 @@ namespace Compass {
 
     protected virtual void InitializeNeedleAngleUpdater(ICoreClientAPI capi) {
       if ((this.TrackerStack?.Collectible as IRenderableXZTracker)?.GetTargetType() == EnumTargetType.MOVING) {
-        capi.World.RegisterGameTickListener(UpdateNeedleAngle, 200);
+        RegisterGameTickListener(UpdateNeedleAngle, 200);
       }
     }
 
