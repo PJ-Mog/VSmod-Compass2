@@ -131,16 +131,17 @@ namespace Compass {
       renderinfo.ModelRef = meshrefs[GetBestMatchMeshRefIndex(angle, yawCorrection)];
     }
 
-    public IAdjustableRenderer CreateCustomRenderer(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {
-      XZTrackerNeedleRenderer renderer;
+    public IAdjustableRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {
+      var renderer = new XZTrackerNeedleRenderer(capi, blockPos, this);
       if (GetTargetType() == EnumTargetType.STATIONARY) {
-        float? angle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
-        renderer = new XZTrackerNeedleRenderer(capi, blockPos, this, (x) => angle);
+        renderer.TrackerTargetAngle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
       }
       else {
-        renderer = new XZTrackerNeedleRenderer(capi, blockPos, this, (x) => {
-          return (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
-        });
+        renderer.TickListenerId = capi.World.RegisterGameTickListener((dt) => {
+          if (renderer == null) { return; }
+          var angle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
+          renderer.TrackerTargetAngle = angle;
+        }, 500);
       }
       return renderer;
     }

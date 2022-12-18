@@ -13,7 +13,7 @@ namespace Compass.Patch {
       var displayable = itemSlot.Itemstack?.Collectible as IDisplayableCollectible;
       if (displayable == null) { return; }
 
-      var renderer = displayable.CreateCustomRenderer(blockEntityShelf.Api as ICoreClientAPI, itemSlot.Itemstack, blockEntityShelf.Pos);
+      var renderer = displayable.CreateRendererFromStack(blockEntityShelf.Api as ICoreClientAPI, itemSlot.Itemstack, blockEntityShelf.Pos);
       renderer?.SetOffset(blockEntityShelf.GetDisplayOffsetForSlot(index));
       renderers[index] = renderer;
     }

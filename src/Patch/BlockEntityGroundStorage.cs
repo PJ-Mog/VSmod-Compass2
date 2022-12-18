@@ -22,7 +22,7 @@ namespace Compass.Patch {
           var displayable = itemStack?.Collectible as IDisplayableCollectible;
           if (displayable == null) { continue; }
 
-          var renderer = displayable.CreateCustomRenderer(__instance.Api as ICoreClientAPI, itemStack, __instance.Pos);
+          var renderer = displayable.CreateRendererFromStack(__instance.Api as ICoreClientAPI, itemStack, __instance.Pos);
           renderer?.SetOffset(__instance.GetDisplayOffsetForSlot(i));
           renderers[i] = renderer;
         }

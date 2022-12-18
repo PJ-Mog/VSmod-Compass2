@@ -8,12 +8,17 @@ namespace Compass {
   public class XZTrackerNeedleRenderer : IAdjustableRenderer {
 
     private ICoreClientAPI api;
-    private BlockPos compassPos;
+    private BlockPos trackerPos;
+    private long? tickListenerId;
+    public long? TickListenerId {
+      get { return tickListenerId; }
+      set {
+        UnregisterTickListener();
+        tickListenerId = value;
+      }
+    }
     MeshRef meshref;
     public Matrixf ModelMat = new Matrixf();
-
-    public delegate float? GetAngleHandler(ICoreClientAPI api);
-    private GetAngleHandler GetAngle;
 
     public delegate float GetBackupAngle(ICoreClientAPI api);
     private GetBackupAngle backupAngleHandler;
@@ -33,14 +38,15 @@ namespace Compass {
     private const float MAX_SNAP_TO_TARGET_VELOCITY = 1f;
     private const float FRICTION = 0.5f; // Must be less than snap speed
     private const float ANGULAR_ACCELERATION = 5f;
+    public float? TrackerTargetAngle;
     private float realAngle = 0f;
     private float angularFrequency = 0f;
     private int rotationDirection = 1;
 
-    public XZTrackerNeedleRenderer(ICoreClientAPI capi, BlockPos compassPos, IRenderableXZTracker tracker, GetAngleHandler angleHandler) {
+    public XZTrackerNeedleRenderer(ICoreClientAPI capi, BlockPos trackerPos, IRenderableXZTracker tracker) {
       this.api = capi;
-      this.compassPos = compassPos;
-      GetAngle = angleHandler;
+      this.trackerPos = trackerPos;
+      this.realAngle = (float)api.World.Rand.NextDouble() * GameMath.TWOPI;
       BackupAngleHandler = CompassMath.GetWildSpinAngleRadians;
 
       var needleShape = tracker?.GetNeedleShape(capi);
@@ -51,7 +57,7 @@ namespace Compass {
       }
       capi.Tesselator.TesselateShape(tracker as CollectibleObject, needleShape, out MeshData mesh);
       this.meshref = api.Render.UploadMesh(mesh);
-      capi.Event.RegisterRenderer(this, EnumRenderStage.Opaque, "compass-needle");
+      capi.Event.RegisterRenderer(this, EnumRenderStage.Opaque, "tracker-needle");
     }
 
     public void SetOffset(Vec3f offset) {
@@ -75,8 +81,14 @@ namespace Compass {
 
     public void Dispose() {
       api.Event.UnregisterRenderer(this, EnumRenderStage.Opaque);
-
       meshref.Dispose();
+      UnregisterTickListener();
+    }
+
+    private void UnregisterTickListener() {
+      if (tickListenerId != null) {
+        api.World.UnregisterGameTickListener((long)tickListenerId);
+      }
     }
 
     public void OnRenderFrame(float deltaTime, EnumRenderStage stage) {
@@ -88,10 +100,10 @@ namespace Compass {
       rpi.GlDisableCullFace();
       rpi.GlToggleBlend(true);
 
-      IStandardShaderProgram prog = rpi.PreparedStandardShader(compassPos.X, compassPos.Y, compassPos.Z);
+      IStandardShaderProgram prog = rpi.PreparedStandardShader(trackerPos.X, trackerPos.Y, trackerPos.Z);
       prog.Tex2D = api.BlockTextureAtlas.AtlasTextureIds[0];
 
-      var targetAngle = GameMath.Mod(GetAngle?.Invoke(api) ?? BackupAngleHandler(api), GameMath.TWOPI);
+      var targetAngle = GameMath.Mod(TrackerTargetAngle ?? BackupAngleHandler(api), GameMath.TWOPI);
       SimulateMovementTo(targetAngle, deltaTime);
       var renderedAngle = realAngle;
       if (realAngle == targetAngle) {
@@ -100,7 +112,7 @@ namespace Compass {
 
       prog.ModelMatrix = ModelMat
         .Identity()
-        .Translate(compassPos.X - camPos.X, compassPos.Y - camPos.Y, compassPos.Z - camPos.Z)
+        .Translate(trackerPos.X - camPos.X, trackerPos.Y - camPos.Y, trackerPos.Z - camPos.Z)
         .Translate(temporaryXOffset, 0f, temporaryZOffset)
         .Translate(offset.X, offset.Y, offset.Z)
         .Scale(scale, scale, scale)

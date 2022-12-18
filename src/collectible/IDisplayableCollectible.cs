@@ -4,6 +4,6 @@ using Vintagestory.API.MathTools;
 
 namespace Compass {
   public interface IDisplayableCollectible {
-    IAdjustableRenderer CreateCustomRenderer(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos);
+    IAdjustableRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos);
   }
 }
