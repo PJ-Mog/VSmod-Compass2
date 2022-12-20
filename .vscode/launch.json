@@ -12,6 +12,10 @@
         "--openWorld" , "modding test world 1.17",
         "--addModPath", "${workspaceFolder}/bin/Debug/zip"
       ],
+      "env":{
+        "VAO_DEBUG_DISPOSE": "TRUE",
+        "TEXTURE_DEBUG_DISPOSE": "TRUE"
+      },
       "console": "internalConsole",
       "internalConsoleOptions": "openOnSessionStart"
     },
