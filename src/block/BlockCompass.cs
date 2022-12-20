@@ -14,6 +14,8 @@ namespace Compass {
     public virtual AssetLocation baseLoc => new AssetLocation("compass", "block/compass/base");
     public virtual AssetLocation needleLoc => new AssetLocation("compass", "block/compass/needle");
 
+    public virtual EnumTargetType TargetType { get; protected set; } = EnumTargetType.STATIONARY;
+
     protected virtual int MIN_DISTANCE_TO_SHOW_DIRECTION {
       get { return 3; }
     }
@@ -124,7 +126,7 @@ namespace Compass {
 
     public IAdjustableRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {
       var renderer = new XZTrackerNeedleRenderer(capi, blockPos, this);
-      if (GetTargetType() == EnumTargetType.STATIONARY) {
+      if (TargetType == EnumTargetType.STATIONARY) {
         renderer.TrackerTargetAngle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
       }
       else {
@@ -139,8 +141,6 @@ namespace Compass {
 
     #endregion
     #region NeedleLogic
-
-    public virtual EnumTargetType GetTargetType() => EnumTargetType.STATIONARY;
 
     //  The XZ-plane angle in radians that the compass should point.
     //  Null if the angle cannot be calucated or if the direction should be hidden.

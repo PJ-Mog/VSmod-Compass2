@@ -8,10 +8,8 @@ namespace Compass {
     MOVING
   }
 
-  public interface IRenderableXZTracker {
-    EnumTargetType GetTargetType();
-
-    IAdjustableRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos);
+  public interface IRenderableXZTracker : IDisplayableCollectible {
+    EnumTargetType TargetType { get; }
 
     //  Get the Yaw/XZ-Angle that the tracker would like to display
     //  Null if the tracker should not point in a particular direction
