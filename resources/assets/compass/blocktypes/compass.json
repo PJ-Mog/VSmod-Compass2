@@ -28,6 +28,7 @@
   "resistance": "0.75",
   "creativeinventory": { "general": ["*"] },
   "shape": { "base": "block/compass/base" },
+  "shapeInventory": { "base": "block/compass/full" },
   "texturesByType": {
     "all": { "base": { "base": "game:block/clay/ceramic-dark" } },
     "*-magnetic": { "needle": { "base": "game:item/resource/nugget/magnetite" } },

@@ -7,28 +7,20 @@ using Vintagestory.API.Util;
 
 namespace Compass {
   abstract class BlockCompass : Block, IRenderableXZTracker, IDisplayableCollectible {
-    protected static readonly int MAX_ANGLED_MESHES = 60;
     protected static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
     protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
     protected static readonly string TEMP_ATTR_BYTES_ENTITY_POS = "compass-entity-pos";
     protected static readonly string TEMP_ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
     public virtual AssetLocation baseLoc => new AssetLocation("compass", "block/compass/base");
     public virtual AssetLocation needleLoc => new AssetLocation("compass", "block/compass/needle");
-    protected MeshRef[] meshrefs;
 
     protected virtual int MIN_DISTANCE_TO_SHOW_DIRECTION {
       get { return 3; }
     }
 
-    public override void OnLoaded(ICoreAPI api) {
-      if (api.Side == EnumAppSide.Client) {
-        PreGenerateMeshRefs(api as ICoreClientAPI);
-      }
-    }
-
     public override void OnUnloaded(ICoreAPI api) {
       if (api.Side == EnumAppSide.Client) {
-        DisposeMeshRefs(api as ICoreClientAPI);
+        DisposeMeshData(api as ICoreClientAPI);
       }
     }
 
@@ -42,50 +34,51 @@ namespace Compass {
 
     #region Rendering
 
-    protected virtual void PreGenerateMeshRefs(ICoreClientAPI capi) {
-      if (meshrefs == null) {
-        meshrefs = new MeshRef[MAX_ANGLED_MESHES];
-      }
+    protected virtual void DisposeMeshData(ICoreClientAPI capi) {
+      ObjectCacheUtil.Delete(capi, Code.ToString() + "-needleMesh");
+      ObjectCacheUtil.Delete(capi, Code.ToString() + "-baseMesh");
+    }
 
-      string key = Code.ToString() + "-meshes";
+    public virtual MeshData GetFullMesh(ICoreClientAPI capi, float needleAngleRadians, float baseAngleRadians = 0f) {
+      var needleMesh = GetNeedleMesh(capi, out Vec3f rotationOrigin);
+      var baseMesh = GetBaseMesh(capi);
+      var fullMesh = new MeshData(needleMesh.VerticesCount + baseMesh.VerticesCount, needleMesh.IndicesCount + baseMesh.IndicesCount);
+      fullMesh.AddMeshData(needleMesh);
+      fullMesh.Rotate(rotationOrigin, 0f, needleAngleRadians - baseAngleRadians, 0f);
+      fullMesh.AddMeshData(baseMesh);
+      return fullMesh;
+    }
 
-      var compassBaseMeshData = GenBaseMesh(capi);
-
-      meshrefs = ObjectCacheUtil.GetOrCreate(capi, key, () => {
-        var needleShape = GetShape(capi, needleLoc);
-        for (var angleIndex = 0; angleIndex < MAX_ANGLED_MESHES; angleIndex += 1) {
-
-          float angle = ((float)angleIndex / MAX_ANGLED_MESHES * 360);
-          var needleMeshData = GenMesh(capi, needleShape, new Vec3f(0, angle, 0));
-
-          needleMeshData.AddMeshData(compassBaseMeshData);
-
-          meshrefs[angleIndex] = capi.Render.UploadMesh(needleMeshData);
-        }
-        return meshrefs;
+    public virtual MeshData GetNeedleMesh(ICoreClientAPI capi, out Vec3f rotationOrigin) {
+      var element = GetNeedleShape(capi).Elements[0].RotationOrigin;
+      rotationOrigin = new Vec3f((float)element[0] / 16f, (float)element[1] / 16f, (float)element[2] / 16f);
+      var key = Code.ToString() + "-needleMesh";
+      var cachedMesh = ObjectCacheUtil.GetOrCreate(capi, key, () => {
+        var mesh = GenMesh((capi), GetNeedleShape(capi));
+        mesh.CompactBuffers();
+        return mesh;
       });
+
+      return cachedMesh;
     }
 
-    protected virtual void DisposeMeshRefs(ICoreClientAPI capi) {
-      for (var meshIndex = 0; meshIndex < MAX_ANGLED_MESHES; meshIndex += 1) {
-        meshrefs[meshIndex]?.Dispose();
-        meshrefs[meshIndex] = null;
-      }
-      meshrefs = null;
-    }
+    public virtual MeshData GetBaseMesh(ICoreClientAPI capi) {
+      var key = Code.ToString() + "-baseMesh";
+      var cachedMesh = ObjectCacheUtil.GetOrCreate(capi, key, () => {
+        var mesh = GenMesh(capi, GetBaseShape(capi));
+        mesh.CompactBuffers();
+        return mesh;
+      });
 
-    public virtual MeshData GenNeedleMesh(ICoreClientAPI capi, Vec3f rotationDeg = null) {
-      var shape = GetNeedleShape(capi);
-      return GenMesh(capi, shape, rotationDeg);
-    }
-
-    public virtual MeshData GenBaseMesh(ICoreClientAPI capi) {
-      var shape = GetShape(capi, baseLoc);
-      return GenMesh(capi, shape);
+      return cachedMesh;
     }
 
     public virtual Shape GetNeedleShape(ICoreClientAPI capi) {
       return GetShape(capi, needleLoc);
+    }
+
+    public virtual Shape GetBaseShape(ICoreClientAPI capi) {
+      return GetShape(capi, baseLoc);
     }
 
     protected Shape GetShape(ICoreClientAPI capi, AssetLocation assetLocation) {
@@ -102,10 +95,6 @@ namespace Compass {
       }
       capi.Tesselator.TesselateShape(this, shape, out MeshData mesh, rotationDeg);
       return mesh;
-    }
-
-    protected int GetBestMatchMeshRefIndex(float angleTowardsTarget, float yawOfCompass = 0) {
-      return (int)GameMath.Mod((angleTowardsTarget - yawOfCompass) / GameMath.TWOPI * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
     }
 
     public override void OnBeforeRender(ICoreClientAPI capi, ItemStack compassStack, EnumItemRenderTarget renderTarget, ref ItemRenderInfo renderinfo) {
@@ -127,8 +116,10 @@ namespace Compass {
           fromPos = GetCompassEntityPos(compassStack);
           break;
       }
+
       float angle = GetXZAngleToPoint(fromPos, compassStack) ?? GetWildSpinAngleRadians(capi);
-      renderinfo.ModelRef = meshrefs[GetBestMatchMeshRefIndex(angle, yawCorrection)];
+      var mesh = GetFullMesh(capi, angle, yawCorrection);
+      capi.Render.UpdateMesh(renderinfo.ModelRef, mesh);
     }
 
     public IAdjustableRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {

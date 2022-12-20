@@ -26,8 +26,10 @@ namespace Compass {
           yawCorrection = GetCompassEntityYaw(compassStack);
           break;
       }
-      float needleAngle = GetXZAngleToPoint(null, compassStack) ?? GetWildSpinAngleRadians(capi);
-      renderinfo.ModelRef = meshrefs[GetBestMatchMeshRefIndex(needleAngle, yawCorrection)];
+
+      float angle = GetXZAngleToPoint(null, compassStack) ?? GetWildSpinAngleRadians(capi);
+      var mesh = GetFullMesh(capi, angle, yawCorrection);
+      capi.Render.UpdateMesh(renderinfo.ModelRef, mesh);
     }
   }
 }
