@@ -19,7 +19,7 @@ namespace Compass {
 
     int GetDistanceToTarget(BlockPos fromPos, ItemStack trackerStack);
 
-    //  The RotationOrigin of the first, top-level element should represent the point used to rotate the whole shape about the Y-axis.
-    Shape GetNeedleShape(ICoreClientAPI capi);
+    //  The RotationOrigin of the mesh, in 'block format' (i.e. 0.5f is half of a block's width)
+    MeshData GenNeedleMesh(ICoreClientAPI capi, out Vec3f blockRotationOrigin);
   }
 }

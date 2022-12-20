@@ -15,21 +15,20 @@ namespace Compass {
     protected override void SetCompassEntityPos(ItemStack compassStack, BlockPos entityPos) { }
 
     public override void OnBeforeRender(ICoreClientAPI capi, ItemStack compassStack, EnumItemRenderTarget renderTarget, ref ItemRenderInfo renderinfo) {
-      float yawCorrection = 0;
+      float trackerOrientation = 0;
       switch (renderTarget) {
         case EnumItemRenderTarget.Gui:
         case EnumItemRenderTarget.HandFp:
-          yawCorrection = capi.World.Player.Entity.Pos.Yaw;
+          trackerOrientation = capi.World.Player.Entity.Pos.Yaw;
           break;
         case EnumItemRenderTarget.HandTp:
         case EnumItemRenderTarget.HandTpOff:
-          yawCorrection = GetCompassEntityYaw(compassStack);
+          trackerOrientation = GetCompassEntityYaw(compassStack);
           break;
       }
 
       float angle = GetXZAngleToPoint(null, compassStack) ?? GetWildSpinAngleRadians(capi);
-      var mesh = GetFullMesh(capi, angle, yawCorrection);
-      capi.Render.UpdateMesh(renderinfo.ModelRef, mesh);
+      renderinfo.ModelRef = GetBestMeshRef(capi, angle, trackerOrientation);
     }
   }
 }

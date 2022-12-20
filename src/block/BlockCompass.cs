@@ -7,6 +7,8 @@ using Vintagestory.API.Util;
 
 namespace Compass {
   abstract class BlockCompass : Block, IRenderableXZTracker, IDisplayableCollectible {
+    protected static readonly int MAX_ANGLED_MESHES = 120;
+    protected virtual string MeshRefsCacheKey { get; set; }
     protected static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
     protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
     protected static readonly string TEMP_ATTR_BYTES_ENTITY_POS = "compass-entity-pos";
@@ -20,7 +22,16 @@ namespace Compass {
       get { return 3; }
     }
 
+    public override void OnLoaded(ICoreAPI api) {
+      base.OnLoaded(api);
+      if (api.Side == EnumAppSide.Client) {
+        MeshRefsCacheKey = Code.ToString() + "-meshrefs";
+        GetMeshRefs(api as ICoreClientAPI);
+      }
+    }
+
     public override void OnUnloaded(ICoreAPI api) {
+      base.OnUnloaded(api);
       if (api.Side == EnumAppSide.Client) {
         DisposeMeshData(api as ICoreClientAPI);
       }
@@ -36,50 +47,57 @@ namespace Compass {
 
     #region Rendering
 
+    protected virtual MeshRef[] GetMeshRefs(ICoreClientAPI capi) {
+      return ObjectCacheUtil.GetOrCreate(capi, MeshRefsCacheKey, () => {
+        var meshRefs = new MeshRef[MAX_ANGLED_MESHES];
+        for (var angleIndex = 0; angleIndex < MAX_ANGLED_MESHES; angleIndex++) {
+          float angleDegrees = ((float)angleIndex / MAX_ANGLED_MESHES * 360);
+          meshRefs[angleIndex] = capi.Render.UploadMesh(GenFullMesh(capi, angleDegrees));
+        }
+        return meshRefs;
+      });
+    }
+
+    public virtual MeshRef GetBestMeshRef(ICoreClientAPI capi, float forAngleRadians, float angleOfBaseRadians = 0f) {
+      var index = (int)GameMath.Mod((forAngleRadians - angleOfBaseRadians) / GameMath.TWOPI * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
+      return GetMeshRefs(capi)[index];
+    }
+
     protected virtual void DisposeMeshData(ICoreClientAPI capi) {
-      ObjectCacheUtil.Delete(capi, Code.ToString() + "-needleMesh");
-      ObjectCacheUtil.Delete(capi, Code.ToString() + "-baseMesh");
+      ObjectCacheUtil.Delete(capi, MeshRefsCacheKey);
     }
 
-    public virtual MeshData GetFullMesh(ICoreClientAPI capi, float needleAngleRadians, float baseAngleRadians = 0f) {
-      var needleMesh = GetNeedleMesh(capi, out Vec3f rotationOrigin);
-      var baseMesh = GetBaseMesh(capi);
-      var fullMesh = new MeshData(needleMesh.VerticesCount + baseMesh.VerticesCount, needleMesh.IndicesCount + baseMesh.IndicesCount);
-      fullMesh.AddMeshData(needleMesh);
-      fullMesh.Rotate(rotationOrigin, 0f, needleAngleRadians - baseAngleRadians, 0f);
-      fullMesh.AddMeshData(baseMesh);
-      return fullMesh;
+    protected virtual MeshData GenFullMesh(ICoreClientAPI capi, float needleAngleDegrees) {
+      var mesh = GenNeedleMesh(capi, needleAngleDegrees);
+      mesh.AddMeshData(GenBaseMesh(capi));
+      return mesh;
     }
 
-    public virtual MeshData GetNeedleMesh(ICoreClientAPI capi, out Vec3f rotationOrigin) {
-      var element = GetNeedleShape(capi).Elements[0].RotationOrigin;
-      rotationOrigin = new Vec3f((float)element[0] / 16f, (float)element[1] / 16f, (float)element[2] / 16f);
-      var key = Code.ToString() + "-needleMesh";
-      var cachedMesh = ObjectCacheUtil.GetOrCreate(capi, key, () => {
-        var mesh = GenMesh((capi), GetNeedleShape(capi));
-        mesh.CompactBuffers();
-        return mesh;
-      });
-
-      return cachedMesh;
+    public virtual MeshData GenNeedleMesh(ICoreClientAPI capi, out Vec3f blockRotationOrigin) {
+      var shape = GetNeedleShape(capi);
+      try {
+        var shapeRotationOrigin = shape.Elements[0].RotationOrigin;
+        blockRotationOrigin = new Vec3f((float)shapeRotationOrigin[0] / 16f, (float)shapeRotationOrigin[1] / 16f, (float)shapeRotationOrigin[2] / 16f);
+      }
+      catch {
+        blockRotationOrigin = Vec3f.Zero;
+      }
+      return GenMesh(capi, shape);
     }
 
-    public virtual MeshData GetBaseMesh(ICoreClientAPI capi) {
-      var key = Code.ToString() + "-baseMesh";
-      var cachedMesh = ObjectCacheUtil.GetOrCreate(capi, key, () => {
-        var mesh = GenMesh(capi, GetBaseShape(capi));
-        mesh.CompactBuffers();
-        return mesh;
-      });
-
-      return cachedMesh;
+    protected virtual MeshData GenNeedleMesh(ICoreClientAPI capi, float YRotationDegrees) {
+      return GenMesh(capi, GetNeedleShape(capi), new Vec3f(0f, YRotationDegrees, 0f));
     }
 
-    public virtual Shape GetNeedleShape(ICoreClientAPI capi) {
+    protected virtual MeshData GenBaseMesh(ICoreClientAPI capi) {
+      return GenMesh(capi, GetBaseShape(capi));
+    }
+
+    protected virtual Shape GetNeedleShape(ICoreClientAPI capi) {
       return GetShape(capi, needleLoc);
     }
 
-    public virtual Shape GetBaseShape(ICoreClientAPI capi) {
+    protected virtual Shape GetBaseShape(ICoreClientAPI capi) {
       return GetShape(capi, baseLoc);
     }
 
@@ -93,7 +111,7 @@ namespace Compass {
 
     protected virtual MeshData GenMesh(ICoreClientAPI capi, Shape shape, Vec3f rotationDeg = null) {
       if (shape == null) {
-        return new MeshData();
+        return new MeshData(4, 3);
       }
       capi.Tesselator.TesselateShape(this, shape, out MeshData mesh, rotationDeg);
       return mesh;
@@ -102,17 +120,17 @@ namespace Compass {
     public override void OnBeforeRender(ICoreClientAPI capi, ItemStack compassStack, EnumItemRenderTarget renderTarget, ref ItemRenderInfo renderinfo) {
       var viewingPlayer = capi.World.Player;
       BlockPos fromPos = null;
-      float yawCorrection = 0;
+      float trackerOrientation = 0;
       switch (renderTarget) {
         case EnumItemRenderTarget.Gui:
         case EnumItemRenderTarget.HandFp:
           fromPos = viewingPlayer.Entity.Pos.AsBlockPos;
-          yawCorrection = viewingPlayer.Entity.Pos.Yaw;
+          trackerOrientation = viewingPlayer.Entity.Pos.Yaw;
           break;
         case EnumItemRenderTarget.HandTp:
         case EnumItemRenderTarget.HandTpOff:
           fromPos = GetCompassEntityPos(compassStack);
-          yawCorrection = GetCompassEntityYaw(compassStack);
+          trackerOrientation = GetCompassEntityYaw(compassStack);
           break;
         case EnumItemRenderTarget.Ground:
           fromPos = GetCompassEntityPos(compassStack);
@@ -120,8 +138,7 @@ namespace Compass {
       }
 
       float angle = GetXZAngleToPoint(fromPos, compassStack) ?? GetWildSpinAngleRadians(capi);
-      var mesh = GetFullMesh(capi, angle, yawCorrection);
-      capi.Render.UpdateMesh(renderinfo.ModelRef, mesh);
+      renderinfo.ModelRef = GetBestMeshRef(capi, angle, trackerOrientation);
     }
 
     public IAdjustableRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {

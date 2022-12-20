@@ -27,8 +27,7 @@ namespace Compass {
       set { if (value != null) backupAngleHandler = value; }
     }
 
-    private double temporaryXOffset = 0.0;
-    private double temporaryZOffset = 0.0;
+    private Vec3f rotationOrigin = Vec3f.Zero;
     private Vec3f offset = Vec3f.Zero;
     private float scale = 1f;
 
@@ -49,13 +48,8 @@ namespace Compass {
       this.realAngle = (float)api.World.Rand.NextDouble() * GameMath.TWOPI;
       BackupAngleHandler = CompassMath.GetWildSpinAngleRadians;
 
-      var needleShape = tracker?.GetNeedleShape(capi);
-      var shapeElements = needleShape?.Elements;
-      if (shapeElements != null && shapeElements.Length > 0) {
-        temporaryXOffset = shapeElements[0].RotationOrigin[0] / 16;
-        temporaryZOffset = shapeElements[0].RotationOrigin[2] / 16;
-      }
-      capi.Tesselator.TesselateShape(tracker as CollectibleObject, needleShape, out MeshData mesh);
+      var mesh = tracker.GenNeedleMesh(capi, out Vec3f blockRotationOrigin);
+      rotationOrigin = blockRotationOrigin;
       this.meshref = api.Render.UploadMesh(mesh);
       capi.Event.RegisterRenderer(this, EnumRenderStage.Opaque, "tracker-needle");
     }
@@ -113,11 +107,11 @@ namespace Compass {
       prog.ModelMatrix = ModelMat
         .Identity()
         .Translate(trackerPos.X - camPos.X, trackerPos.Y - camPos.Y, trackerPos.Z - camPos.Z)
-        .Translate(temporaryXOffset, 0f, temporaryZOffset)
+        .Translate(rotationOrigin.X, rotationOrigin.Y, rotationOrigin.Z)
         .Translate(offset.X, offset.Y, offset.Z)
         .Scale(scale, scale, scale)
         .RotateY(renderedAngle)
-        .Translate(-temporaryXOffset, -0f, -temporaryZOffset)
+        .Translate(-rotationOrigin.X, -rotationOrigin.Y, -rotationOrigin.Z)
         .Values
       ;
 
