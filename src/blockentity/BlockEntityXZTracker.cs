@@ -4,7 +4,7 @@ using Vintagestory.API.Datastructures;
 
 namespace Compass {
 
-  public class BlockEntityCompass : BlockEntity {
+  public class BlockEntityXZTracker : BlockEntity {
     protected static readonly string ATTR_STACK = "tracker-stack";
     public ItemStack TrackerStack;
     protected float? NeedleAngleRad;

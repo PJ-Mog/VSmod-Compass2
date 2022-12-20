@@ -27,7 +27,7 @@ namespace Compass {
     }
 
     public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos) {
-      return (world.BlockAccessor.GetBlockEntity(pos) as BlockEntityCompass)?.TrackerStack?.Clone() ?? base.OnPickBlock(world, pos);
+      return (world.BlockAccessor.GetBlockEntity(pos) as BlockEntityXZTracker)?.TrackerStack?.Clone() ?? base.OnPickBlock(world, pos);
     }
 
     public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {

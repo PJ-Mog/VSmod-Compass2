@@ -20,7 +20,7 @@ namespace Compass {
       api.RegisterBlockClass("BlockOriginCompass", typeof(BlockOriginCompass));
       api.RegisterBlockClass("BlockPlayerCompass", typeof(BlockPlayerCompass));
 
-      api.RegisterBlockEntityClass("BlockEntityCompass", typeof(BlockEntityCompass));
+      api.RegisterBlockEntityClass("BlockEntityCompass", typeof(BlockEntityXZTracker));
 
       var harmony = new Harmony("japanhasrice.compass2");
       harmony.PatchAll();
