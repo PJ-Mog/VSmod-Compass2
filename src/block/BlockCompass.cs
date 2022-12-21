@@ -13,8 +13,9 @@ namespace Compass {
     protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
     protected static readonly string TEMP_ATTR_BYTES_ENTITY_POS = "compass-entity-pos";
     protected static readonly string TEMP_ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
-    public virtual AssetLocation baseLoc => new AssetLocation("compass", "block/compass/base");
-    public virtual AssetLocation needleLoc => new AssetLocation("compass", "block/compass/needle");
+    protected static readonly string DEFAULT_NEEDLE_SHAPE_PATH = "compass:block/compass/needle";
+    public virtual Shape NeedleShape { get; protected set; }
+    public virtual Shape ShellShape { get; protected set; }
 
     public virtual EnumTargetType TargetType { get; protected set; } = EnumTargetType.STATIONARY;
 
@@ -26,14 +27,30 @@ namespace Compass {
       base.OnLoaded(api);
       if (api.Side == EnumAppSide.Client) {
         MeshRefsCacheKey = Code.ToString() + "-meshrefs";
-        GetMeshRefs(api as ICoreClientAPI);
+        var capi = api as ICoreClientAPI;
+        LoadProperties(capi);
+        GetMeshRefs(capi);
       }
+    }
+
+    protected virtual void LoadProperties(ICoreClientAPI capi) {
+      var xZTrackerProps = Attributes["XZTrackerProps"];
+
+      var needleShapePath = xZTrackerProps["needleShape"].AsString();
+      if (needleShapePath == null) {
+        needleShapePath = DEFAULT_NEEDLE_SHAPE_PATH;
+        capi.Logger.Warning("[CompassMod] Collectible {0} has no defined needle shape (JSON Path: attributes/XZTrackerProps/needleShapeLocation). Using {1}.", Code, needleShapePath);
+      }
+      var needleShapeLocation = new AssetLocation(needleShapePath).WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json");
+      NeedleShape = GetShape(capi, needleShapeLocation);
+
+      ShellShape = GetShape(capi, Shape.Base);
     }
 
     public override void OnUnloaded(ICoreAPI api) {
       base.OnUnloaded(api);
       if (api.Side == EnumAppSide.Client) {
-        DisposeMeshData(api as ICoreClientAPI);
+        DisposeMeshRefs(api as ICoreClientAPI);
       }
     }
 
@@ -58,53 +75,51 @@ namespace Compass {
       });
     }
 
-    public virtual MeshRef GetBestMeshRef(ICoreClientAPI capi, float forAngleRadians, float angleOfBaseRadians = 0f) {
-      var index = (int)GameMath.Mod((forAngleRadians - angleOfBaseRadians) / GameMath.TWOPI * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
+    public virtual MeshRef GetBestMeshRef(ICoreClientAPI capi, float forAngleRadians, float angleOfTrackerRadians = 0f) {
+      var index = (int)GameMath.Mod((forAngleRadians - angleOfTrackerRadians) / GameMath.TWOPI * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
       return GetMeshRefs(capi)[index];
     }
 
-    protected virtual void DisposeMeshData(ICoreClientAPI capi) {
+    protected virtual void DisposeMeshRefs(ICoreClientAPI capi) {
+      var meshRefs = ObjectCacheUtil.TryGet<MeshRef[]>(capi, MeshRefsCacheKey);
+      if (meshRefs != null) {
+        for (int i = 0; i < meshRefs.Length; i++) {
+          meshRefs[i]?.Dispose();
+          meshRefs[i] = null;
+        }
+      }
       ObjectCacheUtil.Delete(capi, MeshRefsCacheKey);
     }
 
     protected virtual MeshData GenFullMesh(ICoreClientAPI capi, float needleAngleDegrees) {
       var mesh = GenNeedleMesh(capi, needleAngleDegrees);
-      mesh.AddMeshData(GenBaseMesh(capi));
+      mesh.AddMeshData(GenShellMesh(capi));
       return mesh;
     }
 
     public virtual MeshData GenNeedleMesh(ICoreClientAPI capi, out Vec3f blockRotationOrigin) {
-      var shape = GetNeedleShape(capi);
       try {
-        var shapeRotationOrigin = shape.Elements[0].RotationOrigin;
+        var shapeRotationOrigin = NeedleShape.Elements[0].RotationOrigin;
         blockRotationOrigin = new Vec3f((float)shapeRotationOrigin[0] / 16f, (float)shapeRotationOrigin[1] / 16f, (float)shapeRotationOrigin[2] / 16f);
       }
       catch {
         blockRotationOrigin = Vec3f.Zero;
       }
-      return GenMesh(capi, shape);
+      return GenMesh(capi, NeedleShape);
     }
 
     protected virtual MeshData GenNeedleMesh(ICoreClientAPI capi, float YRotationDegrees) {
-      return GenMesh(capi, GetNeedleShape(capi), new Vec3f(0f, YRotationDegrees, 0f));
+      return GenMesh(capi, NeedleShape, new Vec3f(0f, YRotationDegrees, 0f));
     }
 
-    protected virtual MeshData GenBaseMesh(ICoreClientAPI capi) {
-      return GenMesh(capi, GetBaseShape(capi));
-    }
-
-    protected virtual Shape GetNeedleShape(ICoreClientAPI capi) {
-      return GetShape(capi, needleLoc);
-    }
-
-    protected virtual Shape GetBaseShape(ICoreClientAPI capi) {
-      return GetShape(capi, baseLoc);
+    protected virtual MeshData GenShellMesh(ICoreClientAPI capi) {
+      return GenMesh(capi, ShellShape);
     }
 
     protected Shape GetShape(ICoreClientAPI capi, AssetLocation assetLocation) {
       var shape = Vintagestory.API.Common.Shape.TryGet(capi, assetLocation.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json"));
       if (shape == null) {
-        capi.Logger.Error("[CompassMod] Failed to find shape {0} for {1}", assetLocation, Code);
+        capi.Logger.Error("[CompassMod] {0} failed to find shape {1}", Code, assetLocation);
       }
       return shape;
     }
