@@ -1,6 +1,7 @@
 using Compass.Utility;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
@@ -13,7 +14,8 @@ namespace Compass {
     protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
     protected static readonly string TEMP_ATTR_BYTES_ENTITY_POS = "compass-entity-pos";
     protected static readonly string TEMP_ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
-    protected static readonly string DEFAULT_NEEDLE_SHAPE_PATH = "compass:block/compass/needle";
+    protected static readonly AssetLocation DEFAULT_NEEDLE_SHAPE_LOC = new AssetLocation("compass:shapes/block/compass/needle.json");
+    public virtual XZTrackerProps Props { get; protected set; }
     public virtual Shape NeedleShape { get; protected set; }
     public virtual Shape ShellShape { get; protected set; }
 
@@ -34,15 +36,16 @@ namespace Compass {
     }
 
     protected virtual void LoadProperties(ICoreClientAPI capi) {
-      var xZTrackerProps = Attributes["XZTrackerProps"];
-
-      var needleShapePath = xZTrackerProps["needleShape"].AsString();
-      if (needleShapePath == null) {
-        needleShapePath = DEFAULT_NEEDLE_SHAPE_PATH;
-        capi.Logger.Warning("[CompassMod] Collectible {0} has no defined needle shape (JSON Path: attributes/XZTrackerProps/needleShapeLocation). Using {1}.", Code, needleShapePath);
+      if (Attributes != null && Attributes["XZTrackerProps"].Exists) {
+        Props = Attributes["XZTrackerProps"].AsObject<XZTrackerProps>(null, Code.Domain);
       }
-      var needleShapeLocation = new AssetLocation(needleShapePath).WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json");
-      NeedleShape = GetShape(capi, needleShapeLocation);
+
+      if (Props.NeedleShapeLocation == null) {
+        Props.NeedleShapeLocation = DEFAULT_NEEDLE_SHAPE_LOC;
+        capi.Logger.Warning("[CompassMod] Collectible {0} has no defined needle shape (JSON Path: attributes/XZTrackerProps/needleShapeLocation). Using {1}.", Code, Props.NeedleShapeLocation);
+      }
+      Props.NeedleShapeLocation = Props.NeedleShapeLocation.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json");
+      NeedleShape = GetShape(capi, Props.NeedleShapeLocation);
 
       ShellShape = GetShape(capi, Shape.Base);
     }
@@ -105,15 +108,26 @@ namespace Compass {
       catch {
         blockRotationOrigin = Vec3f.Zero;
       }
-      return GenMesh(capi, NeedleShape);
+      var mesh = GenMesh(capi, NeedleShape);
+      SetGlowFlags(mesh, Props.NeedleGlowLevel);
+      return mesh;
     }
 
     protected virtual MeshData GenNeedleMesh(ICoreClientAPI capi, float YRotationDegrees) {
-      return GenMesh(capi, NeedleShape, new Vec3f(0f, YRotationDegrees, 0f));
+      var mesh = GenMesh(capi, NeedleShape, new Vec3f(0f, YRotationDegrees, 0f));
+      SetGlowFlags(mesh, Props.NeedleGlowLevel);
+      return mesh;
     }
 
     protected virtual MeshData GenShellMesh(ICoreClientAPI capi) {
-      return GenMesh(capi, ShellShape);
+      var mesh = GenMesh(capi, ShellShape);
+      SetGlowFlags(mesh, Props.ShellGlowLevel);
+      return mesh;
+    }
+
+    protected virtual void SetGlowFlags(MeshData mesh, int glowLevel) {
+      GameMath.Clamp(glowLevel, 0, 255);
+      mesh.SetVertexFlags(glowLevel);
     }
 
     protected Shape GetShape(ICoreClientAPI capi, AssetLocation assetLocation) {

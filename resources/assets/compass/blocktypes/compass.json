@@ -20,18 +20,31 @@
       }
     }
   ],
+  "shape": { "base": "block/compass/shell" },
+  "shapeInventory": { "base": "block/compass/complete" },
   "attributes": {
     "displaycaseable": true,
     "shelvable": true,
     "XZTrackerProps": {
-      "needleShape": "compass:block/compass/needle"
+      "needleShapeLocation": "compass:block/compass/needle",
+      "needleGlowLevel": 0,
+      "needleGlowLevelByType": {
+        "*-origin": 25,
+        "*-player": 50
+      },
+      "shellGlowLevel": 0,
+      "shellGlowLevelByType": {
+        "*-origin": 10,
+        "*-player": 20
+      }
     }
   },
-  "blockmaterial": "Ceramic",
-  "resistance": "0.75",
-  "creativeinventory": { "general": ["*"] },
-  "shape": { "base": "block/compass/shell" },
-  "shapeInventory": { "base": "block/compass/complete" },
+  "vertexFlags": {
+    "glowLevelByType": {
+      "*-origin": 10,
+      "*-player": 20
+    }
+  },
   "textures": { "shell": { "base": "game:block/clay/ceramic-dark" } },
   "texturesByType": {
     "*-magnetic": { "needle": { "base": "game:item/resource/nugget/magnetite" } },
@@ -39,6 +52,9 @@
     "*-origin": { "needle": { "base": "game:block/fire-blue" } },
     "*-player": { "needle": { "base": "game:item/resource/nugget/malachite" } }
   },
+  "blockmaterial": "Ceramic",
+  "resistance": "0.75",
+  "creativeinventory": { "general": ["*"] },
   "sidesolid": {
     "all": false
   },
@@ -47,10 +63,6 @@
   },
   "maxstacksize": 1,
   "lightabsorption": 0,
-  "glowLevelByType": {
-    "*-relative": 255,
-    "*-origin": 255
-  },
   "fpHandTransform": {
     "translation": { "x": -0.35, "y": 0.4, "z": 0 },
     "rotation": { "x": 174, "y": 45, "z": -140 },

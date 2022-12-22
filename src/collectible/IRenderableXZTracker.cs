@@ -8,8 +8,15 @@ namespace Compass {
     MOVING
   }
 
+  public class XZTrackerProps {
+    public AssetLocation NeedleShapeLocation;
+    public int NeedleGlowLevel = 0;
+    public int ShellGlowLevel = 0;
+  }
+
   public interface IRenderableXZTracker : IDisplayableCollectible {
     EnumTargetType TargetType { get; }
+    XZTrackerProps Props { get; }
 
     //  Get the Yaw/XZ-Angle that the tracker would like to display
     //  Null if the tracker should not point in a particular direction
