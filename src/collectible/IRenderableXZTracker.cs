@@ -9,6 +9,7 @@ namespace Compass {
   }
 
   public class XZTrackerProps {
+    public int MaximumMeshes = 60;
     public AssetLocation NeedleShapeLocation;
     public int NeedleGlowLevel = 0;
     public int ShellGlowLevel = 0;

@@ -36,7 +36,8 @@
       "shellGlowLevelByType": {
         "*-origin": 10,
         "*-player": 20
-      }
+      },
+      "maximumMeshes": 120
     }
   },
   "vertexFlags": {

@@ -8,7 +8,6 @@ using Vintagestory.API.Util;
 
 namespace Compass {
   abstract class BlockCompass : Block, IRenderableXZTracker, IDisplayableCollectible {
-    protected static readonly int MAX_ANGLED_MESHES = 120;
     protected virtual string MeshRefsCacheKey { get; set; }
     protected static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
     protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
@@ -69,9 +68,9 @@ namespace Compass {
 
     protected virtual MeshRef[] GetMeshRefs(ICoreClientAPI capi) {
       return ObjectCacheUtil.GetOrCreate(capi, MeshRefsCacheKey, () => {
-        var meshRefs = new MeshRef[MAX_ANGLED_MESHES];
-        for (var angleIndex = 0; angleIndex < MAX_ANGLED_MESHES; angleIndex++) {
-          float angleDegrees = ((float)angleIndex / MAX_ANGLED_MESHES * 360);
+        var meshRefs = new MeshRef[Props.MaximumMeshes];
+        for (var angleIndex = 0; angleIndex < Props.MaximumMeshes; angleIndex++) {
+          float angleDegrees = ((float)angleIndex / Props.MaximumMeshes * 360);
           meshRefs[angleIndex] = capi.Render.UploadMesh(GenFullMesh(capi, angleDegrees));
         }
         return meshRefs;
@@ -79,7 +78,7 @@ namespace Compass {
     }
 
     public virtual MeshRef GetBestMeshRef(ICoreClientAPI capi, float forAngleRadians, float angleOfTrackerRadians = 0f) {
-      var index = (int)GameMath.Mod((forAngleRadians - angleOfTrackerRadians) / GameMath.TWOPI * MAX_ANGLED_MESHES + 0.5, MAX_ANGLED_MESHES);
+      var index = (int)GameMath.Mod((forAngleRadians - angleOfTrackerRadians) / GameMath.TWOPI * Props.MaximumMeshes + 0.5, Props.MaximumMeshes);
       return GetMeshRefs(capi)[index];
     }
 
