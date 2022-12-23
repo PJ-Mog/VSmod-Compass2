@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using HarmonyLib;
-using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
 namespace Compass.Patch {
@@ -18,14 +17,11 @@ namespace Compass.Patch {
   }
 
   public static class BlockEntityDisplayExtension {
-    private static Dictionary<BlockPos, IRenderer[]> allRenderers = new Dictionary<BlockPos, IRenderer[]>();
-
-    public static IRenderer[] GetRenderers(this BlockEntityDisplay blockEntityDisplay) {
-      if (!allRenderers.TryGetValue(blockEntityDisplay.Pos, out IRenderer[] beRenderers)) {
-        beRenderers = new IRenderer[blockEntityDisplay.Inventory.Count];
-        allRenderers.Add(blockEntityDisplay.Pos, beRenderers);
-      }
-      return beRenderers;
+    public static IAdjustableRenderer[] GetRenderers(this BlockEntityDisplay blockEntityDisplay) {
+      var key = GetKeyFor(blockEntityDisplay.Pos);
+      return ObjectCacheUtil.GetOrCreate(blockEntityDisplay.Api, key, () => {
+        return new IAdjustableRenderer[blockEntityDisplay.Inventory.Count];
+      });
     }
 
     public static void DisposeRenderers(this BlockEntityDisplay blockEntityDisplay) {
@@ -34,6 +30,12 @@ namespace Compass.Patch {
         renderers[i]?.Dispose();
         renderers[i] = null;
       }
+      var key = GetKeyFor(blockEntityDisplay.Pos);
+      ObjectCacheUtil.Delete(blockEntityDisplay.Api, key);
+    }
+
+    private static string GetKeyFor(BlockPos pos) {
+      return "blockentitydisplay-renderers-" + pos;
     }
   }
 }
