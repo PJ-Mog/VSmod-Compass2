@@ -11,7 +11,8 @@ namespace Compass.Common {
       public string PlayerUid = "";
       public BlockPos LastKnownPos;
       public long LastUpdatedAt = 0;
-      public bool AwaitingUpdate = false;
+      public bool IsAwaitingUpdate = false;
+      public bool HasReceivedUpdate = false;
       public long LastRequestedServerDataAt = 0;
 
       public PlayerPosData(string playerUid) {
@@ -19,8 +20,8 @@ namespace Compass.Common {
       }
     }
 
-    private ICoreAPI api;
     private Dictionary<string, PlayerPosData> posCache = new Dictionary<string, PlayerPosData>();
+
     public PlayerPosHandler(ICoreAPI api) {
       api.Network.RegisterChannel(CompassMod.NETWORK_CHANNEL)
                  .RegisterMessageType(typeof(RequestPosMessage))
@@ -32,32 +33,32 @@ namespace Compass.Common {
       else {
         (api as ICoreClientAPI).Network.GetChannel(CompassMod.NETWORK_CHANNEL).SetMessageHandler<PosDataMessage>(OnReceivedPosUpdate);
       }
-
-      this.api = api;
     }
 
-    public BlockPos GetPlayerPos(string playerUid) {
+    public BlockPos GetPlayerPos(ICoreClientAPI capi, string playerUid) {
       if (playerUid == null || playerUid.Length == 0) { return null; }
-      ParseClientSideData(playerUid);
-      return posCache[playerUid]?.LastKnownPos;
+      return ParseClientSideData(capi, playerUid)?.LastKnownPos;
     }
 
-    private void ParseClientSideData(string playerUid) {
+    private PlayerPosData ParseClientSideData(ICoreClientAPI capi, string playerUid) {
       var cachedPlayerPosData = GetOrCreateCachedPlayerPosData(playerUid);
+      TimestampReceivedServerData(capi, cachedPlayerPosData);
 
-      var player = api.World.PlayerByUid(playerUid);
+      var player = capi.World.PlayerByUid(playerUid);
       if (player == null) {
-        OnPlayerIsOffline(cachedPlayerPosData);
-        return;
+        OnPlayerIsOffline(capi, cachedPlayerPosData);
+        return cachedPlayerPosData;
       }
 
       var pos = player.Entity?.Pos.AsBlockPos;
       if (pos == null) {
-        OnPlayerIsFarAway(cachedPlayerPosData);
+        OnPlayerIsFarAway(capi, cachedPlayerPosData);
       }
       else {
-        OnPlayerIsNear(cachedPlayerPosData, pos);
+        OnPlayerIsNear(capi, cachedPlayerPosData, pos);
       }
+
+      return cachedPlayerPosData;
     }
 
     private PlayerPosData GetOrCreateCachedPlayerPosData(string playerUid) {
@@ -68,49 +69,58 @@ namespace Compass.Common {
       return data;
     }
 
-    private void OnPlayerIsOffline(PlayerPosData playerPosData) {
-      UpdateLocalData(playerPosData, null);
-    }
-
-    private void OnPlayerIsNear(PlayerPosData playerPosData, BlockPos pos) {
-      UpdateLocalData(playerPosData, pos);
-    }
-
-    private void OnPlayerIsFarAway(PlayerPosData cachedPlayerData) {
-      var now = api.World.ElapsedMilliseconds;
-      if ((cachedPlayerData.AwaitingUpdate && (now - cachedPlayerData.LastRequestedServerDataAt >= 3000))
-           || (!cachedPlayerData.AwaitingUpdate && (now - cachedPlayerData.LastUpdatedAt >= 3000))) {
-        RequestPosFromServer(cachedPlayerData);
+    private void TimestampReceivedServerData(ICoreClientAPI capi, PlayerPosData data) {
+      if (data.HasReceivedUpdate) {
+        data.LastUpdatedAt = capi.ElapsedMilliseconds;
+        data.HasReceivedUpdate = false;
       }
     }
 
-    private void UpdateLocalData(PlayerPosData dataToUpdate, BlockPos newPos) {
-      dataToUpdate.LastKnownPos = newPos;
-      dataToUpdate.LastUpdatedAt = api.World.ElapsedMilliseconds;
-      dataToUpdate.AwaitingUpdate = false;
+    private void OnPlayerIsOffline(ICoreClientAPI capi, PlayerPosData playerPosData) {
+      UpdateLocalData(capi, playerPosData, null);
     }
 
-    private void RequestPosFromServer(PlayerPosData cachedPlayerData) {
-      if (api.Side == EnumAppSide.Server) { return; }
+    private void OnPlayerIsNear(ICoreClientAPI capi, PlayerPosData playerPosData, BlockPos pos) {
+      UpdateLocalData(capi, playerPosData, pos);
+    }
+
+    private void OnPlayerIsFarAway(ICoreClientAPI capi, PlayerPosData cachedPlayerData) {
+      var now = capi.World.ElapsedMilliseconds;
+      if ((cachedPlayerData.IsAwaitingUpdate && (now - cachedPlayerData.LastRequestedServerDataAt >= 3000))
+           || (!cachedPlayerData.IsAwaitingUpdate && (now - cachedPlayerData.LastUpdatedAt >= 3000))) {
+        RequestPosFromServer(capi, cachedPlayerData);
+      }
+    }
+
+    private void UpdateLocalData(ICoreClientAPI capi, PlayerPosData dataToUpdate, BlockPos newPos) {
+      dataToUpdate.LastKnownPos = newPos;
+      dataToUpdate.LastUpdatedAt = capi.World.ElapsedMilliseconds;
+      dataToUpdate.IsAwaitingUpdate = false;
+    }
+
+    private void RequestPosFromServer(ICoreClientAPI capi, PlayerPosData cachedPlayerData) {
       var message = new RequestPosMessage();
       message.playerUid = cachedPlayerData.PlayerUid;
-      (api as ICoreClientAPI).Network.GetChannel(CompassMod.NETWORK_CHANNEL).SendPacket<RequestPosMessage>(message);
-      cachedPlayerData.AwaitingUpdate = true;
-      cachedPlayerData.LastRequestedServerDataAt = api.World.ElapsedMilliseconds;
+      capi.Network.GetChannel(CompassMod.NETWORK_CHANNEL).SendPacket<RequestPosMessage>(message);
+      cachedPlayerData.IsAwaitingUpdate = true;
+      cachedPlayerData.LastRequestedServerDataAt = capi.World.ElapsedMilliseconds;
     }
 
     public void OnReceivedPosRequest(IServerPlayer requestor, RequestPosMessage incomingMessage) {
       if (incomingMessage.playerUid == null || incomingMessage.playerUid.Length == 0) { return; }
+      var sapi = requestor.Entity.Api as ICoreServerAPI;
 
       var outgoingMessage = new PosDataMessage();
       outgoingMessage.PlayerUid = incomingMessage.playerUid;
-      outgoingMessage.Pos = api.World.PlayerByUid(incomingMessage.playerUid)?.Entity?.Pos?.AsBlockPos;
-      (api as ICoreServerAPI).Network.GetChannel(CompassMod.NETWORK_CHANNEL).SendPacket<PosDataMessage>(outgoingMessage, requestor);
+      outgoingMessage.Pos = sapi.World.PlayerByUid(incomingMessage.playerUid)?.Entity?.Pos?.AsBlockPos;
+      sapi.Network.GetChannel(CompassMod.NETWORK_CHANNEL).SendPacket<PosDataMessage>(outgoingMessage, requestor);
     }
 
     public void OnReceivedPosUpdate(PosDataMessage message) {
       if (message.PlayerUid == null || message.PlayerUid.Length == 0) { return; }
-      UpdateLocalData(posCache[message.PlayerUid], message.Pos);
+      var data = GetOrCreateCachedPlayerPosData(message.PlayerUid);
+      data.HasReceivedUpdate = true;
+      data.LastKnownPos = message.Pos;
     }
   }
 }
