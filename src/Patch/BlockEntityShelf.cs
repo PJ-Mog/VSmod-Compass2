@@ -7,20 +7,18 @@ namespace Compass.Patch {
     public static void UpdateRenderer(this BlockEntityShelf blockEntityShelf, int index) {
       var renderers = blockEntityShelf.GetRenderers();
       var itemStack = blockEntityShelf.Inventory[index].Itemstack;
-      var displayable = itemStack?.Collectible as IContainedRenderer;
-      if (displayable == null) {
+      if (itemStack?.Collectible is IContainedRenderer displayable) {
+        if (itemStack.GetHashCode(null) == renderers[index]?.ItemStackHashCode) {
+          return;
+        }
         renderers[index]?.Dispose();
-        renderers[index] = null;
+        var newRenderer = displayable.CreateRendererFromStack(blockEntityShelf.Api as ICoreClientAPI, itemStack, blockEntityShelf.Pos);
+        newRenderer.SetOffset(blockEntityShelf.GetDisplayOffsetForSlot(index));
+        renderers[index] = newRenderer;
         return;
       }
-      if (itemStack.GetHashCode(null) == renderers[index]?.ItemStackHashCode) {
-        return;
-      }
-
       renderers[index]?.Dispose();
-      var newRenderer = displayable.CreateRendererFromStack(blockEntityShelf.Api as ICoreClientAPI, itemStack, blockEntityShelf.Pos);
-      newRenderer.SetOffset(blockEntityShelf.GetDisplayOffsetForSlot(index));
-      renderers[index] = newRenderer;
+      renderers[index] = null;
     }
 
     public static Vec3f GetDisplayOffsetForSlot(this BlockEntityShelf blockEntityShelf, int index) {

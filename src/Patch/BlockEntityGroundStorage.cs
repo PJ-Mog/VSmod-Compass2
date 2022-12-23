@@ -15,31 +15,31 @@ namespace Compass.Patch {
       lock (__instance.inventoryLock) {
         var renderers = __instance.GetRenderers();
         for (int i = 0; i < renderers.Length; i++) {
-          var itemStack = __instance.Inventory[i].Itemstack;
-          var displayable = itemStack?.Collectible as IContainedRenderer;
-          if (displayable == null) {
-            renderers[i]?.Dispose();
-            renderers[i] = null;
-            continue;
-          }
-          var offset = __instance.GetDisplayOffsetForSlot(i);
-          if (itemStack.GetHashCode(null) == renderers[i]?.ItemStackHashCode) {
-            //  GroundStorage layout is not set on first rendering
-            //  and needs to be set on a later pass.
-            renderers[i].SetOffset(offset);
-            continue;
-          }
-
-          renderers[i]?.Dispose();
-          var newRenderer = displayable.CreateRendererFromStack(__instance.Api as ICoreClientAPI, itemStack, __instance.Pos);
-          newRenderer.SetOffset(offset);
-          renderers[i] = newRenderer;
+          __instance.UpdateRenderer(renderers, i);
         }
       }
     }
   }
 
   public static class BlockEntityGroundStorageExtension {
+    public static void UpdateRenderer(this BlockEntityGroundStorage blockEntityGroundStorage, IAdjustableItemStackRenderer[] renderers, int index) {
+      var itemStack = blockEntityGroundStorage.Inventory[index].Itemstack;
+      if (itemStack?.Collectible is IContainedRenderer displayable) {
+        var offset = blockEntityGroundStorage.GetDisplayOffsetForSlot(index);
+        if (itemStack.GetHashCode(null) == renderers[index]?.ItemStackHashCode) {
+          renderers[index].SetOffset(offset);
+          return;
+        }
+        renderers[index]?.Dispose();
+        var newRenderer = displayable.CreateRendererFromStack(blockEntityGroundStorage.Api as ICoreClientAPI, itemStack, blockEntityGroundStorage.Pos);
+        newRenderer.SetOffset(offset);
+        renderers[index] = newRenderer;
+        return;
+      }
+      renderers[index]?.Dispose();
+      renderers[index] = null;
+    }
+
     public static Vec3f GetDisplayOffsetForSlot(this BlockEntityGroundStorage blockEntityGroundStorage, int index) {
       Vec3f offset;
       switch (blockEntityGroundStorage?.StorageProps?.Layout) {

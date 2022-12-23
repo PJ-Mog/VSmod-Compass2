@@ -7,21 +7,19 @@ namespace Compass.Patch {
     public static void UpdateRenderer(this BlockEntityDisplayCase blockEntityDisplayCase, int index) {
       var renderers = blockEntityDisplayCase.GetRenderers();
       var itemStack = blockEntityDisplayCase.Inventory[index].Itemstack;
-      var displayable = itemStack?.Collectible as IContainedRenderer;
-      if (displayable == null) {
+      if (itemStack?.Collectible is IContainedRenderer displayable) {
+        if (itemStack.GetHashCode(null) == renderers[index]?.ItemStackHashCode) {
+          return;
+        }
         renderers[index]?.Dispose();
-        renderers[index] = null;
+        var newRenderer = displayable.CreateRendererFromStack(blockEntityDisplayCase.Api as ICoreClientAPI, itemStack, blockEntityDisplayCase.Pos);
+        newRenderer.SetOffset(blockEntityDisplayCase.GetDisplayOffsetForSlot(index));
+        newRenderer.SetScale(0.75f);
+        renderers[index] = newRenderer;
         return;
       }
-      if (itemStack.GetHashCode(null) == renderers[index]?.ItemStackHashCode) {
-        return;
-      }
-
       renderers[index]?.Dispose();
-      var newRenderer = displayable.CreateRendererFromStack(blockEntityDisplayCase.Api as ICoreClientAPI, itemStack, blockEntityDisplayCase.Pos);
-      newRenderer.SetOffset(blockEntityDisplayCase.GetDisplayOffsetForSlot(index));
-      newRenderer.SetScale(0.75f);
-      renderers[index] = newRenderer;
+      renderers[index] = null;
     }
 
     public static Vec3f GetDisplayOffsetForSlot(this BlockEntityDisplayCase blockEntityDisplayCase, int index) {
