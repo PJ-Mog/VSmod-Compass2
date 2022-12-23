@@ -7,7 +7,7 @@ namespace Compass.Patch {
     public static void UpdateRenderer(this BlockEntityShelf blockEntityShelf, int index) {
       var renderers = blockEntityShelf.GetRenderers();
       var itemStack = blockEntityShelf.Inventory[index].Itemstack;
-      var displayable = itemStack?.Collectible as IDisplayableCollectible;
+      var displayable = itemStack?.Collectible as IContainedRenderer;
       if (displayable == null) {
         renderers[index]?.Dispose();
         renderers[index] = null;

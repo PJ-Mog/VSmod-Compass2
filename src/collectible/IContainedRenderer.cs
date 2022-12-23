@@ -3,7 +3,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
 namespace Compass {
-  public interface IDisplayableCollectible {
+  public interface IContainedRenderer {
     IAdjustableItemStackRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos);
   }
 }

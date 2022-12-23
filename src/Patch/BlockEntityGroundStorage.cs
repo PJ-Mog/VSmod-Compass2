@@ -16,7 +16,7 @@ namespace Compass.Patch {
         var renderers = __instance.GetRenderers();
         for (int i = 0; i < renderers.Length; i++) {
           var itemStack = __instance.Inventory[i].Itemstack;
-          var displayable = itemStack?.Collectible as IDisplayableCollectible;
+          var displayable = itemStack?.Collectible as IContainedRenderer;
           if (displayable == null) {
             renderers[i]?.Dispose();
             renderers[i] = null;

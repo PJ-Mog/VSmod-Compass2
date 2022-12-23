@@ -27,7 +27,7 @@ namespace Compass {
     }
   }
 
-  public interface IRenderableXZTracker : IDisplayableCollectible {
+  public interface IRenderableXZTracker : IContainedRenderer {
     EnumTargetType TargetType { get; }
     XZTrackerProps Props { get; }
 
