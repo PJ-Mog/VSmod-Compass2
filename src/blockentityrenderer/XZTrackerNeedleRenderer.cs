@@ -1,15 +1,15 @@
 using System;
 using Compass.Utility;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
 namespace Compass {
-  public class XZTrackerNeedleRenderer : IAdjustableRenderer {
+  public class XZTrackerNeedleRenderer : IAdjustableItemStackRenderer, IAdjustableRenderer {
 
     private ICoreClientAPI api;
     private BlockPos trackerPos;
     private long? tickListenerId;
+    public int ItemStackHashCode { get; set; }
     public long? TickListenerId {
       get { return tickListenerId; }
       set {

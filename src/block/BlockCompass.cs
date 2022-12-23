@@ -1,7 +1,6 @@
 using Compass.Utility;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
@@ -169,7 +168,7 @@ namespace Compass {
       renderinfo.ModelRef = GetBestMeshRef(capi, angle, trackerOrientation);
     }
 
-    public IAdjustableRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {
+    public IAdjustableItemStackRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {
       var renderer = new XZTrackerNeedleRenderer(capi, blockPos, this);
       if (TargetType == EnumTargetType.STATIONARY) {
         renderer.TrackerTargetAngle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
@@ -181,6 +180,7 @@ namespace Compass {
           renderer.TrackerTargetAngle = angle;
         }, 500);
       }
+      renderer.ItemStackHashCode = displayableStack.GetHashCode(null);
       return renderer;
     }
 

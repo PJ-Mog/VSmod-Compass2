@@ -17,10 +17,10 @@ namespace Compass.Patch {
   }
 
   public static class BlockEntityDisplayExtension {
-    public static IAdjustableRenderer[] GetRenderers(this BlockEntityDisplay blockEntityDisplay) {
+    public static IAdjustableItemStackRenderer[] GetRenderers(this BlockEntityDisplay blockEntityDisplay) {
       var key = GetKeyFor(blockEntityDisplay.Pos);
       return ObjectCacheUtil.GetOrCreate(blockEntityDisplay.Api, key, () => {
-        return new IAdjustableRenderer[blockEntityDisplay.Inventory.Count];
+        return new IAdjustableItemStackRenderer[blockEntityDisplay.Inventory.Count];
       });
     }
 

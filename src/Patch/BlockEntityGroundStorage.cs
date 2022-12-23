@@ -15,16 +15,25 @@ namespace Compass.Patch {
       lock (__instance.inventoryLock) {
         var renderers = __instance.GetRenderers();
         for (int i = 0; i < renderers.Length; i++) {
-          renderers[i]?.Dispose();
-          renderers[i] = null;
-
-          var itemStack = __instance.Inventory[i]?.Itemstack;
+          var itemStack = __instance.Inventory[i].Itemstack;
           var displayable = itemStack?.Collectible as IDisplayableCollectible;
-          if (displayable == null) { continue; }
+          if (displayable == null) {
+            renderers[i]?.Dispose();
+            renderers[i] = null;
+            continue;
+          }
+          var offset = __instance.GetDisplayOffsetForSlot(i);
+          if (itemStack.GetHashCode(null) == renderers[i]?.ItemStackHashCode) {
+            //  GroundStorage layout is not set on first rendering
+            //  and needs to be set on a later pass.
+            renderers[i].SetOffset(offset);
+            continue;
+          }
 
-          var renderer = displayable.CreateRendererFromStack(__instance.Api as ICoreClientAPI, itemStack, __instance.Pos);
-          renderer?.SetOffset(__instance.GetDisplayOffsetForSlot(i));
-          renderers[i] = renderer;
+          renderers[i]?.Dispose();
+          var newRenderer = displayable.CreateRendererFromStack(__instance.Api as ICoreClientAPI, itemStack, __instance.Pos);
+          newRenderer.SetOffset(offset);
+          renderers[i] = newRenderer;
         }
       }
     }
