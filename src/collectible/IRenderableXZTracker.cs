@@ -1,11 +1,13 @@
+using System;
+using Compass.Utility;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
 namespace Compass {
   public enum EnumTargetType {
-    STATIONARY,
-    MOVING
+    Stationary,
+    Moving
   }
 
   public class XZTrackerProps {
@@ -13,6 +15,16 @@ namespace Compass {
     public AssetLocation NeedleShapeLocation;
     public int NeedleGlowLevel = 0;
     public int ShellGlowLevel = 0;
+    public int MinTrackingDistance = 3;
+    public string DistanceMethod = "manhattan";
+    public CompassMath.DistanceCalculator DistanceFormula {
+      get {
+        if (DistanceMethod.Equals("manhattan", StringComparison.InvariantCultureIgnoreCase)) {
+          return CompassMath.XZManhattanDistance;
+        }
+        return CompassMath.XZDistanceSquared;
+      }
+    }
   }
 
   public interface IRenderableXZTracker : IDisplayableCollectible {

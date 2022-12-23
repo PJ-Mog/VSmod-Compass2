@@ -16,12 +16,8 @@ namespace Compass {
     public virtual XZTrackerProps Props { get; protected set; }
     public virtual Shape NeedleShape { get; protected set; }
     public virtual Shape ShellShape { get; protected set; }
-
-    public virtual EnumTargetType TargetType { get; protected set; } = EnumTargetType.STATIONARY;
-
-    protected virtual int MIN_DISTANCE_TO_SHOW_DIRECTION {
-      get { return 3; }
-    }
+    public virtual EnumTargetType TargetType { get; protected set; } = EnumTargetType.Stationary;
+    protected CompassMath.DistanceCalculator GetDistance;
 
     public override void OnLoaded(ICoreAPI api) {
       base.OnLoaded(api);
@@ -46,6 +42,8 @@ namespace Compass {
       NeedleShape = GetShape(capi, Props.NeedleShapeLocation);
 
       ShellShape = GetShape(capi, Shape.Base);
+
+      GetDistance = Props.DistanceFormula;
     }
 
     public override void OnUnloaded(ICoreAPI api) {
@@ -170,7 +168,7 @@ namespace Compass {
 
     public IAdjustableItemStackRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {
       var renderer = new XZTrackerNeedleRenderer(capi, blockPos, this);
-      if (TargetType == EnumTargetType.STATIONARY) {
+      if (TargetType == EnumTargetType.Stationary) {
         renderer.TrackerTargetAngle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
       }
       else {
@@ -205,11 +203,11 @@ namespace Compass {
     public virtual bool ShouldPointToTarget(BlockPos fromPos, ItemStack compassStack) {
       return fromPos != null
              && IsCrafted(compassStack)
-             && GetDistanceToTarget(fromPos, compassStack) >= MIN_DISTANCE_TO_SHOW_DIRECTION;
+             && GetDistanceToTarget(fromPos, compassStack) >= Props.MinTrackingDistance;
     }
 
     public virtual int GetDistanceToTarget(BlockPos fromPos, ItemStack compassStack) {
-      return CompassMath.XZManhattanDistance(fromPos, GetTargetPos(compassStack)) ?? MIN_DISTANCE_TO_SHOW_DIRECTION;
+      return GetDistance(fromPos, GetTargetPos(compassStack)) ?? Props.MinTrackingDistance;
     }
 
     //  Sealed, override #OnBeforeModifiedInInventorySlot, #OnSuccessfullyCrafted, and/or #OnAfterModifiedInInventorySlot instead.
