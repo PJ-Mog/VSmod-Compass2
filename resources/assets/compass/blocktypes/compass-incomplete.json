@@ -1,0 +1,72 @@
+{
+  "code": "compass-incomplete",
+  "variantgroups": [
+    { "code": "stage", "states": ["1", "2"] }
+  ],
+  "behaviors": [
+    { "name": "Unplaceable" },
+    { "name": "GroundStorable", "properties": {
+      "layout": "Quadrants",
+      "collisionBox": { "x1": 0, "y1": 0, "z1": 0, "x2": 1, "y2": 0.125, "z2": 1 }
+      }
+    }
+  ],
+  "attributes": {
+    "shelvable": true,
+    "liquidContainerProps": {
+      "capacityLitres": 1.5,
+      "transferSizeLitres": 0.1,
+      "emptyShapeLoc": "compass:block/compass/shell",
+      "liquidContentShapeLoc": "",
+      "liquidMaxYTranslate": 0.05
+    }
+  },
+  "liquidSelectable": 1,
+  "shape": { "base": "compass:block/compass/shell-axle" },
+  "textures": { "shell": { "base": "game:block/clay/ceramic-dark" } },
+  "blockmaterial": "Ceramic",
+  "resistance": "0.75",
+  "sounds": {
+    "walk": "game:walk/stone"
+  },
+  "creativeinventory": { "general": ["*"] },
+  "sidesolid": {
+    "all": false
+  },
+  "sideopaque": {
+    "all": false
+  },
+  "maxstacksize": 1,
+  "lightabsorption": 0,
+  "fpHandTransform": {
+    "translation": { "x": -0.35, "y": 0.7, "z": 0.25 },
+    "rotation": { "x": 180, "y": 45, "z": -165 },
+    "scale": 2.0
+  },
+  "guiTransform": {
+    "translation": { "x": 0, "y": 6, "z": 0 },
+    "rotation": { "x": 145, "y": -90, "z": 5 },
+    "origin": { "x": 0.5, "y": 0, "z": 0.5 },
+    "scale": -4,
+    "rotate": false
+  },
+  "groundTransform": {
+    "translation": { "x": 0, "y": 0.35, "z": 0 },
+    "rotation": { "x": 0, "y": 0, "z": 0 },
+    "origin": { "x": 0.5, "y": 0.5, "z": 0.5 },
+    "scale": 3.5,
+    "rotate": false
+  },
+  "tpHandTransform": {
+    "translation": { "x": -2.45, "y": -1.5, "z": -1.65 },
+    "rotation": { "x": 0, "y": 0, "z": -45 },
+    "scale": 0.30
+  },
+  "tpOffHandTransform": {
+    "translation": { "x": -2.2, "y": -1.5, "z": -1.54 },
+    "rotation": { "x": 0, "y": 0, "z": -45 },
+    "scale": 0.30
+  },
+  "collisionbox": { "x1": 0.25, "y1": 0, "z1": 0.25, "x2": 0.75, "y2": 0.1875, "z2": 0.75 },
+  "selectionbox": { "x1": 0.25, "y1": 0, "z1": 0.25, "x2": 0.75, "y2": 0.1875, "z2": 0.75 }
+}

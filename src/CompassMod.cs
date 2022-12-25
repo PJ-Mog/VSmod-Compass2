@@ -22,6 +22,8 @@ namespace Compass {
 
       api.RegisterBlockEntityClass("BlockEntityCompass", typeof(BlockEntityXZTracker));
 
+      api.RegisterCollectibleBehaviorClass("ContainedInteractable", typeof(CollectibleBehaviorContainedInteractable));
+
       var harmony = new Harmony("japanhasrice.compass2");
       harmony.PatchAll();
     }
