@@ -1,3 +1,6 @@
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Compass.Common;
 using HarmonyLib;
 using Vintagestory.API.Common;
@@ -25,7 +28,7 @@ namespace Compass {
       api.RegisterCollectibleBehaviorClass("ContainedInteractable", typeof(CollectibleBehaviorContainedInteractable));
 
       var harmony = new Harmony("japanhasrice.compass2");
-      harmony.PatchAll();
+      harmony.PatchAll(Assembly.GetExecutingAssembly());
     }
 
     public override void Dispose() {
