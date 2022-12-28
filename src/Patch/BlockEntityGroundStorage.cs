@@ -8,6 +8,9 @@ using Vintagestory.GameContent;
 namespace Compass.Patch {
   [HarmonyPatch(typeof(BlockEntityGroundStorage))]
   public static class BlockEntityGroundStoragePatch {
+    const bool runOriginalMethod = true;
+    const bool skipOriginalMethod = false;
+
     [HarmonyPostfix()]
     [HarmonyPatch("updateMeshes")]
     public static void UpdateRenderers(BlockEntityGroundStorage __instance) {
@@ -24,13 +27,24 @@ namespace Compass.Patch {
     [HarmonyPrefix()]
     [HarmonyPatch("OnPlayerInteractStart")]
     public static bool BeforeOnPlayerInteractStart(BlockEntityGroundStorage __instance, IPlayer player, BlockSelection bs, ref ItemSlot ___isUsingSlot, ref bool __result) {
-      bool allowOriginalMethod = true;
-      if (__instance.Inventory.Empty) { return allowOriginalMethod; }
+      const bool interactionSuccessful = true;
+      const bool interactionFailed = false;
+
+      var isSneaking = player.Entity.Controls.Sneak;
+
+      if (!isSneaking) {
+        return runOriginalMethod;
+      }
+
+      var layout = __instance?.StorageProps?.Layout;
+      if (layout == null || layout == EnumGroundStorageLayout.Stacking) {
+        return runOriginalMethod;
+      }
 
       MethodInfo rotatedOffset = typeof(BlockEntityGroundStorage).GetMethod("rotatedOffset", BindingFlags.Instance | BindingFlags.NonPublic);
       Vec3f hitPos = rotatedOffset.Invoke(__instance, new object[] { bs.HitPosition.ToVec3f(), __instance.MeshAngle }) as Vec3f;
       int inventoryIndex = 0;
-      switch (__instance.StorageProps.Layout) {
+      switch (layout) {
         case EnumGroundStorageLayout.Halves:
         case EnumGroundStorageLayout.WallHalves:
           inventoryIndex = hitPos.X <= 0.5 ? 0 : 1;
@@ -39,16 +53,21 @@ namespace Compass.Patch {
           inventoryIndex = (hitPos.X > 0.5 ? 2 : 0) + (hitPos.Z > 0.5 ? 1 : 0);
           break;
       }
-      var collectible = __instance.Inventory[inventoryIndex].Itemstack?.Collectible;
-      var interactable = collectible?.GetBehavior<CollectibleBehaviorContainedInteractable>();
-      if (interactable != null) {
-        ___isUsingSlot = __instance.Inventory[inventoryIndex];
-        if (interactable.OnContainedInteractStart(__instance, ___isUsingSlot, player, bs)) {
-          __result = true;
-          allowOriginalMethod = false;
-        }
+      var storedCollectible = __instance.Inventory[inventoryIndex].Itemstack?.Collectible;
+      if (storedCollectible == null) {
+        return runOriginalMethod;
       }
-      return allowOriginalMethod;
+
+
+      var interactable = storedCollectible?.GetBehavior<CollectibleBehaviorContainedInteractable>();
+      if (interactable == null) {
+        __result = interactionFailed;
+        return skipOriginalMethod;
+      }
+
+      ___isUsingSlot = __instance.Inventory[inventoryIndex];
+      __result = interactable.OnContainedInteractStart(__instance, ___isUsingSlot, player, bs);
+      return skipOriginalMethod;
     }
 
     [HarmonyPrefix()]
