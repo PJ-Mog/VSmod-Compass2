@@ -1,6 +1,4 @@
-using System;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Compass.Common;
 using HarmonyLib;
 using Vintagestory.API.Common;
@@ -24,8 +22,6 @@ namespace Compass {
       api.RegisterBlockClass("BlockPlayerCompass", typeof(BlockPlayerCompass));
 
       api.RegisterBlockEntityClass("BlockEntityCompass", typeof(BlockEntityXZTracker));
-
-      api.RegisterCollectibleBehaviorClass("ContainedInteractable", typeof(CollectibleBehaviorContainedInteractable));
 
       var harmony = new Harmony("japanhasrice.compass2");
       harmony.PatchAll(Assembly.GetExecutingAssembly());

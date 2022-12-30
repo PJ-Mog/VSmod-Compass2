@@ -10,15 +10,6 @@
         "layout": "Quadrants",
         "collisionBox": { "x1": 0, "y1": 0, "z1": 0, "x2": 1, "y2": 0.125, "z2": 1 }
         }
-      },
-      { "name": "ContainedInteractable", "properties": {
-        "game:stick": { "collectibleType": "item",
-          "consumeQuantity": 1,
-          "convertsToLocation": "compass:compass-incomplete-1",
-          "convertsToType": "block",
-          "durationSeconds": 2.0
-          }
-        }
       }
     ]
   },
