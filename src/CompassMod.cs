@@ -7,6 +7,7 @@ using Vintagestory.API.Server;
 namespace Compass {
   public class CompassMod : ModSystem {
     public const string NETWORK_CHANNEL = "compass2";
+    public static readonly string HarmonyId = "compass2.japanhasrice";
     private Config config;
     public PlayerPosHandler PlayerPosHandler;
 
@@ -16,20 +17,31 @@ namespace Compass {
       config = Config.LoadOrCreateDefault(api);
       PlayerPosHandler = new PlayerPosHandler(api);
 
+      RegisterModClasses(api);
+      ApplyHarmonyPatches();
+    }
+
+    public override void Dispose() {
+      base.Dispose();
+      RemoveHarmonyPatches();
+    }
+
+    public void RegisterModClasses(ICoreAPI api) {
       api.RegisterBlockClass("BlockMagneticCompass", typeof(BlockMagneticCompass));
       api.RegisterBlockClass("BlockRelativeCompass", typeof(BlockRelativeCompass));
       api.RegisterBlockClass("BlockOriginCompass", typeof(BlockOriginCompass));
       api.RegisterBlockClass("BlockPlayerCompass", typeof(BlockPlayerCompass));
 
       api.RegisterBlockEntityClass("BlockEntityCompass", typeof(BlockEntityXZTracker));
+    }
 
-      var harmony = new Harmony("japanhasrice.compass2");
+    public void ApplyHarmonyPatches() {
+      var harmony = new Harmony(HarmonyId);
       harmony.PatchAll(Assembly.GetExecutingAssembly());
     }
 
-    public override void Dispose() {
-      base.Dispose();
-      new Harmony("japanhasrice.compass2").UnpatchAll("japanhasrice.compass2");
+    public void RemoveHarmonyPatches() {
+      new Harmony(HarmonyId).UnpatchAll(HarmonyId);
     }
 
     public override void AssetsFinalize(ICoreAPI api) {
