@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using Compass.Common.Network;
+using PlayerPos.Common.Network;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
-namespace Compass.Common {
-  public class PlayerPosHandler {
+namespace PlayerPos {
+  public class PlayerPosSystem : ModSystem {
     private class PlayerPosData {
       public string PlayerUid = "";
       public BlockPos LastKnownPos;
@@ -20,24 +20,53 @@ namespace Compass.Common {
       }
     }
 
-    private Dictionary<string, PlayerPosData> posCache = new Dictionary<string, PlayerPosData>();
+    public const string NetworkChannel = "playerpos.japanhasrice";
+    private const int ServerPosQueryIntervalMilliseconds = 3000;
+    private Dictionary<string, PlayerPosData> cache = new Dictionary<string, PlayerPosData>();
 
-    public PlayerPosHandler(ICoreAPI api) {
-      api.Network.RegisterChannel(CompassMod.NETWORK_CHANNEL)
-                 .RegisterMessageType(typeof(RequestPosMessage))
-                 .RegisterMessageType(typeof(PosDataMessage));
+    public override void Start(ICoreAPI api) {
+      base.Start(api);
+
+      var channel = api.Network.RegisterChannel(NetworkChannel)
+                               .RegisterMessageType(typeof(RequestPosMessage))
+                               .RegisterMessageType(typeof(PosDataMessage));
 
       if (api.Side == EnumAppSide.Server) {
-        (api as ICoreServerAPI).Network.GetChannel(CompassMod.NETWORK_CHANNEL).SetMessageHandler<RequestPosMessage>(OnReceivedPosRequest);
+        (channel as IServerNetworkChannel).SetMessageHandler<RequestPosMessage>(OnReceivedPosRequest);
       }
       else {
-        (api as ICoreClientAPI).Network.GetChannel(CompassMod.NETWORK_CHANNEL).SetMessageHandler<PosDataMessage>(OnReceivedPosUpdate);
+        (channel as IClientNetworkChannel).SetMessageHandler<PosDataMessage>(OnReceivedPosUpdate);
       }
     }
 
     public BlockPos GetPlayerPos(ICoreClientAPI capi, string playerUid) {
-      if (playerUid == null || playerUid.Length == 0) { return null; }
+      if (playerUid == null || playerUid.Length == 0 || capi == null) { return null; }
       return ParseClientSideData(capi, playerUid)?.LastKnownPos;
+    }
+
+    private void OnReceivedPosRequest(IServerPlayer requestor, RequestPosMessage incomingMessage) {
+      if (incomingMessage.PlayerUid == null || incomingMessage.PlayerUid.Length == 0) { return; }
+      var sapi = requestor.Entity.Api as ICoreServerAPI;
+
+      var outgoingMessage = new PosDataMessage();
+      outgoingMessage.PlayerUid = incomingMessage.PlayerUid;
+      outgoingMessage.Pos = sapi.World.PlayerByUid(incomingMessage.PlayerUid)?.Entity?.Pos?.AsBlockPos;
+      sapi.Network.GetChannel(NetworkChannel).SendPacket<PosDataMessage>(outgoingMessage, requestor);
+    }
+
+    private void OnReceivedPosUpdate(PosDataMessage message) {
+      if (message.PlayerUid == null || message.PlayerUid.Length == 0) { return; }
+      var data = GetOrCreateCachedPlayerPosData(message.PlayerUid);
+      data.HasReceivedUpdate = true;
+      data.LastKnownPos = message.Pos;
+    }
+
+    private PlayerPosData GetOrCreateCachedPlayerPosData(string playerUid) {
+      if (!cache.TryGetValue(playerUid, out PlayerPosData data)) {
+        data = new PlayerPosData(playerUid);
+        cache.Add(playerUid, data);
+      }
+      return data;
     }
 
     private PlayerPosData ParseClientSideData(ICoreClientAPI capi, string playerUid) {
@@ -61,14 +90,6 @@ namespace Compass.Common {
       return cachedPlayerPosData;
     }
 
-    private PlayerPosData GetOrCreateCachedPlayerPosData(string playerUid) {
-      if (!posCache.TryGetValue(playerUid, out PlayerPosData data)) {
-        data = new PlayerPosData(playerUid);
-        posCache.Add(playerUid, data);
-      }
-      return data;
-    }
-
     private void TimestampReceivedServerData(ICoreClientAPI capi, PlayerPosData data) {
       if (data.HasReceivedUpdate) {
         data.LastUpdatedAt = capi.ElapsedMilliseconds;
@@ -86,8 +107,8 @@ namespace Compass.Common {
 
     private void OnPlayerIsFarAway(ICoreClientAPI capi, PlayerPosData cachedPlayerData) {
       var now = capi.World.ElapsedMilliseconds;
-      if ((cachedPlayerData.IsAwaitingUpdate && (now - cachedPlayerData.LastRequestedServerDataAt >= 3000))
-           || (!cachedPlayerData.IsAwaitingUpdate && (now - cachedPlayerData.LastUpdatedAt >= 3000))) {
+      if ((cachedPlayerData.IsAwaitingUpdate && (now - cachedPlayerData.LastRequestedServerDataAt >= ServerPosQueryIntervalMilliseconds))
+           || (!cachedPlayerData.IsAwaitingUpdate && (now - cachedPlayerData.LastUpdatedAt >= ServerPosQueryIntervalMilliseconds))) {
         RequestPosFromServer(capi, cachedPlayerData);
       }
     }
@@ -99,28 +120,9 @@ namespace Compass.Common {
     }
 
     private void RequestPosFromServer(ICoreClientAPI capi, PlayerPosData cachedPlayerData) {
-      var message = new RequestPosMessage();
-      message.playerUid = cachedPlayerData.PlayerUid;
-      capi.Network.GetChannel(CompassMod.NETWORK_CHANNEL).SendPacket<RequestPosMessage>(message);
       cachedPlayerData.IsAwaitingUpdate = true;
       cachedPlayerData.LastRequestedServerDataAt = capi.World.ElapsedMilliseconds;
-    }
-
-    public void OnReceivedPosRequest(IServerPlayer requestor, RequestPosMessage incomingMessage) {
-      if (incomingMessage.playerUid == null || incomingMessage.playerUid.Length == 0) { return; }
-      var sapi = requestor.Entity.Api as ICoreServerAPI;
-
-      var outgoingMessage = new PosDataMessage();
-      outgoingMessage.PlayerUid = incomingMessage.playerUid;
-      outgoingMessage.Pos = sapi.World.PlayerByUid(incomingMessage.playerUid)?.Entity?.Pos?.AsBlockPos;
-      sapi.Network.GetChannel(CompassMod.NETWORK_CHANNEL).SendPacket<PosDataMessage>(outgoingMessage, requestor);
-    }
-
-    public void OnReceivedPosUpdate(PosDataMessage message) {
-      if (message.PlayerUid == null || message.PlayerUid.Length == 0) { return; }
-      var data = GetOrCreateCachedPlayerPosData(message.PlayerUid);
-      data.HasReceivedUpdate = true;
-      data.LastKnownPos = message.Pos;
+      capi.Network.GetChannel(NetworkChannel).SendPacket(new RequestPosMessage(cachedPlayerData.PlayerUid));
     }
   }
 }

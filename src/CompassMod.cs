@@ -6,16 +6,13 @@ using Vintagestory.API.Server;
 
 namespace Compass {
   public class CompassMod : ModSystem {
-    public const string NETWORK_CHANNEL = "compass2";
     public static readonly string HarmonyId = "compass2.japanhasrice";
     private Config config;
-    public PlayerPosHandler PlayerPosHandler;
 
     public override void Start(ICoreAPI api) {
       base.Start(api);
 
       config = Config.LoadOrCreateDefault(api);
-      PlayerPosHandler = new PlayerPosHandler(api);
 
       RegisterModClasses(api);
       ApplyHarmonyPatches();
