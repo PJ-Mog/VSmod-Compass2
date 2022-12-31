@@ -4,7 +4,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
-namespace Compass.Patch {
+namespace ContainedStackRenderer.Patch {
   [HarmonyPatch(typeof(BlockEntityGroundStorage))]
   public static class BlockEntityGroundStoragePatch {
     const bool runOriginalMethod = true;
@@ -30,12 +30,12 @@ namespace Compass.Patch {
       if (itemStack?.Collectible is IContainedRenderer displayable) {
         var offset = blockEntityGroundStorage.GetDisplayOffsetForSlot(index);
         if (itemStack.GetHashCode(null) == renderers[index]?.ItemStackHashCode) {
-          renderers[index].SetOffset(offset);
+          renderers[index].Offset = offset;
           return;
         }
         renderers[index]?.Dispose();
         var newRenderer = displayable.CreateRendererFromStack(blockEntityGroundStorage.Api as ICoreClientAPI, itemStack, blockEntityGroundStorage.Pos);
-        newRenderer.SetOffset(offset);
+        newRenderer.Offset = offset;
         renderers[index] = newRenderer;
         return;
       }

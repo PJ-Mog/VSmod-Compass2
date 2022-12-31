@@ -1,4 +1,5 @@
 using Compass.Utility;
+using ContainedStackRenderer;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;

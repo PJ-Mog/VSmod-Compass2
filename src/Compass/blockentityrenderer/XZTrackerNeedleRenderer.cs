@@ -1,10 +1,11 @@
 using System;
 using Compass.Utility;
+using ContainedStackRenderer;
 using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 
 namespace Compass {
-  public class XZTrackerNeedleRenderer : IAdjustableItemStackRenderer, IAdjustableRenderer {
+  public class XZTrackerNeedleRenderer : IAdjustableItemStackRenderer {
 
     private ICoreClientAPI api;
     private BlockPos trackerPos;
@@ -23,13 +24,18 @@ namespace Compass {
     public delegate float GetBackupAngle(ICoreClientAPI api);
     private GetBackupAngle backupAngleHandler;
     public GetBackupAngle BackupAngleHandler {
-      get { return backupAngleHandler; }
-      set { if (value != null) backupAngleHandler = value; }
+      get { return this.backupAngleHandler; }
+      set { if (value != null) this.backupAngleHandler = value; }
     }
 
     private Vec3f rotationOrigin = Vec3f.Zero;
     private Vec3f offset = Vec3f.Zero;
-    private float scale = 1f;
+    public Vec3f Offset {
+      get { return this.offset; }
+      set { if (value != null) this.offset = value; }
+    }
+    public float BlockRotationRadians { get; set; } = 0f;
+    public float Scale { get; set; } = 1f;
 
     private const float WOBBLE_FREQUENCY = 0.0025f;
     private const float MAX_WOBBLE_RADIANS = 0.03f;
@@ -52,17 +58,6 @@ namespace Compass {
       rotationOrigin = blockRotationOrigin;
       this.meshref = api.Render.UploadMesh(mesh);
       capi.Event.RegisterRenderer(this, EnumRenderStage.Opaque, "tracker-needle");
-    }
-
-    public void SetOffset(Vec3f offset) {
-      if (offset == null) { return; }
-      this.offset = offset;
-    }
-
-    public void SetRotation(float rotation) { }
-
-    public void SetScale(float scale) {
-      this.scale = scale;
     }
 
     public double RenderOrder {
@@ -108,8 +103,8 @@ namespace Compass {
         .Identity()
         .Translate(trackerPos.X - camPos.X, trackerPos.Y - camPos.Y, trackerPos.Z - camPos.Z)
         .Translate(rotationOrigin.X, rotationOrigin.Y, rotationOrigin.Z)
-        .Translate(offset.X, offset.Y, offset.Z)
-        .Scale(scale, scale, scale)
+        .Translate(Offset.X, Offset.Y, Offset.Z)
+        .Scale(Scale, Scale, Scale)
         .RotateY(renderedAngle)
         .Translate(-rotationOrigin.X, -rotationOrigin.Y, -rotationOrigin.Z)
         .Values

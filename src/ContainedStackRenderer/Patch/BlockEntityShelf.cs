@@ -2,7 +2,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
-namespace Compass.Patch {
+namespace ContainedStackRenderer.Patch {
   public static class BlockEntityShelfExtension {
     public static void UpdateRenderer(this BlockEntityShelf blockEntityShelf, int index) {
       var renderers = blockEntityShelf.GetRenderers();
@@ -13,7 +13,7 @@ namespace Compass.Patch {
         }
         renderers[index]?.Dispose();
         var newRenderer = displayable.CreateRendererFromStack(blockEntityShelf.Api as ICoreClientAPI, itemStack, blockEntityShelf.Pos);
-        newRenderer.SetOffset(blockEntityShelf.GetDisplayOffsetForSlot(index));
+        newRenderer.Offset = blockEntityShelf.GetDisplayOffsetForSlot(index);
         renderers[index] = newRenderer;
         return;
       }

@@ -4,7 +4,7 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
-namespace Compass.Patch {
+namespace ContainedStackRenderer.Patch {
   [HarmonyPatch(typeof(BlockEntityDisplay))]
   public static class BlockEntityDisplayPatch {
     [HarmonyPostfix]

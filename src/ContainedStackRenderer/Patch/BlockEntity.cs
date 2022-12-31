@@ -2,7 +2,7 @@ using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.GameContent;
 
-namespace Compass.Patch {
+namespace ContainedStackRenderer.Patch {
   //  Cannot patch BlockEntityDisplay, BlockEntityGroundStorage, etc.
   //  The subclasses do not override the base functions,
   //  causing Harmony to fail to find the methods

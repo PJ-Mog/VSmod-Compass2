@@ -1,6 +1,4 @@
-using System.Reflection;
 using Compass.Common;
-using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
@@ -15,12 +13,6 @@ namespace Compass {
       config = Config.LoadOrCreateDefault(api);
 
       RegisterModClasses(api);
-      ApplyHarmonyPatches();
-    }
-
-    public override void Dispose() {
-      base.Dispose();
-      RemoveHarmonyPatches();
     }
 
     public void RegisterModClasses(ICoreAPI api) {
@@ -30,15 +22,6 @@ namespace Compass {
       api.RegisterBlockClass("BlockPlayerCompass", typeof(BlockPlayerCompass));
 
       api.RegisterBlockEntityClass("BlockEntityCompass", typeof(BlockEntityXZTracker));
-    }
-
-    public void ApplyHarmonyPatches() {
-      var harmony = new Harmony(HarmonyId);
-      harmony.PatchAll(Assembly.GetExecutingAssembly());
-    }
-
-    public void RemoveHarmonyPatches() {
-      new Harmony(HarmonyId).UnpatchAll(HarmonyId);
     }
 
     public override void AssetsFinalize(ICoreAPI api) {
