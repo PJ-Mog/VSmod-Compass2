@@ -3,7 +3,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
 namespace Compass {
-  class BlockMagneticCompass : BlockCompass {
+  public class BlockMagneticCompass : BlockCompass {
     protected override float? GetXZAngleToTargetRadians(BlockPos fromPos, ItemStack compass) {
       return 0f;
     }

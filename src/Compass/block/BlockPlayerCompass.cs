@@ -4,7 +4,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
 namespace Compass {
-  class BlockPlayerCompass : BlockCompass {
+  public class BlockPlayerCompass : BlockCompass {
     public override EnumTargetType TargetType { get; protected set; } = EnumTargetType.Moving;
 
     protected override BlockPos GetTargetPos(ItemStack compassStack) {

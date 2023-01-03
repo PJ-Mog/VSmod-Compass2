@@ -7,7 +7,7 @@ using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace Compass {
-  abstract class BlockCompass : Block, IRenderableXZTracker, IContainedRenderer {
+  public abstract class BlockCompass : Block, IRenderableXZTracker, IContainedRenderer {
     protected virtual string MeshRefsCacheKey { get; set; }
     protected static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
     protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
