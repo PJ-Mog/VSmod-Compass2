@@ -7,9 +7,6 @@ using Vintagestory.GameContent;
 namespace ContainedStackRenderer.Patch {
   [HarmonyPatch(typeof(BlockEntityGroundStorage))]
   public static class BlockEntityGroundStoragePatch {
-    const bool runOriginalMethod = true;
-    const bool skipOriginalMethod = false;
-
     [HarmonyPostfix()]
     [HarmonyPatch("updateMeshes")]
     public static void UpdateRenderers(BlockEntityGroundStorage __instance) {

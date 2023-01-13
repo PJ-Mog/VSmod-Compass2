@@ -7,6 +7,9 @@ using Vintagestory.GameContent;
 namespace ContainedStackRenderer.Patch {
   [HarmonyPatch(typeof(BlockEntityDisplay))]
   public static class BlockEntityDisplayPatch {
+    //  Cannot patch BlockEntityDisplay, BlockEntityGroundStorage, etc.
+    //  The subclasses do not override the base functions,
+    //  causing Harmony to fail to find the methods
     [HarmonyPostfix]
     [HarmonyPatch("updateMesh")]
     public static void UpdateRenderer(BlockEntityDisplay __instance, int index) {
