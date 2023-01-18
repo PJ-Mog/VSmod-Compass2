@@ -249,8 +249,12 @@ namespace Compass {
     #region GetAndSetAttributes
 
     protected virtual void SetCraftedByPlayerUID(ItemStack compassStack, string craftedByPlayerUID) {
-      if (craftedByPlayerUID == null) { return; }
-      compassStack?.Attributes.SetString(ATTR_STR_CRAFTED_BY_PLAYER_UID, craftedByPlayerUID);
+      if (craftedByPlayerUID == null) {
+        compassStack?.Attributes.RemoveAttribute(ATTR_STR_CRAFTED_BY_PLAYER_UID);
+      }
+      else {
+        compassStack?.Attributes.SetString(ATTR_STR_CRAFTED_BY_PLAYER_UID, craftedByPlayerUID);
+      }
     }
 
     protected virtual string GetCraftedByPlayerUID(ItemStack compassStack) {
@@ -297,6 +301,29 @@ namespace Compass {
       return compassStack?.TempAttributes.GetFloat(TEMP_ATTR_FLOAT_ENTITY_YAW) ?? 0;
     }
 
+    #endregion
+    #region Admin
+
+    internal virtual void AdminReset(ItemStack compassStack) {
+      SetCraftedByPlayerUID(compassStack, null);
+      SetTargetPos(compassStack, null);
+    }
+
+    internal void AdminSetTargetPos(ItemStack compassStack, BlockPos targetPos) {
+      SetTargetPos(compassStack, targetPos);
+    }
+
+    internal BlockPos AdminGetTargetPos(ItemStack compassStack) {
+      return GetTargetPos(compassStack);
+    }
+
+    internal void AdminSetCraftedByPlayerUID(ItemStack compassStack, string craftedByPlayerUID) {
+      SetCraftedByPlayerUID(compassStack, craftedByPlayerUID);
+    }
+
+    internal string AdminGetCraftedByPlayerUID(ItemStack compassStack) {
+      return GetCraftedByPlayerUID(compassStack);
+    }
     #endregion
   }
 }
