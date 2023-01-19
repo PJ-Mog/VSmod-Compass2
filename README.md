@@ -47,33 +47,6 @@
   * Performs the given command on behalf of the specified player, as if that player had run the command themselves.
   * Example: ServerAdmin runs the command `/compass for OtherPlayer set target 10000 120 10000`. If OtherPlayer is holding a compass in their active hotbar slot, its target will be set to 10000, 120, 10000.
 
-### Config
-
-<details><summary>Click to show default configuration file</summary>
-
-```json
-{
-  "EnableScrapRecipeDesc": "Enable additional recipe for the Magnetic Compass. Uses Metal Scraps instead of Magnetite.",
-  "EnableScrapRecipe": true,
-
-  "EnableOriginRecipeDesc": "Allow the Origin Compass to be crafted. <REQUIRED TO CRAFT THE RELATIVE COMPASS>",
-  "EnableOriginRecipe": true,
-
-  "EnableRelativeRecipeDesc": "Allow the Relative Compass to be crafted.",
-  "EnableRelativeRecipe": true,
-
-  "OriginCompassGearsDesc": "Number of Temporal Gears required to craft the Origin Compass. Min: 1, Max: 8",
-  "OriginCompassGears": 2,
-
-  "RelativeCompassGearsDesc": "Number of Temporal Gears required to craft the Relative Compass. Min: 1, Max: 8",
-  "RelativeCompassGears": 2,
-
-  "AllowCompassesInOffhandDesc": "Allow a player to place a compass in their offhand slot.",
-  "AllowCompassesInOffhand": true
-}
-```
-</details>
-
 ### **\*NEW\*** Modding the mod
 There are many details of the compasses that can be modified via JSON. Below is a sample asset file with only the relevant properties. Custom properties are all further explained below. Additional information is provided when relevant.
 

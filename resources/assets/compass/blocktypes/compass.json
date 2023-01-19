@@ -20,6 +20,7 @@
       }
     }
   ],
+  "storageFlags": 257,
   "shape": { "base": "block/compass/shell" },
   "shapeInventory": { "base": "block/compass/complete" },
   "attributes": {
