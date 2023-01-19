@@ -38,6 +38,11 @@
   * Can be a player's Name, a player's UID, or an unrelated string.
 * `/compass reset`
   * Causes the compass to act as though it had just been crafted.
+* `/compass remove target`
+  * Deletes the compass's saved target position.
+* `/compass remove craftedBy`
+  * Deletes the compass's saved creator.
+  * Currently, this will cause the compass to act as though it had just been crafted
 * `/compass for [<player_name>|<player_uid>] [show|set|reset]`
   * Performs the given command on behalf of the specified player, as if that player had run the command themselves.
   * Example: ServerAdmin runs the command `/compass for OtherPlayer set target 10000 120 10000`. If OtherPlayer is holding a compass in their active hotbar slot, its target will be set to 10000, 120, 10000.

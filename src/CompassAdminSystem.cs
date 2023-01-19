@@ -28,15 +28,19 @@ namespace CompassAdmin {
         case "reset":
           OnReset(commandBase + " reset", callingPlayer, groupId, args, callingPlayer);
           break;
+        case "remove":
+          OnRemove(commandBase + " remove", callingPlayer, groupId, args, callingPlayer);
+          break;
         case "help":
           callingPlayer.SendMessage(groupId, commandBase + " [for|show|set|reset|help]", EnumChatType.CommandError);
           callingPlayer.SendMessage(groupId, "for: Perform a command on a different player's compass in their active hotbar slot. Can reference the player by their UID or current Name.", EnumChatType.CommandSuccess);
           callingPlayer.SendMessage(groupId, "show: View data for the currently held compass.", EnumChatType.CommandSuccess);
           callingPlayer.SendMessage(groupId, "set: Change data for the currently held compass.", EnumChatType.CommandSuccess);
           callingPlayer.SendMessage(groupId, "reset: Reset data for the currently held compass. The compass will act as if it had just been crafted.", EnumChatType.CommandSuccess);
+          callingPlayer.SendMessage(groupId, "remove: Delete data for the currently held compass.", EnumChatType.CommandSuccess);
           break;
         default:
-          callingPlayer.SendMessage(groupId, commandBase + " [for|show|set|reset|help]", EnumChatType.CommandError);
+          callingPlayer.SendMessage(groupId, commandBase + " [for|show|set|reset|remove|help]", EnumChatType.CommandError);
           break;
       }
     }
@@ -52,14 +56,18 @@ namespace CompassAdmin {
         case "reset":
           OnReset(commandString + " reset", callingPlayer, groupId, args, compassHolder);
           break;
+        case "remove":
+          OnRemove(commandString + " remove", callingPlayer, groupId, args, compassHolder);
+          break;
         case "help":
           callingPlayer.SendMessage(groupId, commandString + " [show|set|reset|help]", EnumChatType.CommandError);
           callingPlayer.SendMessage(groupId, "show: View data for the currently held compass.", EnumChatType.CommandSuccess);
           callingPlayer.SendMessage(groupId, "set: Change data for the currently held compass.", EnumChatType.CommandSuccess);
           callingPlayer.SendMessage(groupId, "reset: Reset data for the currently held compass. The compass will act as if it had just been crafted.", EnumChatType.CommandSuccess);
+          callingPlayer.SendMessage(groupId, "remove: Delete data for the currently held compass.", EnumChatType.CommandSuccess);
           break;
         default:
-          callingPlayer.SendMessage(groupId, commandString + " [show|set|reset|help]", EnumChatType.CommandError);
+          callingPlayer.SendMessage(groupId, commandString + " [show|set|reset|remove|help]", EnumChatType.CommandError);
           break;
       }
     }
@@ -121,8 +129,8 @@ namespace CompassAdmin {
     }
 
     public void OnSetCraftedBy(string commandString, IServerPlayer callingPlayer, int groupId, CmdArgs args, IServerPlayer compassHolder) {
-      var newCrafterString = args.PopWord();
-      if (newCrafterString == null) {
+      var newCrafterString = args.PopAll();
+      if (newCrafterString.Length == 0) {
         callingPlayer.SendMessage(groupId, commandString + " <player_name|player_uid|other>", EnumChatType.CommandError);
         return;
       }
@@ -186,6 +194,55 @@ namespace CompassAdmin {
       activeCompass.AdminReset(activeStack);
       activeSlot.MarkDirty();
       callingPlayer.SendMessage(groupId, Lang.Get("Successfully reset {0} held by {1}.", activeCompass.Code, compassHolder.PlayerName), EnumChatType.CommandSuccess);
+    }
+
+    public void OnRemove(string commandString, IServerPlayer callingPlayer, int groupId, CmdArgs args, IServerPlayer compassHolder) {
+      switch (args.PopWord()?.ToLowerInvariant()) {
+        case "craftedby":
+          OnRemoveCraftedBy(commandString + " craftedby", callingPlayer, groupId, args, compassHolder);
+          break;
+        case "target":
+          OnRemoveTarget(commandString + " target", callingPlayer, groupId, args, compassHolder);
+          break;
+        case "help":
+          callingPlayer.SendMessage(groupId, commandString + " [craftedBy|target|help]", EnumChatType.CommandError);
+          callingPlayer.SendMessage(groupId, "craftedBy: Deletes the reference to the original crafter. Will immediately change to the current holder.", EnumChatType.CommandSuccess);
+          callingPlayer.SendMessage(groupId, "target: Deletes the target position.", EnumChatType.CommandSuccess);
+          break;
+        default:
+          callingPlayer.SendMessage(groupId, commandString + " [craftedBy|target|help]", EnumChatType.CommandError);
+          break;
+      }
+    }
+
+    public void OnRemoveCraftedBy(string commandString, IServerPlayer callingPlayer, int groupId, CmdArgs args, IServerPlayer compassHolder) {
+      var activeSlot = compassHolder?.InventoryManager?.ActiveHotbarSlot;
+      var activeStack = activeSlot?.Itemstack;
+      var activeCompass = activeStack?.Collectible as BlockCompass;
+      if (activeCompass == null) {
+        OnNotHoldingCompassError(callingPlayer, groupId, compassHolder);
+        return;
+      }
+
+      activeCompass.AdminSetCraftedByPlayerUID(activeStack, null);
+      activeSlot.MarkDirty();
+      compassHolder.InventoryManager.BroadcastHotbarSlot();
+      callingPlayer.SendMessage(groupId, Lang.Get("Successfully removed Crafter for {0} held by {1}.", activeCompass.Code, compassHolder.PlayerName), EnumChatType.CommandSuccess);
+    }
+
+    public void OnRemoveTarget(string commandString, IServerPlayer callingPlayer, int groupId, CmdArgs args, IServerPlayer compassHolder) {
+      var activeSlot = compassHolder?.InventoryManager?.ActiveHotbarSlot;
+      var activeStack = activeSlot?.Itemstack;
+      var activeCompass = activeStack?.Collectible as BlockCompass;
+      if (activeCompass == null) {
+        OnNotHoldingCompassError(callingPlayer, groupId, compassHolder);
+        return;
+      }
+
+      activeCompass.AdminSetTargetPos(activeStack, null);
+      activeSlot.MarkDirty();
+      compassHolder.InventoryManager.BroadcastHotbarSlot();
+      callingPlayer.SendMessage(groupId, Lang.Get("Successfully removed Target for {0} held by {1}.", activeCompass.Code, compassHolder.PlayerName), EnumChatType.CommandSuccess);
     }
 
     public void OnNotHoldingCompassError(IServerPlayer callingPlayer, int groupId, IServerPlayer compassHolder) {
