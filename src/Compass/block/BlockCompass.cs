@@ -236,6 +236,7 @@ namespace Compass {
 
     public override void OnGroundIdle(EntityItem entityItem) {
       base.OnGroundIdle(entityItem);
+      if (api.Side != EnumAppSide.Client) { return; }
       SetCompassEntityPos(entityItem.Itemstack, entityItem.Pos.AsBlockPos);
     }
 
