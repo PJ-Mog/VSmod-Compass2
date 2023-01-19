@@ -239,10 +239,9 @@ namespace Compass {
       SetCompassEntityPos(entityItem.Itemstack, entityItem.Pos.AsBlockPos);
     }
 
-    public override void OnHeldIdle(ItemSlot slot, EntityAgent byEntity) {
-      base.OnHeldIdle(slot, byEntity);
-      SetCompassEntityPos(slot.Itemstack, byEntity.Pos.AsBlockPos);
-      SetCompassEntityYaw(slot.Itemstack, byEntity.BodyYaw);
+    public virtual void SetHoldingEntityData(ItemStack compassStack, EntityAgent byEntity) {
+      SetCompassEntityPos(compassStack, byEntity.Pos.AsBlockPos);
+      SetCompassEntityYaw(compassStack, byEntity.BodyYaw);
     }
 
     #endregion
