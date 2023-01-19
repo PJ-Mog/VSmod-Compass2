@@ -39,13 +39,7 @@
       },
       "maximumMeshes": 120,
       "distancemethod": "manhattan",
-      "minTrackingDistance": 5,
-      "distanceMethodByType": {
-        "*-origin": "distancesquared"
-      },
-      "minTrackingDistanceByType": {
-        "*-origin": 10000
-      }
+      "minTrackingDistance": 5
     }
   },
   "vertexFlags": {
