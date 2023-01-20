@@ -5,13 +5,13 @@ using Vintagestory.API.Common;
 namespace Compass {
   public class CompassMod : ModSystem {
     public static readonly string HarmonyId = "compass2.japanhasrice";
-    private Config config;
+    public Config Config;
     private ICoreClientAPI Capi;
 
     public override void Start(ICoreAPI api) {
       base.Start(api);
 
-      config = Config.LoadOrCreateDefault(api);
+      Config = Config.LoadOrCreateDefault(api);
 
       RegisterModClasses(api);
     }

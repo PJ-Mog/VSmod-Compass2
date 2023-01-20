@@ -10,5 +10,6 @@
   "output": {
     "type": "block",
     "code": "compass:compass-magnetic"
-  }
+  },
+  "enabled": true
 }

@@ -1,10 +1,26 @@
 using System;
 using Newtonsoft.Json;
 using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
 
 namespace Compass.Common {
   public class Config {
     public const string DEFAULT_FILENAME = "Compass2 Config.json";
+
+    public string EnableMagneticRecipeDesc = "Enable crafting a Magnetic Compass with a Magnetite Nugget.";
+    public bool EnableMagneticRecipe = true;
+    public string EnableScrapRecipeDesc = "Enable additional recipe for the Magnetic Compass. Uses Metal Scraps instead of Magnetite.";
+    public bool EnableScrapRecipe = true;
+    public string EnableOriginRecipeDesc = "Allow the Origin Compass to be crafted. <REQUIRED TO CRAFT THE RELATIVE COMPASS>";
+    public bool EnableOriginRecipe = true;
+    public string EnableRelativeRecipeDesc = "Allow the Relative Compass to be crafted.";
+    public bool EnableRelativeRecipe = true;
+    public string OriginCompassGearsDesc = "Number of Temporal Gears required to craft the Origin Compass. Min: 1, Max: 8";
+    public int OriginCompassGears = 2;
+    public string RelativeCompassGearsDesc = "Number of Temporal Gears required to craft the Relative Compass. Min: 1, Max: 8";
+    public int RelativeCompassGears = 2;
+    public string AllowCompassesInOffhandDesc = "Allow a player to place a compass in their offhand slot.";
+    public bool AllowCompassesInOffhand = true;
 
     public static Config LoadOrCreateDefault(ICoreAPI api, string filename = DEFAULT_FILENAME) {
       Config config = TryLoadModConfig(api, filename);
@@ -17,7 +33,7 @@ namespace Compass.Common {
       // Save before clamp-correcting to preserve user's chosen values, even if invalid.
       // Valid config values might be detected as invalid due to coding errors.
       Save(api, config, filename);
-      Clamp(config);
+      Clamp(api, config);
       return config;
     }
 
@@ -40,8 +56,20 @@ namespace Compass.Common {
       return config;
     }
 
-    public static void Clamp(Config config) {
+    public static void Clamp(ICoreAPI api, Config config) {
       if (config == null) { return; }
+
+      var temp = config.OriginCompassGears;
+      config.OriginCompassGears = GameMath.Clamp(config.OriginCompassGears, 1, 8);
+      if (config.OriginCompassGears != temp) {
+        api.Logger.Warning("[Compass2] Config \"OriginCompassGears\" value {0} is out of bounds. Using {1}", temp, config.OriginCompassGears);
+      }
+
+      temp = config.RelativeCompassGears;
+      config.RelativeCompassGears = GameMath.Clamp(config.RelativeCompassGears, 1, 8);
+      if (config.RelativeCompassGears != temp) {
+        api.Logger.Warning("[Compass2] Config \"RelativeCompassGears\" value {0} is out of bounds. Using {1}", temp, config.OriginCompassGears);
+      }
     }
 
     public static void Save(ICoreAPI api, Config config, string filename) {
