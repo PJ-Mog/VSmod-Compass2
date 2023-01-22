@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Compass.ConfigSystem;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Tavis;
@@ -19,28 +20,31 @@ namespace Compass {
     protected static readonly string OriginRecipePath = "recipes/grid/compass-origin.json";
     protected static readonly string RelativeRecipePath = "recipes/grid/compass-relative.json";
 
+    public override bool ShouldLoad(EnumAppSide forSide) {
+      return forSide == EnumAppSide.Server;
+    }
+
     public override double ExecuteOrder() {
       return 0.04; // Before ModJsonPatchLoader (0.05)
     }
 
     public override void AssetsLoaded(ICoreAPI api) {
-      if (api.Side != EnumAppSide.Server) { return; }
-      var config = api.ModLoader.GetModSystem<CompassMod>().ServerConfig;
+      var settings = api.ModLoader.GetModSystem<CompassConfigServer>().Settings;
 
       var patches = new List<JsonPatch>();
 
-      patches.Add(GetMagneticRecipeEnabledPatch(config.EnableMagneticRecipe));
-      patches.Add(GetScrapRecipeEnabledPatch(config.EnableScrapRecipe));
-      patches.Add(GetOriginRecipeEnabledPatch(config.EnableOriginRecipe));
-      patches.Add(GetRelativeRecipeEnabledPatch(config.EnableRelativeRecipe));
-      patches.Add(GetCompassOffhandPatch(api, config.AllowCompassesInOffhand));
+      patches.Add(GetMagneticRecipeEnabledPatch(settings.EnableMagneticRecipe));
+      patches.Add(GetScrapRecipeEnabledPatch(settings.EnableScrapRecipe));
+      patches.Add(GetOriginRecipeEnabledPatch(settings.EnableOriginRecipe));
+      patches.Add(GetRelativeRecipeEnabledPatch(settings.EnableRelativeRecipe));
+      patches.Add(GetCompassOffhandPatch(api, settings.AllowCompassesInOffhand));
 
-      if (config.EnableOriginRecipe) {
-        patches.Add(GetOriginGearQuantityPatch(config.OriginCompassGears));
+      if (settings.EnableOriginRecipe) {
+        patches.Add(GetOriginGearQuantityPatch(settings.OriginCompassGears));
       }
 
-      if (config.EnableRelativeRecipe) {
-        patches.Add(GetRelativeGearQuantityPatch(config.RelativeCompassGears));
+      if (settings.EnableRelativeRecipe) {
+        patches.Add(GetRelativeGearQuantityPatch(settings.RelativeCompassGears));
       }
 
       int applied = 0;

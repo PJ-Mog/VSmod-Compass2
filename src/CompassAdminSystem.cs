@@ -7,6 +7,10 @@ namespace CompassAdmin {
   public class CompassAdminSystem : ModSystem {
     protected ICoreServerAPI sapi;
 
+    public override bool ShouldLoad(EnumAppSide forSide) {
+      return forSide == EnumAppSide.Server;
+    }
+
     public override void StartServerSide(ICoreServerAPI api) {
       base.StartServerSide(api);
       sapi = api;

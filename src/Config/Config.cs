@@ -3,7 +3,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Vintagestory.API.Common;
 
-namespace Compass.Common {
+namespace Compass.ConfigSystem {
   public abstract class Config {
     public static T LoadOrCreateDefault<T>(ICoreAPI api, string filename) where T : Config, new() {
       T config = TryLoadModConfig<T>(api, filename);

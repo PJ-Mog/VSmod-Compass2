@@ -1,6 +1,4 @@
-using Compass.Common;
-
-namespace Compass.Server {
+namespace Compass.ConfigSystem {
   public class ServerConfig : Config {
     public string EnableMagneticRecipeDesc = "Enable crafting a Magnetic Compass with a Magnetite Nugget.";
     public bool EnableMagneticRecipe = true;
