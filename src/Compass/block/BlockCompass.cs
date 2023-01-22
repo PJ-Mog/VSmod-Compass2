@@ -1,5 +1,6 @@
+using Compass.ConfigSystem;
+using Compass.Rendering;
 using Compass.Utility;
-using Rendering;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -9,6 +10,7 @@ using Vintagestory.API.Util;
 namespace Compass {
   public abstract class BlockCompass : Block, IRenderableXZTracker, IContainedRenderer {
     protected virtual string MeshRefsCacheKey { get; set; }
+    protected int PreGeneratedMeshCount = 8;
     protected static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
     protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
     protected static readonly string TEMP_ATTR_BYTES_ENTITY_POS = "compass-entity-pos";
@@ -45,6 +47,11 @@ namespace Compass {
       ShellShape = GetShape(capi, Shape.Base);
 
       GetDistance = Props.DistanceFormula;
+
+      var assetMaximumMeshes = Props.MaximumMeshes;
+      var clientSettings = capi.ModLoader.GetModSystem<CompassConfigClient>().Settings;
+      var clientMaximumMeshes = clientSettings.MaximumPreGeneratedMeshes;
+      PreGeneratedMeshCount = GameMath.Min(assetMaximumMeshes, clientMaximumMeshes);
     }
 
     public override void OnUnloaded(ICoreAPI api) {
@@ -66,9 +73,9 @@ namespace Compass {
 
     protected virtual MeshRef[] GetMeshRefs(ICoreClientAPI capi) {
       return ObjectCacheUtil.GetOrCreate(capi, MeshRefsCacheKey, () => {
-        var meshRefs = new MeshRef[Props.MaximumMeshes];
-        for (var angleIndex = 0; angleIndex < Props.MaximumMeshes; angleIndex++) {
-          float angleDegrees = ((float)angleIndex / Props.MaximumMeshes * 360);
+        var meshRefs = new MeshRef[PreGeneratedMeshCount];
+        for (var angleIndex = 0; angleIndex < PreGeneratedMeshCount; angleIndex++) {
+          float angleDegrees = ((float)angleIndex / PreGeneratedMeshCount * 360);
           meshRefs[angleIndex] = capi.Render.UploadMesh(GenFullMesh(capi, angleDegrees));
         }
         return meshRefs;
@@ -76,7 +83,7 @@ namespace Compass {
     }
 
     public virtual MeshRef GetBestMeshRef(ICoreClientAPI capi, float forAngleRadians, float angleOfTrackerRadians = 0f) {
-      var index = (int)GameMath.Mod((forAngleRadians - angleOfTrackerRadians) / GameMath.TWOPI * Props.MaximumMeshes + 0.5, Props.MaximumMeshes);
+      var index = (int)GameMath.Mod((forAngleRadians - angleOfTrackerRadians) / GameMath.TWOPI * PreGeneratedMeshCount + 0.5, PreGeneratedMeshCount);
       return GetMeshRefs(capi)[index];
     }
 

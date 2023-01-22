@@ -1,4 +1,5 @@
 using System.Reflection;
+using Compass.ConfigSystem;
 using HarmonyLib;
 using Vintagestory.API.Common;
 
@@ -17,7 +18,8 @@ namespace Compass.Rendering {
 
       ApplyHarmonyPatches();
 
-      api.World.RegisterGameTickListener(ThirdPersonCompassHandlingTick, 1, 5000);
+      var thirdPersonRenderUpdateTickInterval = api.ModLoader.GetModSystem<CompassConfigClient>().Settings.ThirdPersonRenderUpdateTickIntervalMs;
+      api.World.RegisterGameTickListener(ThirdPersonCompassHandlingTick, thirdPersonRenderUpdateTickInterval, 5000);
     }
 
     public override void Dispose() {
