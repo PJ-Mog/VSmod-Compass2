@@ -1,48 +1,30 @@
 using System;
+using System.Reflection;
 using Newtonsoft.Json;
 using Vintagestory.API.Common;
-using Vintagestory.API.MathTools;
 
 namespace Compass.Common {
-  public class Config {
-    public const string DEFAULT_FILENAME = "Compass2 Config.json";
-
-    public string EnableMagneticRecipeDesc = "Enable crafting a Magnetic Compass with a Magnetite Nugget.";
-    public bool EnableMagneticRecipe = true;
-    public string EnableScrapRecipeDesc = "Enable additional recipe for the Magnetic Compass. Uses Metal Scraps instead of Magnetite.";
-    public bool EnableScrapRecipe = true;
-    public string EnableOriginRecipeDesc = "Allow the Origin Compass to be crafted. <REQUIRED TO CRAFT THE RELATIVE COMPASS>";
-    public bool EnableOriginRecipe = true;
-    public string EnableRelativeRecipeDesc = "Allow the Relative Compass to be crafted.";
-    public bool EnableRelativeRecipe = true;
-    public string OriginCompassGearsDesc = "Number of Temporal Gears required to craft the Origin Compass. Min: 1, Max: 8";
-    public int OriginCompassGears = 2;
-    public string RelativeCompassGearsDesc = "Number of Temporal Gears required to craft the Relative Compass. Min: 1, Max: 8";
-    public int RelativeCompassGears = 2;
-    public string AllowCompassesInOffhandDesc = "Allow a player to place a compass in their offhand slot.";
-    public bool AllowCompassesInOffhand = true;
-
-    public static Config LoadOrCreateDefault(ICoreAPI api, string filename = DEFAULT_FILENAME) {
-      Config config = TryLoadModConfig(api, filename);
+  public abstract class Config {
+    public static T LoadOrCreateDefault<T>(ICoreAPI api, string filename) where T : Config, new() {
+      T config = TryLoadModConfig<T>(api, filename);
 
       if (config == null) {
         api.Logger.Notification("[Compass2] Unable to load valid config file. Generating {0} with defaults.", filename);
-        config = new Config();
+        config = new T();
       }
-
-      // Save before clamp-correcting to preserve user's chosen values, even if invalid.
-      // Valid config values might be detected as invalid due to coding errors.
-      Save(api, config, filename);
-      Clamp(api, config);
+      else {
+        config.Clamp(api.Logger);
+      }
+      config.Save(api, filename);
       return config;
     }
 
     // Throws exception if the config file exists, but had parsing errors.
     // Returns null if no config file exists.
-    private static Config TryLoadModConfig(ICoreAPI api, string filename) {
-      Config config = null;
+    public static T TryLoadModConfig<T>(ICoreAPI api, string filename) where T : Config {
+      T config = default(T);
       try {
-        config = api.LoadModConfig<Config>(filename);
+        config = api.LoadModConfig<T>(filename);
       }
       catch (JsonReaderException e) {
         api.Logger.Error("[Compass2] Unable to parse configuration file, {0}. Correct syntax errors and retry, or delete.", filename);
@@ -56,24 +38,68 @@ namespace Compass.Common {
       return config;
     }
 
-    public static void Clamp(ICoreAPI api, Config config) {
-      if (config == null) { return; }
-
-      var temp = config.OriginCompassGears;
-      config.OriginCompassGears = GameMath.Clamp(config.OriginCompassGears, 1, 8);
-      if (config.OriginCompassGears != temp) {
-        api.Logger.Warning("[Compass2] Config \"OriginCompassGears\" value {0} is out of bounds. Using {1}", temp, config.OriginCompassGears);
-      }
-
-      temp = config.RelativeCompassGears;
-      config.RelativeCompassGears = GameMath.Clamp(config.RelativeCompassGears, 1, 8);
-      if (config.RelativeCompassGears != temp) {
-        api.Logger.Warning("[Compass2] Config \"RelativeCompassGears\" value {0} is out of bounds. Using {1}", temp, config.OriginCompassGears);
+    public void Clamp(ILogger logger) {
+      var privateFields = GetType().GetTypeInfo().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+      foreach (var restrictingField in privateFields) {
+        if (restrictingField.Name.Length < 4) { continue; }
+        var baseFieldName = restrictingField.Name.Substring(0, restrictingField.Name.Length - 3);
+        var baseField = GetType().GetTypeInfo().GetField(baseFieldName, BindingFlags.Public | BindingFlags.Instance);
+        if (baseField == null) {
+          logger.Debug("[Compass2] Could not find public field \"{0}\" to clamp with \"{1}\".", baseFieldName, restrictingField.Name);
+          continue;
+        }
+        var lastThree = restrictingField.Name.Substring(restrictingField.Name.Length - 3);
+        switch (lastThree) {
+          case "Min":
+            var min = restrictingField.GetValue(this);
+            try {
+              if (min == null) { continue; }
+              Type[] types = { restrictingField.FieldType, baseField.FieldType };
+              var oldValue = baseField.GetValue(this);
+              var newValue = typeof(Math).GetTypeInfo().GetMethod("Max", types)?.Invoke(null, new object[] { min, oldValue });
+              if (newValue == null) {
+                logger.Error("[Compass2] Error while applying the minimum value '{0}' ({1}) for '{2}' ({3})", min, min.GetType(), baseField.Name, baseField.FieldType);
+                continue;
+              }
+              baseField.SetValue(this, newValue);
+              if (newValue.ToString() != oldValue.ToString()) {
+                logger.Warning("[Compass2] Value for \"{0}\" was out of bounds ({1}). Using '{2}'.", baseField.Name, oldValue, newValue);
+              }
+            }
+            catch (System.Exception e) {
+              logger.Error("[Compass2] Error while applying the minimum value '{0}' ({1}) for '{2}' ({3})", min, min.GetType(), baseField.Name, baseField.FieldType);
+              logger.Error("[Compass2] {0}", e);
+            }
+            break;
+          case "Max":
+            var max = restrictingField.GetValue(this); ;
+            try {
+              if (max == null) { continue; }
+              Type[] types = { restrictingField.FieldType, baseField.FieldType };
+              var oldValue = baseField.GetValue(this);
+              var newValue = typeof(Math).GetTypeInfo().GetMethod("Min", types)?.Invoke(null, new object[] { max, oldValue });
+              if (newValue == null) {
+                logger.Error("[Compass2] Error while applying the maximum value '{0}' ({1}) for '{2}' ({3})", max, max.GetType(), baseField.Name, baseField.FieldType);
+                continue;
+              }
+              baseField.SetValue(this, newValue);
+              if (newValue.ToString() != oldValue.ToString()) {
+                logger.Warning("[Compass2] Value for \"{0}\" was out of bounds ({1}). Using '{2}'.", baseField.Name, oldValue, newValue);
+              }
+            }
+            catch (System.Exception e) {
+              logger.Error("[Compass2] Error while applying the maximum value '{0}' ({1}) for '{2}' ({3})", max, max.GetType(), baseField.Name, baseField.FieldType);
+              logger.Error("[Compass2] {0}", e);
+            }
+            break;
+          case "Dft":
+            break;
+        }
       }
     }
 
-    public static void Save(ICoreAPI api, Config config, string filename) {
-      api.StoreModConfig(config, filename);
+    public void Save(ICoreAPI api, string filename) {
+      api.StoreModConfig(this, filename);
     }
   }
 }

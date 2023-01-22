@@ -1,17 +1,24 @@
+using Compass.Client;
 using Compass.Common;
+using Compass.Server;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
 namespace Compass {
   public class CompassMod : ModSystem {
     public static readonly string HarmonyId = "compass2.japanhasrice";
-    public Config Config;
+    public ClientConfig ClientConfig;
+    public ServerConfig ServerConfig;
     private ICoreClientAPI Capi;
+
+    public override void StartPre(ICoreAPI api) {
+      base.StartPre(api);
+      ClientConfig = Config.LoadOrCreateDefault<ClientConfig>(api, "Compass2 Client Config.json");
+      ServerConfig = Config.LoadOrCreateDefault<ServerConfig>(api, "Compass2 Server Config.json");
+    }
 
     public override void Start(ICoreAPI api) {
       base.Start(api);
-
-      Config = Config.LoadOrCreateDefault(api);
 
       RegisterModClasses(api);
     }

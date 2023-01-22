@@ -25,7 +25,7 @@ namespace Compass {
 
     public override void AssetsLoaded(ICoreAPI api) {
       if (api.Side != EnumAppSide.Server) { return; }
-      var config = api.ModLoader.GetModSystem<CompassMod>().Config;
+      var config = api.ModLoader.GetModSystem<CompassMod>().ServerConfig;
 
       var patches = new List<JsonPatch>();
 
