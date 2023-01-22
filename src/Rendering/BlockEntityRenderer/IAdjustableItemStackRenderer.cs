@@ -1,7 +1,7 @@
 using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 
-namespace ContainedStackRenderer {
+namespace Rendering {
   public interface IAdjustableItemStackRenderer : IRenderer {
     // Set this to the hash of the ItemStack used to generate the renderer.
     // It is used to determine when the renderer needs to be remade.

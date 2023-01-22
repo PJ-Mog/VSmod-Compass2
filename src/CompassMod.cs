@@ -20,23 +20,5 @@ namespace Compass {
 
       api.RegisterBlockEntityClass("BlockEntityCompass", typeof(BlockEntityXZTracker));
     }
-
-    public override void StartClientSide(ICoreClientAPI capi) {
-      base.StartClientSide(capi);
-      Capi = capi;
-      capi.World.RegisterGameTickListener(ThirdPersonCompassHandlingTick, 1, 5000);
-    }
-
-    protected void ThirdPersonCompassHandlingTick(float dt) {
-      var onlinePlayers = Capi.World.AllOnlinePlayers;
-      if (onlinePlayers.Length < 2) { return; }
-
-      foreach (var player in onlinePlayers) {
-        var playerEntity = player.Entity;
-        if (playerEntity == null) { continue; }
-        var stack = player.InventoryManager?.ActiveHotbarSlot?.Itemstack;
-        (stack?.Collectible as BlockCompass)?.SetHoldingEntityData(stack, playerEntity);
-      }
-    }
   }
 }

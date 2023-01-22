@@ -1,6 +1,6 @@
 using System;
 using Compass.Utility;
-using ContainedStackRenderer;
+using Rendering;
 using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 

@@ -2,9 +2,11 @@ using System.Reflection;
 using HarmonyLib;
 using Vintagestory.API.Common;
 
-namespace ContainedStackRenderer {
-  public class ContainedStackRendererMod : ModSystem {
+namespace Compass.Rendering {
+  public class CompassRenderingSystem : ModSystem {
     public static readonly string HarmonyId = "contained-stack-renderer-mod";
+
+    private ICoreAPI api;
 
     public override bool ShouldLoad(EnumAppSide forSide) {
       return forSide == EnumAppSide.Client;
@@ -14,6 +16,8 @@ namespace ContainedStackRenderer {
       base.Start(api);
 
       ApplyHarmonyPatches();
+
+      api.World.RegisterGameTickListener(ThirdPersonCompassHandlingTick, 1, 5000);
     }
 
     public override void Dispose() {
@@ -28,6 +32,18 @@ namespace ContainedStackRenderer {
 
     public void RemoveHarmonyPatches() {
       new Harmony(HarmonyId).UnpatchAll(HarmonyId);
+    }
+
+    protected void ThirdPersonCompassHandlingTick(float dt) {
+      var onlinePlayers = api.World.AllOnlinePlayers;
+      if (onlinePlayers.Length < 2) { return; }
+
+      foreach (var player in onlinePlayers) {
+        var playerEntity = player.Entity;
+        if (playerEntity == null) { continue; }
+        var stack = player.InventoryManager?.ActiveHotbarSlot?.Itemstack;
+        (stack?.Collectible as BlockCompass)?.SetHoldingEntityData(stack, playerEntity);
+      }
     }
   }
 }

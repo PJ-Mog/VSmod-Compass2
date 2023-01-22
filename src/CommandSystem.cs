@@ -1,10 +1,9 @@
-using Compass;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 
-namespace CompassAdmin {
-  public class CompassAdminSystem : ModSystem {
+namespace Compass.Command {
+  public class CompassCommandSystem : ModSystem {
     protected ICoreServerAPI sapi;
 
     public override bool ShouldLoad(EnumAppSide forSide) {

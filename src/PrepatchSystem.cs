@@ -9,8 +9,8 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.ServerMods.NoObf;
 
-namespace Compass {
-  public class CompassModPrepatchSystem : ModSystem {
+namespace Compass.Prepatch {
+  public class CompassPrepatchSystem : ModSystem {
     protected class JsonAsset {
       public EnumItemStorageFlags StorageFlags = EnumItemStorageFlags.General;
     }

@@ -5,7 +5,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
-namespace PlayerPos {
+namespace Compass.PlayerPos {
   public class PlayerPosSystem : ModSystem {
     private class PlayerPosData {
       public string PlayerUid = "";
