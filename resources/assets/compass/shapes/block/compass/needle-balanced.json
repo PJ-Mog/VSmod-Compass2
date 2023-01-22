@@ -1,0 +1,46 @@
+{
+  "editor": {
+    "allAngles": false,
+    "entityTextureMode": true
+  },
+  "textureWidth": 16,
+  "textureHeight": 16,
+  "textureSizes": {
+  },
+  "textures": {
+    "needle": "game:item/resource/nugget/magnetite"
+  },
+  "elements": [
+    {
+			"name": "Clasp",
+			"from": [ 7.625, 0.875, 7.625 ], 
+			"to": [ 8.375, 1.625, 8.375 ], 
+			"rotationOrigin": [ 8.0, 1.25, 8.0 ],
+			"rotationY": 90.0,
+			"faces": {
+				"north": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
+				"east": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
+				"south": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
+				"west": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
+				"up": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
+				"down": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] }
+			},
+			"children": [
+				{
+					"name": "needle",
+					"from": [ -1.3724, 0.125, 0.1234 ], 
+					"to": [ 2.1276, 0.625, 0.6234 ], 
+					"rotationOrigin": [ 0.375, 0.375, 0.375 ],
+					"faces": {
+						"north": { "texture": "#needle", "uv": [ 8.0, 1.0, 11.5, 1.5 ] },
+						"east": { "texture": "#needle", "uv": [ 11.0, 1.0, 11.5, 1.5 ] },
+						"south": { "texture": "#needle", "uv": [ 12.0, 1.0, 15.5, 1.5 ] },
+						"west": { "texture": "#needle", "uv": [ 15.0, 1.0, 15.5, 1.5 ] },
+						"up": { "texture": "#needle", "uv": [ 8.0, 0.0, 11.5, 0.5 ] },
+						"down": { "texture": "#needle", "uv": [ 11.0, 0.0, 14.5, 0.5 ], "enabled": false, "windMode": [0,0,0,0] }
+					}
+				}
+			]
+		}
+  ]
+}

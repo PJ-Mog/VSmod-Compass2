@@ -14,7 +14,7 @@
 * Relative Compass
   * Points to the location where it was created.
   * Crafted with 1 Origin Compass and 2 Temporal Gears.
-* **\*NEW\*** Player Compass
+* **\*NEW\*** Seraph Compass
   * Points to the player who first picks it up (usually the one who crafted it).
   * Does not track an offline player.
   * No crafting recipe yet. Feel free to add your own!
@@ -34,7 +34,7 @@
   * Changes the compass's target position to the provided position.
   * Supports flexible pos inputs, i.e. `~10 ~0 ~-15` denotes a position relative to the player, `=512000 =120 =512000` denotes an absolute position, and `0 120 0` denotes a map coordinate.
 * `/compass set craftedBy [<player_name>|<player_uid>|<any_string>]`
-  * Changes who the compass was created by (currently only matters for the Player Compass).
+  * Changes who the compass was created by (currently only matters for the Seraph Compass).
   * Can be a player's Name, a player's UID, or an unrelated string.
 * `/compass reset`
   * Causes the compass to act as though it had just been crafted.
