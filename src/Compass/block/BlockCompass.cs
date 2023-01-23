@@ -247,6 +247,12 @@ namespace Compass {
       SetCompassEntityPos(entityItem.Itemstack, entityItem.Pos.AsBlockPos);
     }
 
+    public override void OnHeldIdle(ItemSlot slot, EntityAgent byEntity) {
+      base.OnHeldIdle(slot, byEntity);
+      if (api.Side != EnumAppSide.Client) { return; }
+      SetHoldingEntityData(slot.Itemstack, byEntity);
+    }
+
     public virtual void SetHoldingEntityData(ItemStack compassStack, EntityAgent byEntity) {
       SetCompassEntityPos(compassStack, byEntity.Pos.AsBlockPos);
       SetCompassEntityYaw(compassStack, byEntity.BodyYaw);
