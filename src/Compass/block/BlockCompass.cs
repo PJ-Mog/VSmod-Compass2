@@ -6,6 +6,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
+using Vintagestory.Client.NoObf;
 
 namespace Compass {
   public abstract class BlockCompass : Block, IRenderableXZTracker, IContainedRenderer {
@@ -158,7 +159,7 @@ namespace Compass {
         case EnumItemRenderTarget.Gui:
         case EnumItemRenderTarget.HandFp:
           fromPos = viewingPlayer.Entity.Pos.AsBlockPos;
-          trackerOrientation = viewingPlayer.Entity.Pos.Yaw;
+          trackerOrientation = (viewingPlayer as ClientPlayer).CameraYaw;
           break;
         case EnumItemRenderTarget.HandTp:
         case EnumItemRenderTarget.HandTpOff:

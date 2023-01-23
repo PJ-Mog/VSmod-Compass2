@@ -1,6 +1,7 @@
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.Client.NoObf;
 
 namespace Compass {
   public class BlockMagneticCompass : BlockCompass {
@@ -19,7 +20,7 @@ namespace Compass {
       switch (renderTarget) {
         case EnumItemRenderTarget.Gui:
         case EnumItemRenderTarget.HandFp:
-          trackerOrientation = capi.World.Player.Entity.Pos.Yaw;
+          trackerOrientation = (capi.World.Player as ClientPlayer).CameraYaw;
           break;
         case EnumItemRenderTarget.HandTp:
         case EnumItemRenderTarget.HandTpOff:
