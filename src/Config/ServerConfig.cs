@@ -10,12 +10,12 @@ namespace Compass.ConfigSystem {
     public bool EnableRelativeRecipe = true;
     public string OriginCompassGearsDesc = $"Number of Temporal Gears required to craft the Origin Compass. Min: 1, Max: 8";
     public int OriginCompassGears = 2;
-    private int OriginCompassGearsMin = 1;
-    private int OriginCompassGearsMax = 8;
+    internal int OriginCompassGearsMin = 1;
+    internal int OriginCompassGearsMax = 8;
     public string RelativeCompassGearsDesc = "Number of Temporal Gears required to craft the Relative Compass. Min: 1, Max: 8";
     public int RelativeCompassGears = 2;
-    private int RelativeCompassGearsMin = 1;
-    private int RelativeCompassGearsMax = 8;
+    internal int RelativeCompassGearsMin = 1;
+    internal int RelativeCompassGearsMax = 8;
     public string AllowCompassesInOffhandDesc = "Allow a player to place a compass in their offhand slot.";
     public bool AllowCompassesInOffhand = true;
   }
