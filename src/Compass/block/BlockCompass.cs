@@ -15,7 +15,7 @@ namespace Compass {
     protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
     protected static readonly string TEMP_ATTR_BYTES_ENTITY_POS = "compass-entity-pos";
     protected static readonly string TEMP_ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
-    protected static readonly AssetLocation DEFAULT_NEEDLE_SHAPE_LOC = new AssetLocation("compass:shapes/block/compass/needle.json");
+    protected static readonly AssetLocation DEFAULT_NEEDLE_SHAPE_LOC = new AssetLocation(CompassMod.Domain, "shapes/block/compass/needle.json");
     public virtual XZTrackerProps Props { get; protected set; }
     public virtual Shape NeedleShape { get; protected set; }
     public virtual Shape ShellShape { get; protected set; }
@@ -39,7 +39,7 @@ namespace Compass {
 
       if (Props.NeedleShapeLocation == null) {
         Props.NeedleShapeLocation = DEFAULT_NEEDLE_SHAPE_LOC;
-        capi.Logger.Warning("[CompassMod] Collectible {0} has no defined needle shape (JSON Path: attributes/XZTrackerProps/needleShapeLocation). Using {1}.", Code, Props.NeedleShapeLocation);
+        capi.ModLogger().Warning("Collectible {0} has no defined needle shape (JSON Path: attributes/XZTrackerProps/needleShapeLocation). Using {1}.", Code, Props.NeedleShapeLocation);
       }
       Props.NeedleShapeLocation = Props.NeedleShapeLocation.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json");
       NeedleShape = GetShape(capi, Props.NeedleShapeLocation);
@@ -137,7 +137,7 @@ namespace Compass {
     protected Shape GetShape(ICoreClientAPI capi, AssetLocation assetLocation) {
       var shape = Vintagestory.API.Common.Shape.TryGet(capi, assetLocation.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json"));
       if (shape == null) {
-        capi.Logger.Error("[CompassMod] {0} failed to find shape {1}", Code, assetLocation);
+        capi.ModLogger().Error("{0} failed to find shape {1}", Code, assetLocation);
       }
       return shape;
     }

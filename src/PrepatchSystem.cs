@@ -50,26 +50,26 @@ namespace Compass.Prepatch {
       int applied = 0;
       int notFound = 0;
       int errorCount = 0;
-      var fakeSource = new AssetLocation("compass", "Compass2-Config-Prepatcher");
+      var fakeSource = new AssetLocation(CompassMod.Domain, CompassMod.ModId + "-Prepatcher");
       for (int i = 0; i < patches.Count; i++) {
         ApplyPatch(api, i, fakeSource, patches[i], ref applied, ref notFound, ref errorCount);
       }
     }
 
     protected JsonPatch GetMagneticRecipeEnabledPatch(bool isEnabled) {
-      return GetEnabledPatch(new AssetLocation("compass", MagneticRecipePath), isEnabled);
+      return GetEnabledPatch(new AssetLocation(CompassMod.Domain, MagneticRecipePath), isEnabled);
     }
 
     protected JsonPatch GetScrapRecipeEnabledPatch(bool isEnabled) {
-      return GetEnabledPatch(new AssetLocation("compass", ScrapRecipePath), isEnabled);
+      return GetEnabledPatch(new AssetLocation(CompassMod.Domain, ScrapRecipePath), isEnabled);
     }
 
     protected JsonPatch GetOriginRecipeEnabledPatch(bool isEnabled) {
-      return GetEnabledPatch(new AssetLocation("compass", OriginRecipePath), isEnabled);
+      return GetEnabledPatch(new AssetLocation(CompassMod.Domain, OriginRecipePath), isEnabled);
     }
 
     protected JsonPatch GetRelativeRecipeEnabledPatch(bool isEnabled) {
-      return GetEnabledPatch(new AssetLocation("compass", RelativeRecipePath), isEnabled);
+      return GetEnabledPatch(new AssetLocation(CompassMod.Domain, RelativeRecipePath), isEnabled);
     }
 
     protected JsonPatch GetEnabledPatch(AssetLocation assetToPatch, bool isEnabled) {
@@ -82,11 +82,11 @@ namespace Compass.Prepatch {
     }
 
     protected JsonPatch GetOriginGearQuantityPatch(int quantityGears) {
-      return GetGearsPatch(new AssetLocation("compass", OriginRecipePath), quantityGears);
+      return GetGearsPatch(new AssetLocation(CompassMod.Domain, OriginRecipePath), quantityGears);
     }
 
     protected JsonPatch GetRelativeGearQuantityPatch(int quantityGears) {
-      return GetGearsPatch(new AssetLocation("compass", RelativeRecipePath), quantityGears);
+      return GetGearsPatch(new AssetLocation(CompassMod.Domain, RelativeRecipePath), quantityGears);
     }
 
     protected JsonPatch GetGearsPatch(AssetLocation assetToPatch, int quantityGears) {
@@ -100,7 +100,7 @@ namespace Compass.Prepatch {
     }
 
     protected JsonPatch GetCompassOffhandPatch(ICoreAPI api, bool isEnabled) {
-      var compassAssetLocation = new AssetLocation("compass", "blocktypes/compass.json");
+      var compassAssetLocation = new AssetLocation(CompassMod.Domain, "blocktypes/compass.json");
       var compassAsset = api.Assets.TryGet(compassAssetLocation);
       var storageFlags = compassAsset.ToObject<JsonAsset>().StorageFlags;
 
@@ -126,7 +126,7 @@ namespace Compass.Prepatch {
       if (targetSide != EnumAppSide.Universal && jsonPatch.Side != api.Side) return;
 
       if (jsonPatch.File == null) {
-        api.World.Logger.Error("Patch {0} in {1} failed because it is missing the target file property", patchIndex, patchSourcefile);
+        api.ModLogger().Error("Patch {0} in {1} failed because it is missing the target file property", patchIndex, patchSourcefile);
         return;
       }
 
@@ -151,15 +151,15 @@ namespace Compass.Prepatch {
       var asset = api.Assets.TryGet(loc);
       if (asset == null) {
         if (jsonPatch.File.Category == null) {
-          api.World.Logger.VerboseDebug("Patch {0} in {1}: File {2} not found. Wrong asset category", patchIndex, patchSourcefile, loc);
+          api.ModLogger().VerboseDebug("Patch {0} in {1}: File {2} not found. Wrong asset category", patchIndex, patchSourcefile, loc);
         }
         else {
           EnumAppSide catSide = jsonPatch.File.Category.SideType;
           if (catSide != EnumAppSide.Universal && api.Side != catSide) {
-            api.World.Logger.VerboseDebug("Patch {0} in {1}: File {2} not found. Hint: This asset is usually only loaded {3} side", patchIndex, patchSourcefile, loc, catSide);
+            api.ModLogger().VerboseDebug("Patch {0} in {1}: File {2} not found. Hint: This asset is usually only loaded {3} side", patchIndex, patchSourcefile, loc, catSide);
           }
           else {
-            api.World.Logger.VerboseDebug("Patch {0} in {1}: File {2} not found", patchIndex, patchSourcefile, loc);
+            api.ModLogger().VerboseDebug("Patch {0} in {1}: File {2} not found", patchIndex, patchSourcefile, loc);
           }
         }
 
@@ -172,7 +172,7 @@ namespace Compass.Prepatch {
       switch (jsonPatch.Op) {
         case EnumJsonPatchOp.Add:
           if (jsonPatch.Value == null) {
-            api.World.Logger.Error("Patch {0} in {1} failed probably because it is an add operation and the value property is not set or misspelled", patchIndex, patchSourcefile);
+            api.ModLogger().Error("Patch {0} in {1} failed probably because it is an add operation and the value property is not set or misspelled", patchIndex, patchSourcefile);
             errorCount++;
             return;
           }
@@ -180,7 +180,7 @@ namespace Compass.Prepatch {
           break;
         case EnumJsonPatchOp.AddEach:
           if (jsonPatch.Value == null) {
-            api.World.Logger.Error("Patch {0} in {1} failed probably because it is an add each operation and the value property is not set or misspelled", patchIndex, patchSourcefile);
+            api.ModLogger().Error("Patch {0} in {1} failed probably because it is an add each operation and the value property is not set or misspelled", patchIndex, patchSourcefile);
             errorCount++;
             return;
           }
@@ -191,7 +191,7 @@ namespace Compass.Prepatch {
           break;
         case EnumJsonPatchOp.Replace:
           if (jsonPatch.Value == null) {
-            api.World.Logger.Error("Patch {0} in {1} failed probably because it is a replace operation and the value property is not set or misspelled", patchIndex, patchSourcefile);
+            api.ModLogger().Error("Patch {0} in {1} failed probably because it is a replace operation and the value property is not set or misspelled", patchIndex, patchSourcefile);
             errorCount++;
             return;
           }
@@ -211,7 +211,7 @@ namespace Compass.Prepatch {
         token = JToken.Parse(asset.ToText());
       }
       catch (Exception e) {
-        api.World.Logger.Error("Patch {0} (target: {3}) in {1} failed probably because the syntax of the value is broken: {2}", patchIndex, patchSourcefile, e, loc);
+        api.ModLogger().Error("Patch {0} (target: {3}) in {1} failed probably because the syntax of the value is broken: {2}", patchIndex, patchSourcefile, e, loc);
         errorCount++;
         return;
       }
@@ -220,12 +220,12 @@ namespace Compass.Prepatch {
         patchdoc.ApplyTo(token);
       }
       catch (PathNotFoundException p) {
-        api.World.Logger.Error("Patch {0} (target: {4}) in {1} failed because supplied path {2} is invalid: {3}", patchIndex, patchSourcefile, jsonPatch.Path, p.Message, loc);
+        api.ModLogger().Error("Patch {0} (target: {4}) in {1} failed because supplied path {2} is invalid: {3}", patchIndex, patchSourcefile, jsonPatch.Path, p.Message, loc);
         errorCount++;
         return;
       }
       catch (Exception e) {
-        api.World.Logger.Error("Patch {0} (target: {3}) in {1} failed, following Exception was thrown: {2}", patchIndex, patchSourcefile, e.Message, loc);
+        api.ModLogger().Error("Patch {0} (target: {3}) in {1} failed, following Exception was thrown: {2}", patchIndex, patchSourcefile, e.Message, loc);
         errorCount++;
         return;
       }

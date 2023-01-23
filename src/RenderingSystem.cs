@@ -5,8 +5,6 @@ using Vintagestory.API.Common;
 
 namespace Compass.Rendering {
   public class CompassRenderingSystem : ModSystem {
-    public static readonly string HarmonyId = "contained-stack-renderer-mod";
-
     private ICoreAPI api;
 
     public override bool ShouldLoad(EnumAppSide forSide) {
@@ -29,11 +27,11 @@ namespace Compass.Rendering {
     }
 
     private void ApplyHarmonyPatches() {
-      new Harmony(HarmonyId).PatchAll(Assembly.GetExecutingAssembly());
+      new Harmony(CompassMod.HarmonyId).PatchAll(Assembly.GetExecutingAssembly());
     }
 
     public void RemoveHarmonyPatches() {
-      new Harmony(HarmonyId).UnpatchAll(HarmonyId);
+      new Harmony(CompassMod.HarmonyId).UnpatchAll(CompassMod.HarmonyId);
     }
 
     protected void ThirdPersonCompassHandlingTick(float dt) {

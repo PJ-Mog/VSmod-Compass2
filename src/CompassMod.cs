@@ -3,7 +3,9 @@ using Vintagestory.API.Common;
 
 namespace Compass {
   public class CompassMod : ModSystem {
-    public static readonly string HarmonyId = "compass2.japanhasrice";
+    public static readonly string ModId = "compass2";
+    public static readonly string Domain = "compass";
+    public static readonly string HarmonyId = "japanhasrice." + ModId;
     private ICoreClientAPI Capi;
 
     public override void Start(ICoreAPI api) {
