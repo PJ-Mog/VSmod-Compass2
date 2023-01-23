@@ -5,7 +5,7 @@ using Vintagestory.API.Common;
 
 namespace Compass.Rendering {
   public class CompassRenderingSystem : ModSystem {
-    private ICoreAPI api;
+    private ICoreAPI Api;
 
     public override bool ShouldLoad(EnumAppSide forSide) {
       return forSide == EnumAppSide.Client;
@@ -13,6 +13,7 @@ namespace Compass.Rendering {
 
     public override void Start(ICoreAPI api) {
       base.Start(api);
+      Api = api;
 
       ApplyHarmonyPatches();
 
@@ -35,8 +36,8 @@ namespace Compass.Rendering {
     }
 
     protected void ThirdPersonCompassHandlingTick(float dt) {
-      var onlinePlayers = api.World.AllOnlinePlayers;
-      if (onlinePlayers.Length < 2) { return; }
+      var onlinePlayers = Api.World.AllOnlinePlayers;
+      if ((onlinePlayers?.Length) < 2) { return; }
 
       foreach (var player in onlinePlayers) {
         var playerEntity = player.Entity;
