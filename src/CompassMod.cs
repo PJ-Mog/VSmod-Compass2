@@ -1,4 +1,3 @@
-using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
 namespace Compass {
@@ -6,7 +5,6 @@ namespace Compass {
     public static readonly string ModId = "compass2";
     public static readonly string Domain = "compass";
     public static readonly string HarmonyId = "japanhasrice." + ModId;
-    private ICoreClientAPI Capi;
 
     public override void Start(ICoreAPI api) {
       base.Start(api);
