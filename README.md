@@ -50,24 +50,41 @@
 ### Configuration
 The below configuration options are applied before Vintage Story's JSON patching system. Changes made through JSON patching take priority over the changes made in the provided configuration file and should be safe from conflicts.
 
-<details><summary>Sample configuration file with default settings</summary>
+If a config file is not found in the ModConfig folder, it will be created with default values when the world is loaded.
+
+If an individual setting is deleted from a config file, it will be added back in with its default value next time a world is loaded.
+
+<details><summary>Server configuration with defaults</summary>
 
 ```json
 {
-  "EnableMagneticRecipeDesc": "Enable crafting a Magnetic Compass with a Magnetite Nugget.",
+  "EnableMagneticRecipeDesc": "Allow crafting a Magnetic Compass with a Magnetite Nugget. [Default: true]",
   "EnableMagneticRecipe": true,
-  "EnableScrapRecipeDesc": "Enable additional recipe for the Magnetic Compass. Uses Metal Scraps instead of Magnetite.",
+  "EnableScrapRecipeDesc": "Allow crafting a Magnetic Compass with a Metal Scraps. [Default: true]",
   "EnableScrapRecipe": true,
-  "EnableOriginRecipeDesc": "Allow the Origin Compass to be crafted. <REQUIRED TO CRAFT THE RELATIVE COMPASS>",
+  "EnableOriginRecipeDesc": "Allow crafting an Origin Compass. [Default: true]",
   "EnableOriginRecipe": true,
-  "EnableRelativeRecipeDesc": "Allow the Relative Compass to be crafted.",
+  "EnableRelativeRecipeDesc": "Allow crafting a Relative Compass. [Default: true]",
   "EnableRelativeRecipe": true,
-  "OriginCompassGearsDesc": "Number of Temporal Gears required to craft the Origin Compass. Min: 1, Max: 8",
-  "OriginCompassGears": 3,
-  "RelativeCompassGearsDesc": "Number of Temporal Gears required to craft the Relative Compass. Min: 1, Max: 8",
-  "RelativeCompassGears": 4,
-  "AllowCompassesInOffhandDesc": "Allow a player to place a compass in their offhand slot.",
+  "OriginCompassGearsDesc": "Number of Temporal Gears required to craft an Origin Compass. [Default: 2, Min: 1, Max: 8]",
+  "OriginCompassGears": 2,
+  "RelativeCompassGearsDesc": "Number of Temporal Gears required to craft a Relative Compass. [Default: 2, Min: 1, Max: 8]",
+  "RelativeCompassGears": 2,
+  "AllowCompassesInOffhandDesc": "Allow compasses to be placed in the offhand slot. [Default: true]",
   "AllowCompassesInOffhand": true
+}
+```
+
+</details>
+
+<details><summary>Client configuration with defaults</summary>
+
+```json
+{
+  "MaximumPreGeneratedMeshesDesc": "Maximum number of meshes to use for animating needle movement of held compasses. [Default: 120, Min: 8]",
+  "MaximumPreGeneratedMeshes": 120,
+  "ThirdPersonRenderUpdateTickIntervalMsDesc": "Milliseconds between updates to compasses rendered in another player's hand. Only updates on game ticks. [Default: 1, Min: 1]",
+  "ThirdPersonRenderUpdateTickIntervalMs": 1
 }
 ```
 

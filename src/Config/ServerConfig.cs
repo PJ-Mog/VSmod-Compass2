@@ -1,22 +1,22 @@
 namespace Compass.ConfigSystem {
   public class ServerConfig : Config {
-    public string EnableMagneticRecipeDesc = "Enable crafting a Magnetic Compass with a Magnetite Nugget.";
+    public string EnableMagneticRecipeDesc = "Allow crafting a Magnetic Compass with a Magnetite Nugget. [Default: true]";
     public bool EnableMagneticRecipe = true;
-    public string EnableScrapRecipeDesc = "Enable additional recipe for the Magnetic Compass. Uses Metal Scraps instead of Magnetite.";
+    public string EnableScrapRecipeDesc = "Allow crafting a Magnetic Compass with a Metal Scraps. [Default: true]";
     public bool EnableScrapRecipe = true;
-    public string EnableOriginRecipeDesc = "Allow the Origin Compass to be crafted. <REQUIRED TO CRAFT THE RELATIVE COMPASS>";
+    public string EnableOriginRecipeDesc = "Allow crafting an Origin Compass. [Default: true]";
     public bool EnableOriginRecipe = true;
-    public string EnableRelativeRecipeDesc = "Allow the Relative Compass to be crafted.";
+    public string EnableRelativeRecipeDesc = "Allow crafting a Relative Compass. [Default: true]";
     public bool EnableRelativeRecipe = true;
-    public string OriginCompassGearsDesc = $"Number of Temporal Gears required to craft the Origin Compass. Min: 1, Max: 8";
+    public string OriginCompassGearsDesc = "Number of Temporal Gears required to craft an Origin Compass. [Default: 2, Min: 1, Max: 8]";
     public int OriginCompassGears = 2;
     internal int OriginCompassGearsMin = 1;
     internal int OriginCompassGearsMax = 8;
-    public string RelativeCompassGearsDesc = "Number of Temporal Gears required to craft the Relative Compass. Min: 1, Max: 8";
+    public string RelativeCompassGearsDesc = "Number of Temporal Gears required to craft a Relative Compass. [Default: 2, Min: 1, Max: 8]";
     public int RelativeCompassGears = 2;
     internal int RelativeCompassGearsMin = 1;
     internal int RelativeCompassGearsMax = 8;
-    public string AllowCompassesInOffhandDesc = "Allow a player to place a compass in their offhand slot.";
+    public string AllowCompassesInOffhandDesc = "Allow compasses to be placed in the offhand slot. [Default: true]";
     public bool AllowCompassesInOffhand = true;
   }
 }
