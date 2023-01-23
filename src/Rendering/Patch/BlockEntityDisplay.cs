@@ -4,7 +4,7 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
-namespace ContainedStackRenderer.Patch {
+namespace Compass.Rendering.Patch {
   [HarmonyPatch(typeof(BlockEntityDisplay))]
   public static class BlockEntityDisplayPatch {
     //  Cannot patch BlockEntityDisplay, BlockEntityGroundStorage, etc.

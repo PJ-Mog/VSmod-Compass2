@@ -2,7 +2,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
-namespace ContainedStackRenderer.Patch {
+namespace Compass.Rendering.Patch {
   public static class BlockEntityShelfExtension {
     public static void UpdateRenderer(this BlockEntityShelf blockEntityShelf, int index) {
       var renderers = blockEntityShelf.GetRenderers();
