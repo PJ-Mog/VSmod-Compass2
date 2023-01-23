@@ -25,27 +25,28 @@
 * Compasses can be placed on shelves.
 * Compasses can be placed in display cases.
 
-### **\*NEW\*** Admin Commands
-* Requires "commandplayer" permissions.
-* Only function on the compass held in the active hotbar slot
-* `/compass show`
-  * Displays the compass's internal data: creator and target position.
-* `/compass set target <X> <Y> <Z>`
-  * Changes the compass's target position to the provided position.
-  * Supports flexible pos inputs, i.e. `~10 ~0 ~-15` denotes a position relative to the player, `=512000 =120 =512000` denotes an absolute position, and `0 120 0` denotes a map coordinate.
-* `/compass set craftedBy [<player_name>|<player_uid>|<any_string>]`
-  * Changes who the compass was created by (currently only matters for the Seraph Compass).
-  * Can be a player's Name, a player's UID, or an unrelated string.
-* `/compass reset`
-  * Causes the compass to act as though it had just been crafted.
-* `/compass remove target`
-  * Deletes the compass's saved target position.
-* `/compass remove craftedBy`
-  * Deletes the compass's saved creator.
-  * Currently, this will cause the compass to act as though it had just been crafted
-* `/compass for [<player_name>|<player_uid>] [show|set|reset]`
-  * Performs the given command on behalf of the specified player, as if that player had run the command themselves.
-  * Example: ServerAdmin runs the command `/compass for OtherPlayer set target 10000 120 10000`. If OtherPlayer is holding a compass in their active hotbar slot, its target will be set to 10000, 120, 10000.
+### **\*NEW\*** Commands
+* `/compass`
+  * Requires "commandplayer" permissions.
+  * Only function on the compass held in the active hotbar slot
+  * `/compass show`
+    * Displays the compass's internal data: creator and target position.
+  * `/compass set target <X> <Y> <Z>`
+    * Changes the compass's target position to the provided position.
+    * Supports flexible pos inputs, i.e. `~10 ~0 ~-15` denotes a position relative to the player, `=512000 =120 =512000` denotes an absolute position, and `0 120 0` denotes a map coordinate.
+  * `/compass set craftedBy [<player_name>|<player_uid>|<any_string>]`
+    * Changes who the compass was created by (currently only matters for the Seraph Compass).
+    * Can be a player's Name, a player's UID, or an unrelated string.
+  * `/compass reset`
+    * Causes the compass to act as though it had just been crafted.
+  * `/compass remove target`
+    * Deletes the compass's saved target position.
+  * `/compass remove craftedBy`
+    * Deletes the compass's saved creator.
+    * Currently, this will cause the compass to act as though it had just been crafted
+  * `/compass for [<player_name>|<player_uid>] [show|set|reset]`
+    * Performs the given command on behalf of the specified player, as if that player had run the command themselves.
+    * Example: ServerAdmin runs the command `/compass for OtherPlayer set target 10000 120 10000`. If OtherPlayer is holding a compass in their active hotbar slot, its target will be set to 10000, 120, 10000.
 
 ### Configuration
 The below configuration options are applied before Vintage Story's JSON patching system. Changes made through JSON patching take priority over the changes made in the provided configuration file and should be safe from conflicts.
