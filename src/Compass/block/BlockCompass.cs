@@ -45,7 +45,7 @@ namespace Compass {
       Props.NeedleShapeLocation = Props.NeedleShapeLocation.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json");
       NeedleShape = GetShape(capi, Props.NeedleShapeLocation);
 
-      ShellShape = GetShape(capi, Shape.Base);
+      ShellShape = GetShape(capi, Shape.Base.Clone());
 
       GetDistance = Props.DistanceFormula;
 
