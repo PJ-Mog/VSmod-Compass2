@@ -3,9 +3,9 @@
   "width": 1,
   "height": 3,
   "ingredients": {
-    "S": {"type": "item", "code": "game:nugget-magnetite" },
-    "K": {"type": "item", "code": "game:stick" },
-    "B": {"type": "block", "code": "game:bowl-fired" }
+    "S": { "type": "item", "code": "game:nugget-magnetite" },
+    "K": { "type": "item", "code": "game:stick" },
+    "B": { "type": "block", "code": "game:bowl-fired" }
   },
   "output": {
     "type": "block",

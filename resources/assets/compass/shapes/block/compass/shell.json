@@ -8,7 +8,7 @@
   "textureSizes": {
   },
   "textures": {
-      "bowl": "game:block/clay/ceramic-dark"
+      "shell": "game:block/clay/ceramic-dark"
   },
   "elements": [
     {

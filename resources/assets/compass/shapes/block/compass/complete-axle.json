@@ -8,6 +8,8 @@
 	"textureSizes": {
 	},
 	"textures": {
+    "shell": "game:block/clay/ceramic-dark",
+    "needle": "game:item/resource/nugget/magnetite"
 	},
 	"elements": [
 		{
@@ -103,12 +105,12 @@
 			"to": [ 8.125, 1.75, 8.125 ], 
 			"rotationOrigin": [ 8.0, 1.25, 8.0 ],
 			"faces": {
-				"north": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 1.0 ] },
-				"east": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 1.0 ] },
-				"south": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 1.0 ] },
-				"west": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 1.0 ] },
-				"up": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
-				"down": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] }
+				"north": { "texture": "#axle", "uv": [ 0.0, 0.0, 0.5, 1.0 ] },
+				"east": { "texture": "#axle", "uv": [ 0.0, 0.0, 0.5, 1.0 ] },
+				"south": { "texture": "#axle", "uv": [ 0.0, 0.0, 0.5, 1.0 ] },
+				"west": { "texture": "#axle", "uv": [ 0.0, 0.0, 0.5, 1.0 ] },
+				"up": { "texture": "#axle", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
+				"down": { "texture": "#axle", "uv": [ 0.0, 0.0, 0.5, 0.5 ] }
 			}
 		}
 	]}
