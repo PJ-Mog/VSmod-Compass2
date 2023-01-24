@@ -40,7 +40,7 @@ namespace Compass {
 
       if (Props.NeedleShapeLocation == null) {
         Props.NeedleShapeLocation = DEFAULT_NEEDLE_SHAPE_LOC;
-        capi.ModLogger().Warning("Collectible {0} has no defined needle shape (JSON Path: attributes/XZTrackerProps/needleShapeLocation). Using {1}.", Code, Props.NeedleShapeLocation);
+        capi.Logger.ModWarning("Collectible {0} has no defined needle shape (JSON Path: attributes/XZTrackerProps/needleShapeLocation). Using {1}.", Code, Props.NeedleShapeLocation);
       }
       Props.NeedleShapeLocation = Props.NeedleShapeLocation.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json");
       NeedleShape = GetShape(capi, Props.NeedleShapeLocation);
@@ -138,7 +138,7 @@ namespace Compass {
     protected Shape GetShape(ICoreClientAPI capi, AssetLocation assetLocation) {
       var shape = Vintagestory.API.Common.Shape.TryGet(capi, assetLocation.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json"));
       if (shape == null) {
-        capi.ModLogger().Error("{0} failed to find shape {1}", Code, assetLocation);
+        capi.Logger.ModError("{0} failed to find shape {1}", Code, assetLocation);
       }
       return shape;
     }

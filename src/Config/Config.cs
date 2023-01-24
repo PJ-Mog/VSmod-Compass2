@@ -9,11 +9,11 @@ namespace Compass.ConfigSystem {
       T config = TryLoadModConfig<T>(api, filename);
 
       if (config == null) {
-        api.ModLogger().Notification("Unable to load valid config file. Generating {0} with defaults.", filename);
+        api.Logger.ModNotification("Unable to load valid config file. Generating {0} with defaults.", filename);
         config = new T();
       }
       else {
-        config.Clamp(api.ModLogger());
+        config.Clamp(api.Logger);
       }
       config.Save(api, filename);
       return config;
@@ -27,25 +27,25 @@ namespace Compass.ConfigSystem {
         config = api.LoadModConfig<T>(filename);
       }
       catch (JsonReaderException e) {
-        api.ModLogger().Error("Unable to parse configuration file, {0}. Correct syntax errors and retry, or delete.", filename);
+        api.Logger.ModError("Unable to parse configuration file, {0}. Correct syntax errors and retry, or delete.", filename);
         throw e;
       }
       catch (Exception e) {
-        api.ModLogger().Error("I don't know what happened. Delete {0} in the mod config folder and try again.", filename);
+        api.Logger.ModError("I don't know what happened. Delete {0} in the mod config folder and try again.", filename);
         throw e;
       }
 
       return config;
     }
 
-    public void Clamp(Logger logger) {
+    public void Clamp(ILogger logger) {
       var privateFields = GetType().GetTypeInfo().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
       foreach (var restrictingField in privateFields) {
         if (restrictingField.Name.Length < 4) { continue; }
         var baseFieldName = restrictingField.Name.Substring(0, restrictingField.Name.Length - 3);
         var baseField = GetType().GetTypeInfo().GetField(baseFieldName, BindingFlags.Public | BindingFlags.Instance);
         if (baseField == null) {
-          logger.Debug("Could not find public field \"{0}\" to clamp with \"{1}\".", baseFieldName, restrictingField.Name);
+          logger.ModDebug("Could not find public field \"{0}\" to clamp with \"{1}\".", baseFieldName, restrictingField.Name);
           continue;
         }
         var lastThree = restrictingField.Name.Substring(restrictingField.Name.Length - 3);
@@ -58,17 +58,17 @@ namespace Compass.ConfigSystem {
               var oldValue = baseField.GetValue(this);
               var newValue = typeof(Math).GetTypeInfo().GetMethod("Max", types)?.Invoke(null, new object[] { min, oldValue });
               if (newValue == null) {
-                logger.Error("Error while applying the minimum value '{0}' ({1}) for '{2}' ({3})", min, min.GetType(), baseField.Name, baseField.FieldType);
+                logger.ModError("Error while applying the minimum value '{0}' ({1}) for '{2}' ({3})", min, min.GetType(), baseField.Name, baseField.FieldType);
                 continue;
               }
               baseField.SetValue(this, newValue);
               if (newValue.ToString() != oldValue.ToString()) {
-                logger.Warning("Value for \"{0}\" was out of bounds ({1}). Using '{2}'.", baseField.Name, oldValue, newValue);
+                logger.ModWarning("Value for \"{0}\" was out of bounds ({1}). Using '{2}'.", baseField.Name, oldValue, newValue);
               }
             }
             catch (System.Exception e) {
-              logger.Error("Error while applying the minimum value '{0}' ({1}) for '{2}' ({3})", min, min.GetType(), baseField.Name, baseField.FieldType);
-              logger.Error("{0}", e);
+              logger.ModError("Error while applying the minimum value '{0}' ({1}) for '{2}' ({3})", min, min.GetType(), baseField.Name, baseField.FieldType);
+              logger.ModError("{0}", e);
             }
             break;
           case "Max":
@@ -79,17 +79,17 @@ namespace Compass.ConfigSystem {
               var oldValue = baseField.GetValue(this);
               var newValue = typeof(Math).GetTypeInfo().GetMethod("Min", types)?.Invoke(null, new object[] { max, oldValue });
               if (newValue == null) {
-                logger.Error("Error while applying the maximum value '{0}' ({1}) for '{2}' ({3})", max, max.GetType(), baseField.Name, baseField.FieldType);
+                logger.ModError("Error while applying the maximum value '{0}' ({1}) for '{2}' ({3})", max, max.GetType(), baseField.Name, baseField.FieldType);
                 continue;
               }
               baseField.SetValue(this, newValue);
               if (newValue.ToString() != oldValue.ToString()) {
-                logger.Warning("Value for \"{0}\" was out of bounds ({1}). Using '{2}'.", baseField.Name, oldValue, newValue);
+                logger.ModWarning("Value for \"{0}\" was out of bounds ({1}). Using '{2}'.", baseField.Name, oldValue, newValue);
               }
             }
             catch (System.Exception e) {
-              logger.Error("Error while applying the maximum value '{0}' ({1}) for '{2}' ({3})", max, max.GetType(), baseField.Name, baseField.FieldType);
-              logger.Error("{0}", e);
+              logger.ModError("Error while applying the maximum value '{0}' ({1}) for '{2}' ({3})", max, max.GetType(), baseField.Name, baseField.FieldType);
+              logger.ModError("{0}", e);
             }
             break;
           case "Dft":
