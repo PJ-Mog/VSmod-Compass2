@@ -18,12 +18,12 @@
 			"rotationOrigin": [ 8.0, 1.25, 8.0 ],
 			"rotationY": 90.0,
 			"faces": {
-				"north": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
-				"east": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
-				"south": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
-				"west": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
-				"up": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
-				"down": { "texture": "#null", "uv": [ 0.0, 0.0, 0.5, 0.5 ] }
+				"north": { "texture": "#clasp", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
+				"east": { "texture": "#clasp", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
+				"south": { "texture": "#clasp", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
+				"west": { "texture": "#clasp", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
+				"up": { "texture": "#clasp", "uv": [ 0.0, 0.0, 0.5, 0.5 ] },
+				"down": { "texture": "#clasp", "uv": [ 0.0, 0.0, 0.5, 0.5 ] }
 			},
 			"children": [
 				{

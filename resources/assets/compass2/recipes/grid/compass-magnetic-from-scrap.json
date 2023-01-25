@@ -9,7 +9,7 @@
   },
   "output": {
     "type": "block",
-    "code": "compass:compass-magnetic"
+    "code": "compass2:compass-magnetic"
   },
   "enabled": true
 }

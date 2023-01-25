@@ -29,13 +29,13 @@
     }
   ],
   "storageFlags": 257,
-  "shape": { "base": "compass:block/compass/shell" },
-  "shapeInventory": { "base": "compass:block/compass/complete" },
+  "shape": { "base": "compass2:block/compass/shell" },
+  "shapeInventory": { "base": "compass2:block/compass/complete" },
   "attributes": {
     "displaycaseable": true,
     "shelvable": true,
     "XZTrackerProps": {
-      "needleShapeLocation": "compass:block/compass/needle",
+      "needleShapeLocation": "compass2:block/compass/needle",
       "needleGlowLevel": 0,
       "needleGlowLevelByType": {
         "*-origin": 25,
