@@ -55,10 +55,7 @@ namespace Compass {
 
       GetDistance = Props.DistanceFormula;
 
-      var clientSettings = capi.ModLoader.GetModSystem<CompassConfigClient>().Settings;
-      var clientMaximumMeshes = clientSettings.MaximumPreGeneratedMeshes;
-      var assetMaximumMeshes = GameMath.Max(Props.MaximumMeshes, clientSettings.MaximumPreGeneratedMeshesMin);
-      PreGeneratedMeshCount = GameMath.Min(assetMaximumMeshes, clientMaximumMeshes);
+      PreGeneratedMeshCount = capi.ModLoader.GetModSystem<CompassConfigClient>().Settings.MaximumPreGeneratedMeshes;
     }
 
     public override void OnUnloaded(ICoreAPI api) {

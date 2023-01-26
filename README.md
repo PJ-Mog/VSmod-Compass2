@@ -117,7 +117,6 @@ NOTE: Compasses *MUST* be blocks, not items, due to differences in how Vintage S
         "*-origin": 25,
         "*-player": 50
       },
-      "maximumMeshes": 120,
       "distanceMethod": "manhattan",
       "minTrackingDistance": 5
     }
@@ -148,11 +147,6 @@ Similar to `shape` and `shapeInventory`, this must be the location of the shape/
 \[0-255\] default: 0
 
 Because the needle model is rendered separately, it's glow must be set separately from the shell.
-
-#### **maximumMeshes**: `/attributes/XZTrackerProps/maximumMeshes`
-default: 120
-
-For inventory, first/third person, and dropped item rendering, a collection of meshes are pre-generated. To 'animate' the needle movement, the closest-matching pre-generated mesh is swapped in each frame. The value of this property determines how many meshes are generated.
 
 #### **distanceMethod**: `/attributes/XZTrackerProps/distanceMethod`
 \["manhattan"|"distancesquared"\] default: "manhattan"

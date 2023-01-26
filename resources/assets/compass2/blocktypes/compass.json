@@ -46,7 +46,6 @@
         "*-origin": 10,
         "*-player": 20
       },
-      "maximumMeshes": 120,
       "distancemethod": "manhattan",
       "minTrackingDistance": 5
     }
