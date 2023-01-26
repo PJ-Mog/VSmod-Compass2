@@ -12,10 +12,16 @@ namespace Compass {
   public abstract class BlockCompass : Block, IRenderableXZTracker, IContainedRenderer {
     protected virtual string MeshRefsCacheKey { get; set; }
     protected int PreGeneratedMeshCount = 8;
-    protected static readonly string ATTR_STR_CRAFTED_BY_PLAYER_UID = "compass-crafted-by-player-uid";
-    protected static readonly string ATTR_BYTES_TARGET_POS = "compass-target-pos";
-    protected static readonly string TEMP_ATTR_BYTES_ENTITY_POS = "compass-entity-pos";
-    protected static readonly string TEMP_ATTR_FLOAT_ENTITY_YAW = "compass-entity-yaw";
+    protected static readonly string AttrBool_IsCrafted = "compass-is-crafted";
+    protected static readonly string AttrStr_CraftedByPlayerUid = "compass-crafted-by-player-uid";
+    protected static readonly string AttrStr_AttunedToPlayerUid = "compass-attuned-to-player-uid";
+    protected static readonly string AttrInt_TargetPosX = "compass-target-pos-x";
+    protected static readonly string AttrInt_TargetPosY = "compass-target-pos-y";
+    protected static readonly string AttrInt_TargetPosZ = "compass-target-pos-z";
+    protected static readonly string AttrTempInt_EntityPosX = "compass-entity-pos-x";
+    protected static readonly string AttrTempInt_EntityPosY = "compass-entity-pos-y";
+    protected static readonly string AttrTempInt_EntityPosZ = "compass-entity-pos-z";
+    protected static readonly string AttrTempFloat_EntityYaw = "compass-entity-yaw";
     protected static readonly AssetLocation DEFAULT_NEEDLE_SHAPE_LOC = new AssetLocation(CompassMod.Domain, "shapes/block/compass/needle.json");
     public virtual XZTrackerProps Props { get; protected set; }
     public virtual Shape NeedleShape { get; protected set; }
@@ -264,55 +270,67 @@ namespace Compass {
 
     protected virtual void SetCraftedByPlayerUID(ItemStack compassStack, string craftedByPlayerUID) {
       if (craftedByPlayerUID == null) {
-        compassStack?.Attributes.RemoveAttribute(ATTR_STR_CRAFTED_BY_PLAYER_UID);
+        compassStack?.Attributes.RemoveAttribute(AttrBool_IsCrafted);
+        compassStack?.Attributes.RemoveAttribute(AttrStr_CraftedByPlayerUid);
       }
       else {
-        compassStack?.Attributes.SetString(ATTR_STR_CRAFTED_BY_PLAYER_UID, craftedByPlayerUID);
+        compassStack?.Attributes.SetBool(AttrBool_IsCrafted, true);
+        compassStack?.Attributes.SetString(AttrStr_CraftedByPlayerUid, craftedByPlayerUID);
       }
     }
 
     protected virtual string GetCraftedByPlayerUID(ItemStack compassStack) {
-      return compassStack?.Attributes.GetString(ATTR_STR_CRAFTED_BY_PLAYER_UID);
+      return compassStack?.Attributes.GetString(AttrStr_CraftedByPlayerUid);
     }
 
     public virtual bool IsCrafted(ItemStack compassStack) {
-      return compassStack?.Attributes.HasAttribute(ATTR_STR_CRAFTED_BY_PLAYER_UID) ?? false;
+      return compassStack?.Attributes.GetBool(AttrBool_IsCrafted) ?? false;
     }
 
     protected virtual void SetTargetPos(ItemStack compassStack, BlockPos targetPos) {
       if (targetPos == null) {
-        compassStack?.Attributes.RemoveAttribute(ATTR_BYTES_TARGET_POS);
+        compassStack?.Attributes.RemoveAttribute(AttrInt_TargetPosX);
+        compassStack?.Attributes.RemoveAttribute(AttrInt_TargetPosY);
+        compassStack?.Attributes.RemoveAttribute(AttrInt_TargetPosZ);
       }
       else {
-        compassStack?.Attributes.SetBytes(ATTR_BYTES_TARGET_POS, SerializerUtil.Serialize(targetPos));
+        compassStack?.Attributes.SetInt(AttrInt_TargetPosX, targetPos.X);
+        compassStack?.Attributes.SetInt(AttrInt_TargetPosY, targetPos.Y);
+        compassStack?.Attributes.SetInt(AttrInt_TargetPosZ, targetPos.Z);
       }
     }
 
     //  The position of the compass's target.
     //  Null if the compass has not had its target set, the target cannot be found, or the target is not a discrete position.
     protected virtual BlockPos GetTargetPos(ItemStack compassStack) {
-      var bytes = compassStack?.Attributes.GetBytes(ATTR_BYTES_TARGET_POS);
-      if (bytes == null) { return null; }
-      return SerializerUtil.Deserialize<BlockPos>(bytes);
+      var x = compassStack?.Attributes.TryGetInt(AttrInt_TargetPosX);
+      var y = compassStack?.Attributes.TryGetInt(AttrInt_TargetPosY);
+      var z = compassStack?.Attributes.TryGetInt(AttrInt_TargetPosZ);
+      if (x == null || y == null || z == null) { return null; }
+      return new BlockPos((int)x, (int)y, (int)z);
     }
 
     protected virtual void SetCompassEntityPos(ItemStack compassStack, BlockPos entityPos) {
       if (entityPos == null) { return; }
-      compassStack?.TempAttributes.SetBytes(TEMP_ATTR_BYTES_ENTITY_POS, SerializerUtil.Serialize(entityPos));
+      compassStack?.TempAttributes.SetInt(AttrTempInt_EntityPosX, entityPos.X);
+      compassStack?.TempAttributes.SetInt(AttrTempInt_EntityPosY, entityPos.Y);
+      compassStack?.TempAttributes.SetInt(AttrTempInt_EntityPosZ, entityPos.Z);
     }
 
     protected virtual BlockPos GetCompassEntityPos(ItemStack compassStack) {
-      var bytes = compassStack?.TempAttributes.GetBytes(TEMP_ATTR_BYTES_ENTITY_POS);
-      if (bytes == null) { return null; }
-      return SerializerUtil.Deserialize<BlockPos>(bytes);
+      var x = compassStack?.TempAttributes.TryGetInt(AttrTempInt_EntityPosX);
+      var y = compassStack?.TempAttributes.TryGetInt(AttrTempInt_EntityPosY);
+      var z = compassStack?.TempAttributes.TryGetInt(AttrTempInt_EntityPosZ);
+      if (x == null || y == null || z == null) { return null; }
+      return new BlockPos((int)x, (int)y, (int)z);
     }
 
     protected virtual void SetCompassEntityYaw(ItemStack compassStack, float entityYaw) {
-      compassStack?.TempAttributes.SetFloat(TEMP_ATTR_FLOAT_ENTITY_YAW, entityYaw);
+      compassStack?.TempAttributes.SetFloat(AttrTempFloat_EntityYaw, entityYaw);
     }
 
     protected virtual float GetCompassEntityYaw(ItemStack compassStack) {
-      return compassStack?.TempAttributes.GetFloat(TEMP_ATTR_FLOAT_ENTITY_YAW) ?? 0;
+      return compassStack?.TempAttributes.GetFloat(AttrTempFloat_EntityYaw) ?? 0;
     }
 
     #endregion
