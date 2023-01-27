@@ -12,6 +12,7 @@ namespace Compass {
   public abstract class BlockCompass : Block, IRenderableXZTracker, IContainedRenderer {
     protected virtual string MeshRefsCacheKey { get; set; }
     protected int PreGeneratedMeshCount = 8;
+    protected int RendererUpdateIntervalMs = 500;
     protected static readonly string AttrBool_IsCrafted = "compass-is-crafted";
     protected static readonly string AttrStr_CraftedByPlayerUid = "compass-crafted-by-player-uid";
     protected static readonly string AttrStr_AttunedToPlayerUid = "compass-attuned-to-player-uid";
@@ -55,7 +56,11 @@ namespace Compass {
 
       GetDistance = Props.DistanceFormula;
 
-      PreGeneratedMeshCount = capi.ModLoader.GetModSystem<CompassConfigClient>().Settings.MaximumPreGeneratedMeshes;
+      var clientSettings = capi.ModLoader.GetModSystem<CompassConfigClient>().Settings;
+
+      PreGeneratedMeshCount = clientSettings.MaximumPreGeneratedMeshes;
+
+      RendererUpdateIntervalMs = clientSettings.PlacedCompassRenderUpdateTickIntervalMs;
     }
 
     public override void OnUnloaded(ICoreAPI api) {
@@ -184,11 +189,11 @@ namespace Compass {
         renderer.TrackerTargetAngle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
       }
       else {
-        renderer.TickListenerId = capi.World.RegisterGameTickListener((dt) => {
+        System.Action<float> rendererUpdater = (float dt) => {
           if (renderer == null) { return; }
-          var angle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
-          renderer.TrackerTargetAngle = angle;
-        }, 500);
+          renderer.TrackerTargetAngle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
+        };
+        renderer.TickListenerId = capi.World.RegisterGameTickListener(rendererUpdater, RendererUpdateIntervalMs);
       }
       renderer.ItemStackHashCode = displayableStack.GetHashCode(null);
       return renderer;
