@@ -1,3 +1,4 @@
+using Compass.Utility;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -28,8 +29,23 @@ namespace Compass {
           break;
       }
 
-      float angle = GetXZAngleToPoint(null, compassStack) ?? GetWildSpinAngleRadians(capi);
-      renderinfo.ModelRef = GetBestMeshRef(capi, angle, trackerOrientation);
+      float? desiredAngle = GetXZAngleToPoint(null, compassStack);
+      float renderedAngle;
+      if (desiredAngle == null) {
+        renderedAngle = GetWildSpinAngleRadians(capi);
+      }
+      else {
+        renderedAngle = (float)desiredAngle + GetAngleDistortion();
+      }
+      renderinfo.ModelRef = GetBestMeshRef(capi, renderedAngle, trackerOrientation);
+    }
+
+    protected override float GetActiveStormInterference() {
+      return CompassMath.GetFastSpinAngleRadians(api);
+    }
+
+    protected override float GetApproachingStormInterference(float daysUntilNextStorm) {
+      return CompassMath.GetFastSpinAngleRadians(api) * (1 - daysUntilNextStorm / DaysBeforeStormToApplyInterference);
     }
   }
 }

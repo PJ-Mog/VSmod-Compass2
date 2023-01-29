@@ -16,7 +16,7 @@ namespace Compass.ConfigSystem {
   public class CompassConfigServer : ModSystem {
     public ServerConfig Settings;
     public override bool ShouldLoad(EnumAppSide forSide) {
-      return forSide == EnumAppSide.Server;
+      return true;
     }
 
     public override void StartPre(ICoreAPI api) {

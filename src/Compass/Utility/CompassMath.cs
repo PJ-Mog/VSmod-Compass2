@@ -26,9 +26,26 @@ namespace Compass.Utility {
       return (x * x) + (z * z);
     }
 
+    public static float GetIdleWobble(ICoreAPI api) {
+      return GameMath.FastSin(api.World.ElapsedMilliseconds * 0.0025f) * 0.03f;
+    }
+
+    public static float GetFastSpinAngleRadians(ICoreAPI api) {
+      return api.World.ElapsedMilliseconds * 0.0314159f;
+    }
+
     public static float GetWildSpinAngleRadians(ICoreAPI api) {
       float milli = api.World.ElapsedMilliseconds;
       return (float)((milli / 500) + (GameMath.FastSin(milli / 150)) + (GameMath.FastSin(milli / 432)) * 3);
+    }
+
+    public static float GetStormInterferenceRadians(ICoreAPI api, float percentSpeed = 1f) {
+      float milli = api.World.ElapsedMilliseconds;
+      float adjust = GameMath.Clamp(percentSpeed, 0.1f, 1f);
+      float wave1 = 0.33f * GameMath.FastSin(milli / 25 * adjust);
+      float wave2 = GameMath.FastSin(milli / 222 * adjust);
+      float wave3 = GameMath.FastSin(milli / 131 * adjust);
+      return milli / 777 + wave1 + wave2 + wave3;
     }
   }
 }

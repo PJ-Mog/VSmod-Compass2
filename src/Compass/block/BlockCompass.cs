@@ -7,9 +7,15 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.Client.NoObf;
+using Vintagestory.GameContent;
 
 namespace Compass {
   public abstract class BlockCompass : Block, IRenderableXZTracker, IContainedRenderer {
+    protected SystemTemporalStability TemporalStabilitySystem { get; set; }
+    protected bool AreTemporalStormsEnabled = false;
+    protected bool ShouldDistortDuringActiveStorm = false;
+    protected bool ShouldDistortWhileStormApproaches = false;
+    protected float DaysBeforeStormToApplyInterference = 0.35f;
     protected virtual string MeshRefsCacheKey { get; set; }
     protected int PreGeneratedMeshCount = 8;
     protected int RendererUpdateIntervalMs = 500;
@@ -34,10 +40,31 @@ namespace Compass {
       base.OnLoaded(api);
       if (api.Side == EnumAppSide.Client) {
         MeshRefsCacheKey = Code.ToString() + "-meshrefs";
+        TemporalStabilitySystem = api.ModLoader.GetModSystem<SystemTemporalStability>();
         var capi = api as ICoreClientAPI;
+        LoadWorldConfig(capi);
+        LoadModClientSettings(capi);
+        LoadModServerSettings(capi);
         LoadProperties(capi);
         GetMeshRefs(capi);
       }
+    }
+
+    protected virtual void LoadWorldConfig(ICoreAPI api) {
+      AreTemporalStormsEnabled = api.World.Config.GetString("temporalStorms") != "off";
+    }
+
+    protected virtual void LoadModClientSettings(ICoreClientAPI api) {
+      var clientSettings = api.ModLoader.GetModSystem<CompassConfigClient>().Settings;
+      PreGeneratedMeshCount = clientSettings.MaximumPreGeneratedMeshes;
+      RendererUpdateIntervalMs = clientSettings.PlacedCompassRenderUpdateTickIntervalMs;
+    }
+
+    protected virtual void LoadModServerSettings(ICoreAPI api) {
+      var serverSettings = api.ModLoader.GetModSystem<CompassConfigServer>().Settings;
+      ShouldDistortDuringActiveStorm = serverSettings.ActiveTemporalStormsAffectCompasses;
+      ShouldDistortWhileStormApproaches = serverSettings.ApproachingTemporalStormsAffectCompasses;
+      DaysBeforeStormToApplyInterference = serverSettings.ApproachingTemporalStormInterferenceBeginsDays;
     }
 
     protected virtual void LoadProperties(ICoreClientAPI capi) {
@@ -55,12 +82,6 @@ namespace Compass {
       ShellShape = GetShape(capi, Shape.Base.Clone());
 
       GetDistance = Props.DistanceFormula;
-
-      var clientSettings = capi.ModLoader.GetModSystem<CompassConfigClient>().Settings;
-
-      PreGeneratedMeshCount = clientSettings.MaximumPreGeneratedMeshes;
-
-      RendererUpdateIntervalMs = clientSettings.PlacedCompassRenderUpdateTickIntervalMs;
     }
 
     public override void OnUnloaded(ICoreAPI api) {
@@ -179,8 +200,15 @@ namespace Compass {
           break;
       }
 
-      float angle = GetXZAngleToPoint(fromPos, compassStack) ?? GetWildSpinAngleRadians(capi);
-      renderinfo.ModelRef = GetBestMeshRef(capi, angle, trackerOrientation);
+      float? desiredAngle = GetXZAngleToPoint(fromPos, compassStack);
+      float renderedAngle;
+      if (desiredAngle == null) {
+        renderedAngle = GetWildSpinAngleRadians(capi);
+      }
+      else {
+        renderedAngle = (float)desiredAngle + GetAngleDistortion();
+      }
+      renderinfo.ModelRef = GetBestMeshRef(capi, renderedAngle, trackerOrientation);
     }
 
     public IAdjustableItemStackRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {
@@ -195,6 +223,7 @@ namespace Compass {
         };
         renderer.TickListenerId = capi.World.RegisterGameTickListener(rendererUpdater, RendererUpdateIntervalMs);
       }
+      renderer.AngleDistortionDelegate = GetAngleDistortion;
       renderer.ItemStackHashCode = displayableStack.GetHashCode(null);
       return renderer;
     }
@@ -225,6 +254,37 @@ namespace Compass {
 
     public virtual int GetDistanceToTarget(BlockPos fromPos, ItemStack compassStack) {
       return GetDistance(fromPos, GetTargetPos(compassStack)) ?? Props.MinTrackingDistance;
+    }
+
+    protected virtual float GetAngleDistortion() {
+      float distortion = GetTemporalInterference();
+      distortion += GetIdleWobble();
+      return distortion;
+    }
+
+    protected virtual float GetTemporalInterference() {
+      if (TemporalStabilitySystem == null || !AreTemporalStormsEnabled) { return 0f; }
+      var stormData = TemporalStabilitySystem.StormData;
+      if (ShouldDistortDuringActiveStorm && stormData.nowStormActive) {
+        return GetActiveStormInterference();
+      }
+      float daysUntilNextStorm = (float)(stormData.nextStormTotalDays - api.World.Calendar.TotalDays);
+      if (ShouldDistortWhileStormApproaches && daysUntilNextStorm <= DaysBeforeStormToApplyInterference) {
+        return GetApproachingStormInterference(daysUntilNextStorm);
+      }
+      return 0f;
+    }
+
+    protected virtual float GetActiveStormInterference() {
+      return CompassMath.GetStormInterferenceRadians(api);
+    }
+
+    protected virtual float GetApproachingStormInterference(float daysUntilNextStorm) {
+      return CompassMath.GetStormInterferenceRadians(api, 1 - (daysUntilNextStorm / DaysBeforeStormToApplyInterference));
+    }
+
+    protected virtual float GetIdleWobble() {
+      return CompassMath.GetIdleWobble(api);
     }
 
     //  Sealed, override #OnBeforeModifiedInInventorySlot, #OnSuccessfullyCrafted, and/or #OnAfterModifiedInInventorySlot instead.
