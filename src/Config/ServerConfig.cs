@@ -1,7 +1,7 @@
 using ProtoBuf;
 
 namespace Compass.ConfigSystem {
-  [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+  [ProtoContract]
   public class ServerConfig : Config {
     public string EnableMagneticRecipeDesc = "Allow crafting a Magnetic Compass with a Magnetite Nugget. [Default: true]";
     public bool EnableMagneticRecipe = true;
@@ -29,13 +29,19 @@ namespace Compass.ConfigSystem {
     public bool AllowCompassesInOffhand = true;
 
     public string ActiveTemporalStormsAffectCompassesDesc = "During active temporal storms, compasses will be distorted. [Default: true]";
+    [ProtoMember(1)]
     public bool ActiveTemporalStormsAffectCompasses = true;
+    public bool ShouldSerializeActiveTemporalStormsAffectCompasses() => true;
 
     public string ApproachingTemporalStormsAffectCompassesDesc = "When a temporal storm is approaching, compasses will be distorted. [Default: false]";
+    [ProtoMember(2)]
     public bool ApproachingTemporalStormsAffectCompasses = false;
+    public bool ShouldSerializeApproachingTemporalStormsAffectCompasses() => true;
 
     public string ApproachingTemporalStormInterferenceBeginsDaysDesc = "Number of days before a storm that compasses will be affected by an approaching temporal storm. [Default: 0.35, Min: 0.1]";
+    [ProtoMember(3)]
     public float ApproachingTemporalStormInterferenceBeginsDays = 0.35f;
     internal float ApproachingTemporalStormInterferenceBeginsDaysMin = 0.1f;
+    public bool ShouldSerializeApproachingTemporalStormInterferenceBeginsDays() => true;
   }
 }
