@@ -1,4 +1,7 @@
+using ProtoBuf;
+
 namespace Compass.ConfigSystem {
+  [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
   public class ServerConfig : Config {
     public string EnableMagneticRecipeDesc = "Allow crafting a Magnetic Compass with a Magnetite Nugget. [Default: true]";
     public bool EnableMagneticRecipe = true;

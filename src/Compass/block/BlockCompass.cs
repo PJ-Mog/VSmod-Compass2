@@ -44,7 +44,7 @@ namespace Compass {
         var capi = api as ICoreClientAPI;
         LoadWorldConfig(capi);
         LoadModClientSettings(capi);
-        LoadModServerSettings(capi);
+        api.ModLoader.GetModSystem<CompassConfigServer>().SettingsReceived += LoadModServerSettings;
         LoadProperties(capi);
         GetMeshRefs(capi);
       }
@@ -60,8 +60,7 @@ namespace Compass {
       RendererUpdateIntervalMs = clientSettings.PlacedCompassRenderUpdateTickIntervalMs;
     }
 
-    protected virtual void LoadModServerSettings(ICoreAPI api) {
-      var serverSettings = api.ModLoader.GetModSystem<CompassConfigServer>().Settings;
+    protected virtual void LoadModServerSettings(ServerConfig serverSettings) {
       ShouldDistortDuringActiveStorm = serverSettings.ActiveTemporalStormsAffectCompasses;
       ShouldDistortWhileStormApproaches = serverSettings.ApproachingTemporalStormsAffectCompasses;
       DaysBeforeStormToApplyInterference = serverSettings.ApproachingTemporalStormInterferenceBeginsDays;
