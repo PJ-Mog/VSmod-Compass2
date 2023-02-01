@@ -15,6 +15,7 @@ namespace Compass.Prepatch {
       public EnumItemStorageFlags StorageFlags = EnumItemStorageFlags.General;
     }
 
+    protected static readonly string CompassBlockPath = "blocktypes/compass.json";
     protected static readonly string MagneticRecipePath = "recipes/grid/compass-magnetic-from-scrap.json";
     protected static readonly string ScrapRecipePath = "recipes/grid/compass-magnetic.json";
     protected static readonly string OriginRecipePath = "recipes/grid/compass-origin.json";
@@ -45,6 +46,10 @@ namespace Compass.Prepatch {
 
       if (settings.EnableRelativeRecipe) {
         patches.Add(GetRelativeGearQuantityPatch(settings.RelativeCompassGears));
+      }
+
+      if (!settings.RestrictRelativeCompassCraftingByStability || !api.World.Config.GetBool("temporalStability", true)) {
+        patches.Add(GetRelativeCompassHandbookPatch());
       }
 
       int applied = 0;
@@ -100,7 +105,7 @@ namespace Compass.Prepatch {
     }
 
     protected JsonPatch GetCompassOffhandPatch(ICoreAPI api, bool isEnabled) {
-      var compassAssetLocation = new AssetLocation(CompassMod.Domain, "blocktypes/compass.json");
+      var compassAssetLocation = new AssetLocation(CompassMod.Domain, CompassBlockPath);
       var compassAsset = api.Assets.TryGet(compassAssetLocation);
       var storageFlags = compassAsset.ToObject<JsonAsset>().StorageFlags;
 
@@ -116,6 +121,14 @@ namespace Compass.Prepatch {
         File = compassAssetLocation,
         Path = "/storageFlags",
         Value = JsonObject.FromJson(JsonConvert.SerializeObject(storageFlags))
+      };
+    }
+
+    protected JsonPatch GetRelativeCompassHandbookPatch() {
+      return new JsonPatch() {
+        Op = EnumJsonPatchOp.Remove,
+        File = new AssetLocation(CompassMod.Domain, CompassBlockPath),
+        Path = "/attributes/handbookByType/*-relative/extraSections/1"
       };
     }
 

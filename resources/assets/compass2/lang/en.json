@@ -2,5 +2,12 @@
   "block-compass-magnetic": "Magnetic Compass",
   "block-compass-relative": "Relative Compass",
   "block-compass-origin": "Origin Compass",
-  "block-compass-player": "Seraph Compass"
+  "block-compass-player": "Seraph Compass",
+
+  "compass-relative-handbook-help-use-title": "Use",
+  "compass-relative-handbook-help-use-text": "Attunes to the location in which it was created, always pointing to that spot.",
+  "compass-relative-handbook-help-craft-title": "How to Craft",
+  "compass-relative-handbook-help-craft-text": "The current area must have sufficient temporal turbulence (as measured at sea level) for the compass to attune and 'attach' to a given location. Rifts, while causing high turbulence, are too localized to allow the compass to attune properly. If in possession of an unattuned compass, travel to an area with sufficient instability, throw the compass to the ground, and pick it back up.",
+
+  "game:ingameerror-compass2-stability-too-high": "There is not enough temporal instability in this land for the compass to attune."
 }

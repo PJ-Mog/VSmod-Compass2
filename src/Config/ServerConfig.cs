@@ -43,5 +43,15 @@ namespace Compass.ConfigSystem {
     public float ApproachingTemporalStormInterferenceBeginsDays = 0.35f;
     internal float ApproachingTemporalStormInterferenceBeginsDaysMin = 0.1f;
     public bool ShouldSerializeApproachingTemporalStormInterferenceBeginsDays() => true;
+
+    public string RestrictRelativeCompassCraftingByStabilityDesc = "Prevent crafting a Relative Compass based on temporal stability. Must be enabled for `AllowRelativeCompassCraftingBelowStability` to have any effect. [Default: true]";
+    [ProtoMember(4)]
+    public bool RestrictRelativeCompassCraftingByStability = true;
+    public bool ShouldSerializeRestrictRelativeCompassCraftingByStability() => true;
+
+    public string AllowRelativeCompassCraftingBelowStabilityDesc = "Temporal stability at or above this value (as measured at sea level) will prevent the crafting of a Relative Compass. [Default: 0.9] NOTES: Vanilla stability values range from 0 to 1.5 (2 if temporal stability is disabled). Stability values below 1 cause a reduction in player stability.";
+    [ProtoMember(5)]
+    public float AllowRelativeCompassCraftingBelowStability = 0.9f;
+    internal float AllowRelativeCompassCraftingBelowStabilityMin = 0.1f;
   }
 }
