@@ -1,3 +1,4 @@
+using System.Text;
 using Compass.ConfigSystem;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -51,6 +52,13 @@ namespace Compass {
       pos.Y = SeaLevel;
       var stability = TemporalStabilitySystem.GetTemporalStability(pos);
       return stability < AllowCraftingBelowStability;
+    }
+
+    public override string GetHeldItemName(ItemStack compassStack) {
+      if (IsCrafted(compassStack)) {
+        return base.GetHeldItemName(compassStack);
+      }
+      return Lang.Get(CompassMod.Domain + ":block-compass-relative-unattuned");
     }
   }
 }

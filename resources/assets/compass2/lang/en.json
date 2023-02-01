@@ -1,6 +1,7 @@
 {
   "block-compass-magnetic": "Magnetic Compass",
   "block-compass-relative": "Relative Compass",
+  "block-compass-relative-unattuned": "Unattuned Relative Compass",
   "block-compass-origin": "Origin Compass",
   "block-compass-player": "Seraph Compass",
 
