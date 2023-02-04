@@ -36,7 +36,7 @@ namespace Compass {
     public override void OnCreatedByCrafting(ItemSlot[] allInputslots, ItemSlot outputSlot, GridRecipe byRecipe) {
       if (!IsCraftingRestrictedByStability) { return; }
 
-      var playerUid = outputSlot.Inventory.InventoryID.Replace(GlobalConstants.craftingInvClassName + "-", "");
+      var playerUid = outputSlot.Inventory?.InventoryID.Replace(GlobalConstants.craftingInvClassName + "-", "");
       var player = api.World.PlayerByUid(playerUid);
       var pos = player?.Entity?.Pos?.AsBlockPos?.ToVec3d();
 
