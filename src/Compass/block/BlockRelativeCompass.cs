@@ -1,5 +1,6 @@
-using System.Text;
+using System.Collections.Generic;
 using Compass.ConfigSystem;
+using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
@@ -36,7 +37,14 @@ namespace Compass {
     public override void OnCreatedByCrafting(ItemSlot[] allInputslots, ItemSlot outputSlot, GridRecipe byRecipe) {
       if (!IsCraftingRestrictedByStability) { return; }
 
-      var playerUid = outputSlot.Inventory?.InventoryID.Replace(GlobalConstants.craftingInvClassName + "-", "");
+      var inventory = outputSlot.Inventory;
+      if (inventory == null) {
+        // Player is viewing an item in the handbook which is a crafting ingredient for this.
+        SetCraftedByPlayerUID(outputSlot.Itemstack, "handbook");
+        return;
+      }
+
+      var playerUid = inventory?.InventoryID.Replace(GlobalConstants.craftingInvClassName + "-", "");
       var player = api.World.PlayerByUid(playerUid);
       var pos = player?.Entity?.Pos?.AsBlockPos?.ToVec3d();
 
@@ -59,6 +67,22 @@ namespace Compass {
         return base.GetHeldItemName(compassStack);
       }
       return Lang.Get(CompassMod.Domain + ":block-compass-relative-unattuned");
+    }
+
+    public override List<ItemStack> GetHandBookStacks(ICoreClientAPI capi) {
+      var list = base.GetHandBookStacks(capi);
+      foreach (var compassStack in list) {
+        SetCraftedByPlayerUID(compassStack, "handbook");
+      }
+      return list;
+    }
+
+    public override BlockDropItemStack[] GetDropsForHandbook(ItemStack handbookStack, IPlayer forPlayer) {
+      var list = base.GetDropsForHandbook(handbookStack, forPlayer);
+      foreach (var compassDrop in list) {
+        SetCraftedByPlayerUID(compassDrop.ResolvedItemstack, "handbook");
+      }
+      return list;
     }
   }
 }
