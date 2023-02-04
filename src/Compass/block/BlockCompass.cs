@@ -81,38 +81,38 @@ namespace Compass {
     }
 
     protected virtual void LoadServerSettings(ICoreAPI api) {
-      var serverConfigSystem = base.api.ModLoader.GetModSystem<CompassConfigServer>();
+      var serverConfigSystem = base.api.ModLoader.GetModSystem<CompassConfigurationSystem>();
       if (serverConfigSystem == null) {
         LoadServerSettings(new ServerConfig());
-        api.Logger.ModError("The {0} ModSystem was not loaded. Using default settings.", nameof(CompassConfigServer));
+        api.Logger.ModError("The {0} ModSystem was not loaded. Using default settings.", nameof(CompassConfigurationSystem));
         return;
       }
 
       if (api.Side == EnumAppSide.Client) {
-        serverConfigSystem.SettingsReceived += LoadServerSettings;
+        serverConfigSystem.ServerSettingsReceived += LoadServerSettings;
       }
 
-      if (serverConfigSystem.Settings != null) {
-        LoadServerSettings(serverConfigSystem.Settings);
+      if (serverConfigSystem.ServerSettings != null) {
+        LoadServerSettings(serverConfigSystem.ServerSettings);
       }
     }
 
     protected virtual void LoadServerSettings(ServerConfig serverSettings) {
-      ShouldDistortDuringActiveStorm = AreTemporalStormsEnabled && serverSettings.ActiveTemporalStormsAffectCompasses;
-      ShouldDistortWhileStormApproaches = AreTemporalStormsEnabled && serverSettings.ApproachingTemporalStormsAffectCompasses;
+      ShouldDistortDuringActiveStorm = AreTemporalStormsEnabled && serverSettings.ActiveTemporalStormsAffectCompasses.Value;
+      ShouldDistortWhileStormApproaches = AreTemporalStormsEnabled && serverSettings.ApproachingTemporalStormsAffectCompasses.Value;
 
-      DaysBeforeStormToApplyInterference = serverSettings.ApproachingTemporalStormInterferenceBeginsDays;
+      DaysBeforeStormToApplyInterference = serverSettings.ApproachingTemporalStormInterferenceBeginsDays.Value;
     }
 
     protected virtual void LoadClientSettings(ICoreClientAPI capi) {
-      var clientSettings = capi.ModLoader.GetModSystem<CompassConfigClient>()?.Settings;
+      var clientSettings = capi.ModLoader.GetModSystem<CompassConfigurationSystem>()?.ClientSettings;
       if (clientSettings == null) {
-        capi.Logger.ModError("The {0} ModSystem was not loaded. Using default settings.", nameof(CompassConfigClient));
+        capi.Logger.ModError("The {0} ModSystem was not loaded. Using default settings.", nameof(CompassConfigurationSystem));
         clientSettings = new ClientConfig();
       }
 
-      PreGeneratedMeshCount = clientSettings.MaximumPreGeneratedMeshes;
-      RendererUpdateIntervalMs = clientSettings.PlacedCompassRenderUpdateTickIntervalMs;
+      PreGeneratedMeshCount = clientSettings.MaximumPreGeneratedMeshes.Value;
+      RendererUpdateIntervalMs = clientSettings.PlacedCompassRenderUpdateTickIntervalMs.Value;
     }
 
     public override void OnUnloaded(ICoreAPI api) {

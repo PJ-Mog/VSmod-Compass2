@@ -3,25 +3,14 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
 namespace Compass.ConfigSystem {
-  public class CompassConfigClient : ModSystem {
-    public ClientConfig Settings;
-    public override bool ShouldLoad(EnumAppSide forSide) {
-      return forSide == EnumAppSide.Client;
-    }
-
-    public override void StartPre(ICoreAPI api) {
-      base.StartPre(api);
-      Settings = Config.LoadOrCreateDefault<ClientConfig>(api, "Compass2_ClientConfig.json");
-    }
-  }
-
-  public class CompassConfigServer : ModSystem {
+  public class CompassConfigurationSystem : ModSystem {
     public static readonly string ChannelName = "japanhasrice.compass2";
     private IServerNetworkChannel ServerChannel;
     private IClientNetworkChannel ClientChannel;
     public delegate void ServerSettingsDelegate(ServerConfig serverSettings);
-    public event ServerSettingsDelegate SettingsReceived;
-    public ServerConfig Settings;
+    public event ServerSettingsDelegate ServerSettingsReceived;
+    public ServerConfig ServerSettings;
+    public ClientConfig ClientSettings;
 
     public override bool ShouldLoad(EnumAppSide forSide) {
       return true;
@@ -30,7 +19,10 @@ namespace Compass.ConfigSystem {
     public override void StartPre(ICoreAPI api) {
       base.StartPre(api);
       if (api.Side == EnumAppSide.Server) {
-        Settings = Config.LoadOrCreateDefault<ServerConfig>(api, "Compass2_ServerConfig.json");
+        ServerSettings = Config.LoadOrCreateDefault<ServerConfig>(api, "Compass2_ServerConfig.json");
+      }
+      else {
+        ClientSettings = Config.LoadOrCreateDefault<ClientConfig>(api, "Compass2_ClientConfig.json");
       }
     }
 
@@ -41,7 +33,7 @@ namespace Compass.ConfigSystem {
     }
 
     private void OnPlayerJoin(IServerPlayer player) {
-      ServerChannel.SendPacket(Settings, player);
+      ServerChannel.SendPacket(ServerSettings, player);
     }
 
     public override void StartClientSide(ICoreClientAPI api) {
@@ -51,8 +43,8 @@ namespace Compass.ConfigSystem {
     }
 
     private void OnReceivedServerSettings(ServerConfig settings) {
-      Settings = settings;
-      SettingsReceived?.Invoke(Settings);
+      ServerSettings = settings;
+      ServerSettingsReceived?.Invoke(ServerSettings);
     }
   }
 }

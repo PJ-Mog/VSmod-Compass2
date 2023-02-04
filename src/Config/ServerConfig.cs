@@ -1,57 +1,94 @@
+using Newtonsoft.Json;
 using ProtoBuf;
 
 namespace Compass.ConfigSystem {
   [ProtoContract]
   public class ServerConfig : Config {
-    public string EnableMagneticRecipeDesc = "Allow crafting a Magnetic Compass with a Magnetite Nugget. [Default: true]";
-    public bool EnableMagneticRecipe = true;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    [SettingDescription("Allow crafting a Magnetic Compass with a Magnetite Nugget.")]
+    public Setting<bool> EnableMagneticRecipe { get; set; } = new Setting<bool> {
+      Default = true
+    };
 
-    public string EnableScrapRecipeDesc = "Allow crafting a Magnetic Compass with a Metal Scraps. [Default: true]";
-    public bool EnableScrapRecipe = true;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    [SettingDescription("Allow crafting a Magnetic Compass with a Metal Scraps.")]
+    public Setting<bool> EnableScrapRecipe { get; set; } = new Setting<bool> {
+      Default = true
+    };
 
-    public string EnableOriginRecipeDesc = "Allow crafting an Origin Compass. [Default: true]";
-    public bool EnableOriginRecipe = true;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    [SettingDescription("Allow crafting a Relative Compass.")]
+    public Setting<bool> EnableOriginRecipe { get; set; } = new Setting<bool> {
+      Default = true
+    };
 
-    public string EnableRelativeRecipeDesc = "Allow crafting a Relative Compass. [Default: true]";
-    public bool EnableRelativeRecipe = true;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    [SettingDescription("Allow crafting a Relative Compass.")]
+    public Setting<bool> EnableRelativeRecipe { get; set; } = new Setting<bool> {
+      Default = true
+    };
 
-    public string OriginCompassGearsDesc = "Number of Temporal Gears required to craft an Origin Compass. [Default: 2, Min: 1, Max: 8]";
-    public int OriginCompassGears = 2;
-    internal int OriginCompassGearsMin = 1;
-    internal int OriginCompassGearsMax = 8;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<int>))]
+    [SettingDescription("Number of Temporal Gears required to craft an Origin Compass.")]
+    public Setting<int> OriginCompassGears { get; set; } = new Setting<int> {
+      Default = 2,
+      Min = 1,
+      Max = 8
+    };
 
-    public string RelativeCompassGearsDesc = "Number of Temporal Gears required to craft a Relative Compass. [Default: 2, Min: 1, Max: 8]";
-    public int RelativeCompassGears = 2;
-    internal int RelativeCompassGearsMin = 1;
-    internal int RelativeCompassGearsMax = 8;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<int>))]
+    [SettingDescription("Number of Temporal Gears required to craft a Relative Compass.")]
+    public Setting<int> RelativeCompassGears { get; set; } = new Setting<int> {
+      Default = 2,
+      Min = 1,
+      Max = 8
+    };
 
-    public string AllowCompassesInOffhandDesc = "Allow compasses to be placed in the offhand slot. [Default: true]";
-    public bool AllowCompassesInOffhand = true;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    [SettingDescription("Allow compasses to be placed in the offhand slot.")]
+    public Setting<bool> AllowCompassesInOffhand { get; set; } = new Setting<bool> {
+      Default = true
+    };
 
-    public string ActiveTemporalStormsAffectCompassesDesc = "During active temporal storms, compasses will be distorted. [Default: true]";
     [ProtoMember(1)]
-    public bool ActiveTemporalStormsAffectCompasses = true;
-    public bool ShouldSerializeActiveTemporalStormsAffectCompasses() => true;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    [SettingDescription("During active temporal storms, compasses will be distorted.")]
+    public Setting<bool> ActiveTemporalStormsAffectCompasses { get; set; } = new Setting<bool> {
+      Default = true
+    };
+    private bool ShouldSerializeActiveTemporalStormsAffectCompasses() => true;
 
-    public string ApproachingTemporalStormsAffectCompassesDesc = "When a temporal storm is approaching, compasses will be distorted. [Default: false]";
     [ProtoMember(2)]
-    public bool ApproachingTemporalStormsAffectCompasses = false;
-    public bool ShouldSerializeApproachingTemporalStormsAffectCompasses() => true;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    [SettingDescription("When a temporal storm is approaching, compasses will be distorted.")]
+    public Setting<bool> ApproachingTemporalStormsAffectCompasses { get; set; } = new Setting<bool> {
+      Default = false
+    };
+    private bool ShouldSerializeApproachingTemporalStormsAffectCompasses() => true;
 
-    public string ApproachingTemporalStormInterferenceBeginsDaysDesc = "Number of days before a storm that compasses will be affected by an approaching temporal storm. [Default: 0.35, Min: 0.1]";
     [ProtoMember(3)]
-    public float ApproachingTemporalStormInterferenceBeginsDays = 0.35f;
-    internal float ApproachingTemporalStormInterferenceBeginsDaysMin = 0.1f;
-    public bool ShouldSerializeApproachingTemporalStormInterferenceBeginsDays() => true;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<float>))]
+    [SettingDescription("Number of days before a storm that compasses will be affected by an approaching temporal storm.")]
+    public Setting<float> ApproachingTemporalStormInterferenceBeginsDays { get; set; } = new Setting<float> {
+      Default = 0.35f,
+      Min = 0.1f
+    };
+    private bool ShouldSerializeApproachingTemporalStormInterferenceBeginsDays() => true;
 
-    public string RestrictRelativeCompassCraftingByStabilityDesc = "Prevent crafting a Relative Compass based on temporal stability. Must be enabled for `AllowRelativeCompassCraftingBelowStability` to have any effect. [Default: true]";
     [ProtoMember(4)]
-    public bool RestrictRelativeCompassCraftingByStability = true;
-    public bool ShouldSerializeRestrictRelativeCompassCraftingByStability() => true;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    [SettingDescription("Prevent crafting a Relative Compass based on temporal stability. Must be enabled for `AllowRelativeCompassCraftingBelowStability` to have any effect.")]
+    public Setting<bool> RestrictRelativeCompassCraftingByStability { get; set; } = new Setting<bool> {
+      Default = true
+    };
+    private bool ShouldSerializeRestrictRelativeCompassCraftingByStability() => true;
 
-    public string AllowRelativeCompassCraftingBelowStabilityDesc = "Temporal stability at or above this value (as measured at sea level) will prevent the crafting of a Relative Compass. [Default: 0.9] NOTES: Vanilla stability values range from 0 to 1.5 (2 if temporal stability is disabled). Stability values below 1 cause a reduction in player stability.";
     [ProtoMember(5)]
-    public float AllowRelativeCompassCraftingBelowStability = 0.9f;
-    internal float AllowRelativeCompassCraftingBelowStabilityMin = 0.1f;
+    [JsonProperty, JsonConverter(typeof(SettingConverter<float>))]
+    [SettingDescription("Temporal stability at or above this value (as measured at sea level) will prevent the crafting of a Relative Compass. NOTES: Vanilla stability values range from 0 to 1.5 (2 if temporal stability is disabled). Stability values below 1 cause a reduction in player stability.")]
+    public Setting<float> AllowRelativeCompassCraftingBelowStability { get; set; } = new Setting<float> {
+      Default = 0.9f,
+      Min = 0.1f
+    };
   }
 }

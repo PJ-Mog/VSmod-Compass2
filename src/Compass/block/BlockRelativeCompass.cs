@@ -20,8 +20,8 @@ namespace Compass {
     protected override void LoadServerSettings(ServerConfig serverSettings) {
       base.LoadServerSettings(serverSettings);
 
-      IsCraftingRestrictedByStability = IsTemporalStabilityEnabled && serverSettings.RestrictRelativeCompassCraftingByStability;
-      AllowCraftingBelowStability = serverSettings.AllowRelativeCompassCraftingBelowStability;
+      IsCraftingRestrictedByStability = IsTemporalStabilityEnabled && serverSettings.RestrictRelativeCompassCraftingByStability.Value;
+      AllowCraftingBelowStability = serverSettings.AllowRelativeCompassCraftingBelowStability.Value;
     }
 
     protected override void OnSuccessfullyCrafted(IServerWorldAccessor world, IServerPlayer player, ItemSlot slot) {
