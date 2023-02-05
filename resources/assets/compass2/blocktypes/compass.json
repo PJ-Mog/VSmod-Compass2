@@ -48,6 +48,14 @@
       },
       "distancemethod": "manhattan",
       "minTrackingDistance": 5
+    },
+    "handbookByType": {
+      "*-relative": {
+        "extraSections": [
+          { "title": "compass2:compass-relative-handbook-help-use-title", "text": "compass2:compass-relative-handbook-help-use-text" },
+          { "title": "compass2:compass-relative-handbook-help-craft-title", "text": "compass2:compass-relative-handbook-help-craft-text" }
+        ]
+      }
     }
   },
   "vertexFlags": {

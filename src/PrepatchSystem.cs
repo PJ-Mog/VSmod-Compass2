@@ -15,6 +15,7 @@ namespace Compass.Prepatch {
       public EnumItemStorageFlags StorageFlags = EnumItemStorageFlags.General;
     }
 
+    protected static readonly string CompassBlockPath = "blocktypes/compass.json";
     protected static readonly string MagneticRecipePath = "recipes/grid/compass-magnetic-from-scrap.json";
     protected static readonly string ScrapRecipePath = "recipes/grid/compass-magnetic.json";
     protected static readonly string OriginRecipePath = "recipes/grid/compass-origin.json";
@@ -29,22 +30,26 @@ namespace Compass.Prepatch {
     }
 
     public override void AssetsLoaded(ICoreAPI api) {
-      var settings = api.ModLoader.GetModSystem<CompassConfigServer>().Settings;
+      var settings = api.ModLoader.GetModSystem<CompassConfigurationSystem>().ServerSettings;
 
       var patches = new List<JsonPatch>();
 
-      patches.Add(GetMagneticRecipeEnabledPatch(settings.EnableMagneticRecipe));
-      patches.Add(GetScrapRecipeEnabledPatch(settings.EnableScrapRecipe));
-      patches.Add(GetOriginRecipeEnabledPatch(settings.EnableOriginRecipe));
-      patches.Add(GetRelativeRecipeEnabledPatch(settings.EnableRelativeRecipe));
-      patches.Add(GetCompassOffhandPatch(api, settings.AllowCompassesInOffhand));
+      patches.Add(GetMagneticRecipeEnabledPatch(settings.EnableMagneticRecipe.Value));
+      patches.Add(GetScrapRecipeEnabledPatch(settings.EnableScrapRecipe.Value));
+      patches.Add(GetOriginRecipeEnabledPatch(settings.EnableOriginRecipe.Value));
+      patches.Add(GetRelativeRecipeEnabledPatch(settings.EnableRelativeRecipe.Value));
+      patches.Add(GetCompassOffhandPatch(api, settings.AllowCompassesInOffhand.Value));
 
-      if (settings.EnableOriginRecipe) {
-        patches.Add(GetOriginGearQuantityPatch(settings.OriginCompassGears));
+      if (settings.EnableOriginRecipe.Value) {
+        patches.Add(GetOriginGearQuantityPatch(settings.OriginCompassGears.Value));
       }
 
-      if (settings.EnableRelativeRecipe) {
-        patches.Add(GetRelativeGearQuantityPatch(settings.RelativeCompassGears));
+      if (settings.EnableRelativeRecipe.Value) {
+        patches.Add(GetRelativeGearQuantityPatch(settings.RelativeCompassGears.Value));
+      }
+
+      if (!settings.RestrictRelativeCompassCraftingByStability.Value || !api.World.Config.GetBool("temporalStability", true)) {
+        patches.Add(GetRelativeCompassHandbookPatch());
       }
 
       int applied = 0;
@@ -100,7 +105,7 @@ namespace Compass.Prepatch {
     }
 
     protected JsonPatch GetCompassOffhandPatch(ICoreAPI api, bool isEnabled) {
-      var compassAssetLocation = new AssetLocation(CompassMod.Domain, "blocktypes/compass.json");
+      var compassAssetLocation = new AssetLocation(CompassMod.Domain, CompassBlockPath);
       var compassAsset = api.Assets.TryGet(compassAssetLocation);
       var storageFlags = compassAsset.ToObject<JsonAsset>().StorageFlags;
 
@@ -116,6 +121,14 @@ namespace Compass.Prepatch {
         File = compassAssetLocation,
         Path = "/storageFlags",
         Value = JsonObject.FromJson(JsonConvert.SerializeObject(storageFlags))
+      };
+    }
+
+    protected JsonPatch GetRelativeCompassHandbookPatch() {
+      return new JsonPatch() {
+        Op = EnumJsonPatchOp.Remove,
+        File = new AssetLocation(CompassMod.Domain, CompassBlockPath),
+        Path = "/attributes/handbookByType/*-relative/extraSections/1"
       };
     }
 

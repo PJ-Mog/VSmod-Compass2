@@ -28,6 +28,8 @@ namespace Compass {
       set { if (value != null) this.backupAngleHandler = value; }
     }
 
+    public Func<float> AngleDistortionDelegate { get; set; }
+
     private Vec3f rotationOrigin = Vec3f.Zero;
     private Vec3f offset = Vec3f.Zero;
     public Vec3f Offset {
@@ -37,8 +39,6 @@ namespace Compass {
     public float BlockRotationRadians { get; set; } = 0f;
     public float Scale { get; set; } = 1f;
 
-    private const float WOBBLE_FREQUENCY = 0.0025f;
-    private const float MAX_WOBBLE_RADIANS = 0.03f;
     private const float MAX_VELOCITY = 6f;
     private const float MAX_SNAP_TO_TARGET_VELOCITY = 1f;
     private const float FRICTION = 0.5f; // Must be less than snap speed
@@ -94,10 +94,7 @@ namespace Compass {
 
       var targetAngle = GameMath.Mod(TrackerTargetAngle ?? BackupAngleHandler(api), GameMath.TWOPI);
       SimulateMovementTo(targetAngle, deltaTime);
-      var renderedAngle = realAngle;
-      if (realAngle == targetAngle) {
-        renderedAngle += GetWobbleAdjustment();
-      }
+      var renderedAngle = realAngle + (AngleDistortionDelegate?.Invoke() ?? 0f);
 
       prog.ModelMatrix = ModelMat
         .Identity()
@@ -144,10 +141,6 @@ namespace Compass {
       }
       realAngle += rotationDirection * angularDisplacement;
       realAngle = GameMath.Mod(realAngle, GameMath.TWOPI);
-    }
-
-    private float GetWobbleAdjustment() {
-      return GameMath.FastSin(api.World.ElapsedMilliseconds * WOBBLE_FREQUENCY) * MAX_WOBBLE_RADIANS;
     }
   }
 }

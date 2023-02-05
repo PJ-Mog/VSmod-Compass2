@@ -17,7 +17,7 @@ namespace Compass.Rendering {
 
       ApplyHarmonyPatches();
 
-      var thirdPersonRenderUpdateTickInterval = api.ModLoader.GetModSystem<CompassConfigClient>().Settings.ThirdPersonRenderUpdateTickIntervalMs;
+      var thirdPersonRenderUpdateTickInterval = api.ModLoader.GetModSystem<CompassConfigurationSystem>().ClientSettings.ThirdPersonRenderUpdateTickIntervalMs.Value;
       api.World.RegisterGameTickListener(ThirdPersonCompassHandlingTick, thirdPersonRenderUpdateTickInterval, 5000);
     }
 

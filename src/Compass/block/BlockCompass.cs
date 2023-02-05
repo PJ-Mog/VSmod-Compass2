@@ -7,11 +7,10 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.Client.NoObf;
+using Vintagestory.GameContent;
 
 namespace Compass {
   public abstract class BlockCompass : Block, IRenderableXZTracker, IContainedRenderer {
-    protected virtual string MeshRefsCacheKey { get; set; }
-    protected int PreGeneratedMeshCount = 8;
     protected static readonly string AttrBool_IsCrafted = "compass-is-crafted";
     protected static readonly string AttrStr_CraftedByPlayerUid = "compass-crafted-by-player-uid";
     protected static readonly string AttrStr_AttunedToPlayerUid = "compass-attuned-to-player-uid";
@@ -22,31 +21,56 @@ namespace Compass {
     protected static readonly string AttrTempInt_EntityPosY = "compass-entity-pos-y";
     protected static readonly string AttrTempInt_EntityPosZ = "compass-entity-pos-z";
     protected static readonly string AttrTempFloat_EntityYaw = "compass-entity-yaw";
-    protected static readonly AssetLocation DEFAULT_NEEDLE_SHAPE_LOC = new AssetLocation(CompassMod.Domain, "shapes/block/compass/needle.json");
+    protected static readonly AssetLocation DefaultNeedleShapeLocation = new AssetLocation(CompassMod.Domain, "shapes/block/compass/needle.json");
+
+    protected CompassMath.DistanceCalculator GetDistance { get; set; } = CompassMath.XZManhattanDistance;
+
+    protected virtual string MeshRefsCacheKey => Code.ToString() + "-meshrefs";
+    protected int SeaLevel => api.World.SeaLevel;
+    protected bool AreTemporalStormsEnabled { get; set; } = false;
+    protected bool ShouldDistortDuringActiveStorm { get; set; } = false;
+    protected bool ShouldDistortWhileStormApproaches { get; set; } = false;
+    protected float DaysBeforeStormToApplyInterference { get; set; } = 0.35f;
+    protected bool IsCraftingRestrictedByStability { get; set; } = false;
+    protected float AllowCraftingBelowStability { get; set; } = 2.1f;
+    protected int PreGeneratedMeshCount { get; set; } = 8;
+    protected int RendererUpdateIntervalMs { get; set; } = 500;
+    public virtual EnumTargetType TargetType { get; protected set; } = EnumTargetType.Stationary;
+    protected SystemTemporalStability TemporalStabilitySystem { get; set; }
     public virtual XZTrackerProps Props { get; protected set; }
     public virtual Shape NeedleShape { get; protected set; }
     public virtual Shape ShellShape { get; protected set; }
-    public virtual EnumTargetType TargetType { get; protected set; } = EnumTargetType.Stationary;
-    protected CompassMath.DistanceCalculator GetDistance;
 
     public override void OnLoaded(ICoreAPI api) {
       base.OnLoaded(api);
+      LoadExternalSystemsAndSettings(api);
+      LoadProperties(api);
+      LoadServerSettings(api);
+
       if (api.Side == EnumAppSide.Client) {
-        MeshRefsCacheKey = Code.ToString() + "-meshrefs";
         var capi = api as ICoreClientAPI;
-        LoadProperties(capi);
+        LoadClientSettings(capi);
         GetMeshRefs(capi);
       }
     }
 
-    protected virtual void LoadProperties(ICoreClientAPI capi) {
+    protected virtual void LoadExternalSystemsAndSettings(ICoreAPI api) {
+      TemporalStabilitySystem = api.ModLoader.GetModSystem<SystemTemporalStability>();
+      AreTemporalStormsEnabled = TemporalStabilitySystem != null && api.World.Config.GetString("temporalStorms") != "off";
+    }
+
+    protected virtual void LoadProperties(ICoreAPI api) {
+      if (api.Side != EnumAppSide.Client) { return; }
+
+      var capi = api as ICoreClientAPI;
       if (Attributes != null && Attributes["XZTrackerProps"].Exists) {
         Props = Attributes["XZTrackerProps"].AsObject<XZTrackerProps>(null, Code.Domain);
       }
+      Props = Props == null ? new XZTrackerProps() : Props;
 
       if (Props.NeedleShapeLocation == null) {
-        Props.NeedleShapeLocation = DEFAULT_NEEDLE_SHAPE_LOC;
-        capi.Logger.ModWarning("Collectible {0} has no defined needle shape (JSON Path: attributes/XZTrackerProps/needleShapeLocation). Using {1}.", Code, Props.NeedleShapeLocation);
+        Props.NeedleShapeLocation = DefaultNeedleShapeLocation;
+        api.Logger.ModWarning("Collectible {0} has no defined needle shape (JSON Path: attributes/XZTrackerProps/needleShapeLocation). Using {1}.", Code, Props.NeedleShapeLocation);
       }
       Props.NeedleShapeLocation = Props.NeedleShapeLocation.WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json");
       NeedleShape = GetShape(capi, Props.NeedleShapeLocation);
@@ -54,8 +78,41 @@ namespace Compass {
       ShellShape = GetShape(capi, Shape.Base.Clone());
 
       GetDistance = Props.DistanceFormula;
+    }
 
-      PreGeneratedMeshCount = capi.ModLoader.GetModSystem<CompassConfigClient>().Settings.MaximumPreGeneratedMeshes;
+    protected virtual void LoadServerSettings(ICoreAPI api) {
+      var serverConfigSystem = base.api.ModLoader.GetModSystem<CompassConfigurationSystem>();
+      if (serverConfigSystem == null) {
+        LoadServerSettings(new ServerConfig());
+        api.Logger.ModError("The {0} ModSystem was not loaded. Using default settings.", nameof(CompassConfigurationSystem));
+        return;
+      }
+
+      if (api.Side == EnumAppSide.Client) {
+        serverConfigSystem.ServerSettingsReceived += LoadServerSettings;
+      }
+
+      if (serverConfigSystem.ServerSettings != null) {
+        LoadServerSettings(serverConfigSystem.ServerSettings);
+      }
+    }
+
+    protected virtual void LoadServerSettings(ServerConfig serverSettings) {
+      ShouldDistortDuringActiveStorm = AreTemporalStormsEnabled && serverSettings.ActiveTemporalStormsAffectCompasses.Value;
+      ShouldDistortWhileStormApproaches = AreTemporalStormsEnabled && serverSettings.ApproachingTemporalStormsAffectCompasses.Value;
+
+      DaysBeforeStormToApplyInterference = serverSettings.ApproachingTemporalStormInterferenceBeginsDays.Value;
+    }
+
+    protected virtual void LoadClientSettings(ICoreClientAPI capi) {
+      var clientSettings = capi.ModLoader.GetModSystem<CompassConfigurationSystem>()?.ClientSettings;
+      if (clientSettings == null) {
+        capi.Logger.ModError("The {0} ModSystem was not loaded. Using default settings.", nameof(CompassConfigurationSystem));
+        clientSettings = new ClientConfig();
+      }
+
+      PreGeneratedMeshCount = clientSettings.MaximumPreGeneratedMeshes.Value;
+      RendererUpdateIntervalMs = clientSettings.PlacedCompassRenderUpdateTickIntervalMs.Value;
     }
 
     public override void OnUnloaded(ICoreAPI api) {
@@ -174,8 +231,15 @@ namespace Compass {
           break;
       }
 
-      float angle = GetXZAngleToPoint(fromPos, compassStack) ?? GetWildSpinAngleRadians(capi);
-      renderinfo.ModelRef = GetBestMeshRef(capi, angle, trackerOrientation);
+      float? desiredAngle = GetXZAngleToPoint(fromPos, compassStack);
+      float renderedAngle;
+      if (desiredAngle == null) {
+        renderedAngle = GetWildSpinAngleRadians(capi);
+      }
+      else {
+        renderedAngle = (float)desiredAngle + GetAngleDistortion();
+      }
+      renderinfo.ModelRef = GetBestMeshRef(capi, renderedAngle, trackerOrientation);
     }
 
     public IAdjustableItemStackRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {
@@ -184,12 +248,13 @@ namespace Compass {
         renderer.TrackerTargetAngle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
       }
       else {
-        renderer.TickListenerId = capi.World.RegisterGameTickListener((dt) => {
+        System.Action<float> rendererUpdater = (float dt) => {
           if (renderer == null) { return; }
-          var angle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
-          renderer.TrackerTargetAngle = angle;
-        }, 500);
+          renderer.TrackerTargetAngle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
+        };
+        renderer.TickListenerId = capi.World.RegisterGameTickListener(rendererUpdater, RendererUpdateIntervalMs);
       }
+      renderer.AngleDistortionDelegate = GetAngleDistortion;
       renderer.ItemStackHashCode = displayableStack.GetHashCode(null);
       return renderer;
     }
@@ -222,14 +287,44 @@ namespace Compass {
       return GetDistance(fromPos, GetTargetPos(compassStack)) ?? Props.MinTrackingDistance;
     }
 
+    protected virtual float GetAngleDistortion() {
+      float distortion = GetTemporalInterference();
+      distortion += GetIdleWobble();
+      return distortion;
+    }
+
+    protected virtual float GetTemporalInterference() {
+      if (!AreTemporalStormsEnabled) { return 0f; }
+      var stormData = TemporalStabilitySystem.StormData;
+      if (ShouldDistortDuringActiveStorm && stormData.nowStormActive) {
+        return GetActiveStormInterference();
+      }
+      float daysUntilNextStorm = (float)(stormData.nextStormTotalDays - api.World.Calendar.TotalDays);
+      if (ShouldDistortWhileStormApproaches && daysUntilNextStorm <= DaysBeforeStormToApplyInterference) {
+        return GetApproachingStormInterference(daysUntilNextStorm);
+      }
+      return 0f;
+    }
+
+    protected virtual float GetActiveStormInterference() {
+      return CompassMath.GetStormInterferenceRadians(api);
+    }
+
+    protected virtual float GetApproachingStormInterference(float daysUntilNextStorm) {
+      return CompassMath.GetStormInterferenceRadians(api, 1 - (daysUntilNextStorm / DaysBeforeStormToApplyInterference));
+    }
+
+    protected virtual float GetIdleWobble() {
+      return CompassMath.GetIdleWobble(api);
+    }
+
     //  Sealed, override #OnBeforeModifiedInInventorySlot, #OnSuccessfullyCrafted, and/or #OnAfterModifiedInInventorySlot instead.
     sealed public override void OnModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) {
       OnBeforeModifiedInInventorySlot(world, slot, extractedStack);
       base.OnModifiedInInventorySlot(world, slot, extractedStack);
       var player = (slot.Inventory as InventoryBasePlayer)?.Player;
       if (world.Side == EnumAppSide.Server && player != null && !IsCrafted(slot.Itemstack)) {
-        SetCraftedByPlayerUID(slot.Itemstack, player.PlayerUID);
-        OnSuccessfullyCrafted(world as IServerWorldAccessor, player, slot);
+        OnSuccessfullyCrafted(world as IServerWorldAccessor, player as IServerPlayer, slot);
       }
       OnAfterModifiedInInventorySlot(world, slot, extractedStack);
     }
@@ -237,7 +332,9 @@ namespace Compass {
     protected virtual void OnBeforeModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) { }
 
     //  Called server side when the compass is first placed into a player's inventory after being marked as crafted for the first time.
-    protected virtual void OnSuccessfullyCrafted(IServerWorldAccessor world, IPlayer byPlayer, ItemSlot slot) { }
+    protected virtual void OnSuccessfullyCrafted(IServerWorldAccessor world, IServerPlayer byPlayer, ItemSlot slot) {
+      SetCraftedByPlayerUID(slot.Itemstack, byPlayer.PlayerUID);
+    }
 
     protected virtual void OnAfterModifiedInInventorySlot(IWorldAccessor world, ItemSlot slot, ItemStack extractedStack = null) { }
 
