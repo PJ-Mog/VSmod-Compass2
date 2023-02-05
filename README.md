@@ -1,5 +1,10 @@
 # Compass2
 
+## Latest Update Changes
+* Active temporal storms interfere with compasses, rendering them useless. (configurable)
+* Approaching temporal storms interfere with compasses, rendering them useless. (Disabled by default, configurable)
+* The Relative Compass can only be crafted and attuned to areas of low stability (as measured at sea level, configurable)
+
 ## Features
 
 ### Compasses!
@@ -13,19 +18,24 @@
   * Crafted with 1 Magnetic Compass and 2 Temporal Gears.
 * Relative Compass
   * Points to the location where it was created.
+  * **\*\*NEW\*\*** Can only be crafted in low stability areas.
   * Crafted with 1 Origin Compass and 2 Temporal Gears.
-* **\*NEW\*** Seraph Compass
+* Seraph Compass
   * Points to the player who first picks it up (usually the one who crafted it).
   * Does not track an offline player.
   * No crafting recipe yet. Feel free to add your own!
 
-### **\*NEW\*** Storage
+### **\*\*NEW\*\*** Mechanics
+* Active temporal storms interfere with compasses
+* Approching temporal storms interfere with compasses
+
+### Storage
 * Compasses can be held in your offhand.
 * Compasses can be placed on the ground with other ground-storables.
 * Compasses can be placed on shelves.
 * Compasses can be placed in display cases.
 
-### **\*NEW\*** Commands
+### Commands
 * `/compass`
   * Requires "commandplayer" permissions.
   * Only function on the compass held in the active hotbar slot
@@ -43,7 +53,6 @@
     * Deletes the compass's saved target position.
   * `/compass remove craftedBy`
     * Deletes the compass's saved creator.
-    * Currently, this will cause the compass to act as though it had just been crafted
   * `/compass for [<player_name>|<player_uid>] [show|set|reset]`
     * Performs the given command on behalf of the specified player, as if that player had run the command themselves.
     * Example: ServerAdmin runs the command `/compass for OtherPlayer set target 10000 120 10000`. If OtherPlayer is holding a compass in their active hotbar slot, its target will be set to 10000, 120, 10000.
@@ -55,43 +64,39 @@ If a config file is not found in the ModConfig folder, it will be created with d
 
 If an individual setting is deleted from a config file, it will be added back in with its default value next time a world is loaded.
 
-<details><summary>Server configuration with defaults</summary>
+<details> <summary>Server Configuration</summary>
 
-```json
-{
-  "EnableMagneticRecipeDesc": "Allow crafting a Magnetic Compass with a Magnetite Nugget. [Default: true]",
-  "EnableMagneticRecipe": true,
-  "EnableScrapRecipeDesc": "Allow crafting a Magnetic Compass with a Metal Scraps. [Default: true]",
-  "EnableScrapRecipe": true,
-  "EnableOriginRecipeDesc": "Allow crafting an Origin Compass. [Default: true]",
-  "EnableOriginRecipe": true,
-  "EnableRelativeRecipeDesc": "Allow crafting a Relative Compass. [Default: true]",
-  "EnableRelativeRecipe": true,
-  "OriginCompassGearsDesc": "Number of Temporal Gears required to craft an Origin Compass. [Default: 2, Min: 1, Max: 8]",
-  "OriginCompassGears": 2,
-  "RelativeCompassGearsDesc": "Number of Temporal Gears required to craft a Relative Compass. [Default: 2, Min: 1, Max: 8]",
-  "RelativeCompassGears": 2,
-  "AllowCompassesInOffhandDesc": "Allow compasses to be placed in the offhand slot. [Default: true]",
-  "AllowCompassesInOffhand": true
-}
-```
-
-</details>
-
-<details><summary>Client configuration with defaults</summary>
-
-```json
-{
-  "MaximumPreGeneratedMeshesDesc": "Maximum number of meshes to use for animating needle movement of held compasses. [Default: 120, Min: 8]",
-  "MaximumPreGeneratedMeshes": 120,
-  "ThirdPersonRenderUpdateTickIntervalMsDesc": "Milliseconds between updates to compasses rendered in another player's hand. Only updates on game ticks. [Default: 1, Min: 1]",
-  "ThirdPersonRenderUpdateTickIntervalMs": 1
-}
-```
+| Setting | Default | Min | Max | Description |
+|-|:-:|:-:|:-:|-|
+| -_Crafting Options_- |-|-|-|-|
+| EnableMagneticRecipe | true ||| Allow crafting a Magnetic Compass with a Magnetite Nugget. |
+| EnableScrapRecipe | true ||| Allow crafting a Magnetic Compass with a Metal Scraps. |
+| EnableOriginRecipe | true ||| Allow crafting an Origin Compass. |
+| OriginCompassGears | 2 | 1 | 8 | Number of Temporal Gears required to craft an Origin Compass. |
+| EnableRelativeRecipe | true ||| Allow crafting a Relative Compass |
+| RelativeCompassGears | 2 | 1 | 8 | Number of Temporal Gears required to craft a Relative Compass. |
+| **\*\*NEW\*\*** RestrictRelativeCompassCraftingByStability | true ||| Prevent crafting a Relative Compass based on temporal stability. Must be enabled for `AllowRelativeCompassCraftingBelowStability` to have any effect. |
+| **\*\*NEW\*\*** AllowRelativeCompassCraftingBelowStability | 0.9 | 0.1 || Temporal stability at or above this value (as measured at sea level) will prevent the crafting of a Relative Compass. NOTES: Vanilla stability values range from 0 to 1.5 (2 if temporal stability is disabled). Stability values below 1 cause a reduction in player stability. |
+| -_Gameplay Options_- |-|-|-|-|
+| **\*\*NEW\*\*** ActiveTemporalStormsAffectCompasses | true ||| During active temporal storms, compasses will be distorted. |
+| **\*\*NEW\*\*** ApproachingTemporalStormsAffectCompasses | false ||| When a temporal storm is approaching, compasses will be distorted. |
+| **\*\*NEW\*\*** ApproachingTemporalStormInterferenceBeginsDays | 0.35 | 0.1 || Number of days before a storm that compasses will be affected by an approaching temporal storm. |
+| -_Other_- |-|-|-|-|
+| AllowCompassesInOffhand | true ||| Allow compasses to be placed in the offhand slot. |
 
 </details>
 
-### **\*NEW\*** Modding the mod
+<details> <summary>Client Configuration</summary>
+
+| Setting | Default | Min | Max | Description |
+|-|:-:|:-:|:-:|-|
+| MaximumPreGeneratedMeshes | 120 | 8 || Maximum number of meshes to use for animating needle movement of held compasses. |
+| ThirdPersonRenderUpdateTickIntervalMs | 1 | 1 || Milliseconds between updates to compasses rendered in another player's hand. Only updates on game ticks. |
+| **\*\*NEW\*\*** PlacedCompassRenderUpdateTickIntervalMs | 500 | 1 || Milliseconds between updates to compasses which are placed as blocks or displayed inside another. Only affects compasses with moving targets and only updates on game ticks. |
+
+</details>
+
+### Modding the mod
 There are many details of the compasses that can be modified via JSON. Below is a sample asset file with only the relevant properties. Custom properties are all further explained below. Additional information is provided when relevant.
 
 NOTE: Compasses *MUST* be blocks, not items, due to differences in how Vintage Story handles block and item rendering, and how compass animations were enabled where Vintage Story does not support them.
@@ -162,4 +167,4 @@ Used with `distanceMethod` to determine when a compass is too close to its targe
 
 ## Collaboration?
 
-I am no artist. If you would like to help improve the look of anything, feel free to contact me on the Vintage Story Discord (JapanHasRice) or submit a pull request on the github repo.
+If you have any suggestions or requests or would like to contribute, especially for modeling and animation, feel free to contact me on the Vintage Story Discord (JapanHasRice) or submit a pull request on the github repo.
