@@ -83,7 +83,7 @@ namespace Compass {
     protected virtual void LoadServerSettings(ICoreAPI api) {
       var serverConfigSystem = base.api.ModLoader.GetModSystem<CompassConfigurationSystem>();
       if (serverConfigSystem == null) {
-        LoadServerSettings(new ServerConfig());
+        LoadServerSettings(new CompassServerConfig());
         api.Logger.ModError("The {0} ModSystem was not loaded. Using default settings.", nameof(CompassConfigurationSystem));
         return;
       }
@@ -97,7 +97,7 @@ namespace Compass {
       }
     }
 
-    protected virtual void LoadServerSettings(ServerConfig serverSettings) {
+    protected virtual void LoadServerSettings(CompassServerConfig serverSettings) {
       ShouldDistortDuringActiveStorm = AreTemporalStormsEnabled && serverSettings.ActiveTemporalStormsAffectCompasses.Value;
       ShouldDistortWhileStormApproaches = AreTemporalStormsEnabled && serverSettings.ApproachingTemporalStormsAffectCompasses.Value;
 
@@ -108,7 +108,7 @@ namespace Compass {
       var clientSettings = capi.ModLoader.GetModSystem<CompassConfigurationSystem>()?.ClientSettings;
       if (clientSettings == null) {
         capi.Logger.ModError("The {0} ModSystem was not loaded. Using default settings.", nameof(CompassConfigurationSystem));
-        clientSettings = new ClientConfig();
+        clientSettings = new CompassClientConfig();
       }
 
       PreGeneratedMeshCount = clientSettings.MaximumPreGeneratedMeshes.Value;

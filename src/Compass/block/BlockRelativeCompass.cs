@@ -17,7 +17,7 @@ namespace Compass {
       IsTemporalStabilityEnabled = TemporalStabilitySystem != null && api.World.Config.GetBool("temporalStability", true);
     }
 
-    protected override void LoadServerSettings(ServerConfig serverSettings) {
+    protected override void LoadServerSettings(CompassServerConfig serverSettings) {
       base.LoadServerSettings(serverSettings);
 
       IsCraftingRestrictedByStability = IsTemporalStabilityEnabled && serverSettings.RestrictRelativeCompassCraftingByStability.Value;

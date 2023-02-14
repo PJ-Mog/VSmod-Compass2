@@ -42,6 +42,14 @@
         "command": "cmd",
         "args": ["/C", "if not exist .\\bin\\RELEASE mkdir .\\bin\\RELEASE"]
       }
+    },
+    {
+      "label": "Update submodules",
+      "type": "shell",
+      "windows": {
+        "command": "git",
+        "args": ["submodule", "update", "--init", "--recursive", "--remote"]
+      }
     }
   ]
 }
