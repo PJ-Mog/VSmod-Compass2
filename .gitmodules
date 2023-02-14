@@ -1,0 +1,4 @@
+[submodule "VSLib-RiceConfig"]
+  path = VSLib-RiceConfig
+  url = git@github.com:PJ-Mog/VSLib-RiceConfig.git
+  branch = main
