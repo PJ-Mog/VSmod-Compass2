@@ -2,6 +2,24 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch Client (.NET) [1.18]",
+      "type": "clr",
+      "request": "launch",
+      "preLaunchTask": "Build (Debug)",
+      "program": "${env:VINTAGE_STORY_DEV}/1.18/Vintagestory.exe",
+      "args": [
+        "--playStyle" , "preset-surviveandbuild",
+        "--openWorld" , "modding test world 1.18",
+        "--addModPath", "${workspaceFolder}/bin/Debug/zip"
+      ],
+      "env":{
+        "VAO_DEBUG_DISPOSE": "TRUE",
+        "TEXTURE_DEBUG_DISPOSE": "TRUE"
+      },
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
       "name": "Launch Client (.NET) [1.17]",
       "type": "clr",
       "request": "launch",

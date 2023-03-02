@@ -90,7 +90,7 @@ namespace Compass {
       rpi.GlToggleBlend(true);
 
       IStandardShaderProgram prog = rpi.PreparedStandardShader(trackerPos.X, trackerPos.Y, trackerPos.Z);
-      prog.Tex2D = api.BlockTextureAtlas.AtlasTextureIds[0];
+      prog.Tex2D = api.BlockTextureAtlas.AtlasTextures[0].TextureId;
 
       var targetAngle = GameMath.Mod(TrackerTargetAngle ?? BackupAngleHandler(api), GameMath.TWOPI);
       SimulateMovementTo(targetAngle, deltaTime);
