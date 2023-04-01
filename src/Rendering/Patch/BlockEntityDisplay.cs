@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using HarmonyLib;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -6,33 +7,24 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
-namespace Compass.Rendering.Patch {
-  //  Cannot patch BlockEntityDisplay, BlockEntityGroundStorage, etc.
-  //  The subclasses do not override the base functions,
-  //  causing Harmony to fail to find the methods
-  [HarmonyPatch(typeof(BlockEntity))]
-  public static class BlockEntityPatch {
+namespace Compass.Rendering {
+  [HarmonyPatch]
+  public static class Patch {
+    //  Cannot patch BlockEntityDisplay, BlockEntityGroundStorage, etc.
+    //  The subclasses do not override the base functions,
+    //  causing Harmony to fail to find the methods
+    [HarmonyPatch(typeof(BlockEntity), "OnBlockRemoved")]
+    [HarmonyPatch(typeof(BlockEntity), "OnBlockUnloaded")]
     [HarmonyPrefix]
-    [HarmonyPatch("OnBlockRemoved")]
     public static void Removed(BlockEntity __instance) {
-      if (__instance?.Api?.Side == EnumAppSide.Server) { return; }
+      if (__instance?.Api?.Side != EnumAppSide.Client) { return; }
       (__instance as BlockEntityDisplay)?.DisposeRenderers();
     }
 
-    [HarmonyPrefix]
-    [HarmonyPatch("OnBlockUnloaded")]
-    public static void Unloaded(BlockEntity __instance) {
-      if (__instance?.Api?.Side == EnumAppSide.Server) { return; }
-      (__instance as BlockEntityDisplay)?.DisposeRenderers();
-    }
-  }
-
-  [HarmonyPatch(typeof(BlockEntityDisplay))]
-  public static class BlockEntityDisplayPatch {
+    [HarmonyPatch(typeof(BlockEntityDisplay), "updateMesh")]
     [HarmonyPostfix]
-    [HarmonyPatch("updateMesh")]
     public static void UpdateRenderer(BlockEntityDisplay __instance, int index) {
-      if (__instance?.Api?.Side == EnumAppSide.Server) { return; }
+      if (__instance?.Api?.Side != EnumAppSide.Client) { return; }
       __instance.UpdateRenderer(index);
     }
   }
@@ -48,28 +40,13 @@ namespace Compass.Rendering.Patch {
         return;
       }
 
-      if (itemStack.GetHashCode(null) == renderers[forSlotIndex]?.ItemStackHashCode) {
-        return;
+      if (itemStack.GetHashCode(null) != renderers[forSlotIndex]?.ItemStackHashCode) {
+        renderers[forSlotIndex]?.Dispose();
+        renderers[forSlotIndex] = displayable.CreateRendererFromStack(blockEntityDisplay.Api as ICoreClientAPI, itemStack, blockEntityDisplay.Pos);
       }
 
-      renderers[forSlotIndex]?.Dispose();
-      var newRenderer = displayable.CreateRendererFromStack(blockEntityDisplay.Api as ICoreClientAPI, itemStack, blockEntityDisplay.Pos);
-      // Having issues with the `tfMatrices` field in `BlockEntityDisplay`. It is accessible with reflection,
-      // but the values are not as expected. Until the problem is figured out, continuing with this implementation
-      // where the offsets are pre-calculated per blocktype
-      switch (blockEntityDisplay) {
-        case BlockEntityDisplayCase displayCase:
-          newRenderer.Offset = displayCase.GetOffset(forSlotIndex);
-          newRenderer.Scale = 0.75f;
-          break;
-        case BlockEntityShelf shelf:
-          newRenderer.Offset = shelf.GetOffset(forSlotIndex);
-          break;
-        case BlockEntityGroundStorage groundStorage:
-          newRenderer.Offset = groundStorage.GetOffset(forSlotIndex);
-          break;
-      }
-      renderers[forSlotIndex] = newRenderer;
+      renderers[forSlotIndex].Offset = blockEntityDisplay.GetOffset(forSlotIndex);
+      renderers[forSlotIndex].Scale = blockEntityDisplay.GetScale();
     }
 
     public static IAdjustableItemStackRenderer[] GetRenderers(this BlockEntityDisplay blockEntityDisplay) {
@@ -92,6 +69,29 @@ namespace Compass.Rendering.Patch {
     private static string GetKeyFor(BlockPos pos) {
       return "blockentitydisplay-renderers-" + pos;
     }
+
+    // Having issues with the `tfMatrices` field in `BlockEntityDisplay`. It is accessible with reflection,
+    // but the values are not as expected. Until the problem is figured out, continuing with this implementation
+    // where the offsets are pre-calculated per blocktype
+    public static Vec3f GetOffset(this BlockEntityDisplay blockEntityDisplay, int forSlotIndex) {
+      switch (blockEntityDisplay) {
+        case BlockEntityDisplayCase displayCase:
+          return displayCase.GetOffset(forSlotIndex);
+        case BlockEntityShelf shelf:
+          return shelf.GetOffset(forSlotIndex);
+        case BlockEntityGroundStorage groundStorage:
+          return groundStorage.GetOffset(forSlotIndex);
+        default:
+          return Vec3f.Zero;
+      }
+    }
+
+    public static float GetScale(this BlockEntityDisplay blockEntityDisplay) {
+      if (blockEntityDisplay is BlockEntityDisplayCase) {
+        return 0.75f;
+      }
+      return 1f;
+    }
   }
 
   public static class BlockEntityDisplayCaseExtension {
@@ -102,7 +102,12 @@ namespace Compass.Rendering.Patch {
       new Vec3f(0.1875f, 0.063125f, 0.1875f)
     };
 
+    private static Vec3f CenterOffset = new Vec3f(0f, 0.063125f, 0f);
+
     public static Vec3f GetOffset(this BlockEntityDisplayCase blockEntityDisplayCase, int forSlotIndex) {
+      if (blockEntityDisplayCase.GetType().GetField("haveCenterPlacement", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(blockEntityDisplayCase) as bool? == true) {
+        return CenterOffset;
+      }
       return Offsets[forSlotIndex];
     }
   }
