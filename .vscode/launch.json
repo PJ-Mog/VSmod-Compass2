@@ -2,19 +2,20 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Client (.NET) [1.17]",
+      "name": "Launch Client (.NET)",
       "type": "clr",
       "request": "launch",
       "preLaunchTask": "Build (Debug)",
-      "program": "${env:VINTAGE_STORY_DEV}/1.17/Vintagestory.exe",
+      "program": "${env:VINTAGE_STORY_DEV}/${input:vsVersion}/Vintagestory.exe",
       "args": [
         "--playStyle" , "preset-surviveandbuild",
-        "--openWorld" , "modding test world 1.17",
+        "--openWorld" , "modding test world ${input:vsVersion} ${workspaceFolderBasename}",
+        "--dataPath", "${env:VINTAGE_STORY_DEV}/../VintagestoryDevDataUS",
         "--addModPath", "${workspaceFolder}/bin/Debug/zip"
       ],
-      "env":{
-        "VAO_DEBUG_DISPOSE": "TRUE",
-        "TEXTURE_DEBUG_DISPOSE": "TRUE"
+      "env": {
+        // "TEXTURE_DEBUG_DISPOSE": "1",
+        // "VAO_DEBUG_DISPOSE": "1"
       },
       "console": "internalConsole",
       "internalConsoleOptions": "openOnSessionStart"
@@ -32,6 +33,18 @@
       ],
       "console": "internalConsole",
       "internalConsoleOptions": "openOnSessionStart"
+    }
+  ],
+  "inputs": [
+    {
+      "type": "pickString",
+      "id": "vsVersion",
+      "description": "What version of Vintage Story do you want to launch?",
+      "options": [
+        "1.18",
+        "1.17"
+      ],
+      "default": "1.18"
     }
   ]
 }
