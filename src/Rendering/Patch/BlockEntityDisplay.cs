@@ -14,11 +14,19 @@ namespace Compass.Rendering {
     //  The subclasses do not override the base functions,
     //  causing Harmony to fail to find the methods
     [HarmonyPatch(typeof(BlockEntity), "OnBlockRemoved")]
+    [HarmonyPrefix]
+    public static void BeforeOnBlockRemoved(BlockEntity __instance) {
+      if (__instance?.Api?.Side == EnumAppSide.Client && __instance is BlockEntityDisplay blockEntityDisplay) {
+        blockEntityDisplay.DisposeRenderers();
+      }
+    }
+
     [HarmonyPatch(typeof(BlockEntity), "OnBlockUnloaded")]
     [HarmonyPrefix]
-    public static void Removed(BlockEntity __instance) {
-      if (__instance?.Api?.Side != EnumAppSide.Client) { return; }
-      (__instance as BlockEntityDisplay)?.DisposeRenderers();
+    public static void BeforeOnBlockUnloaded(BlockEntity __instance) {
+      if (__instance?.Api?.Side == EnumAppSide.Client && __instance is BlockEntityDisplay blockEntityDisplay) {
+        blockEntityDisplay.DisposeRenderers();
+      }
     }
 
     [HarmonyPatch(typeof(BlockEntityDisplay), "updateMesh")]
@@ -62,8 +70,7 @@ namespace Compass.Rendering {
         renderers[i]?.Dispose();
         renderers[i] = null;
       }
-      var key = GetKeyFor(blockEntityDisplay.Pos);
-      ObjectCacheUtil.Delete(blockEntityDisplay.Api, key);
+      ObjectCacheUtil.Delete(blockEntityDisplay.Api, GetKeyFor(blockEntityDisplay.Pos));
     }
 
     private static string GetKeyFor(BlockPos pos) {
