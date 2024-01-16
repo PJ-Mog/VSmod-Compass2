@@ -8,7 +8,7 @@
       "problemMatcher": "$msCompile",
       "type": "process",
       "command": "dotnet",
-      "args": [ "build", "-c", "Debug" ],
+      "args": [ "build", "-c", "Debug", "${workspaceFolderBasename}.sln" ],
       "dependsOn":[
         "Create build directory (Debug)"
       ]
