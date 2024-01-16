@@ -37,7 +37,7 @@ namespace Compass {
       else {
         renderedAngle = (float)desiredAngle + GetAngleDistortion();
       }
-      renderinfo.ModelRef = GetBestMeshRef(capi, renderedAngle, trackerOrientation);
+      renderinfo.ModelRef.meshrefs[0] = GetBestMeshRef(capi, renderedAngle, trackerOrientation);
     }
 
     protected override float GetActiveStormInterference() {
