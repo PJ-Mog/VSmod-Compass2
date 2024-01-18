@@ -137,29 +137,29 @@
   },
   "tpHandTransform": {
     "translation": {
-      "x": -2.45,
-      "y": -1.5,
-      "z": -1.65
+      "x": -1.25,
+      "y": -0.77,
+      "z": -0.45
     },
     "rotation": {
-      "x": 0,
-      "y": 0,
-      "z": -45
+      "x": 15,
+      "y": 15,
+      "z": -60
     },
-    "scale": 0.30
+    "scale": 0.60
   },
   "tpOffHandTransform": {
     "translation": {
-      "x": -2.2,
-      "y": -1.5,
-      "z": -1.54
+      "x": -1.18,
+      "y": -0.8,
+      "z": -1.18
     },
     "rotation": {
-      "x": 0,
-      "y": 0,
-      "z": -45
+      "x": -20,
+      "y": -15,
+      "z": -60
     },
-    "scale": 0.30
+    "scale": 0.60
   },
   "collisionbox": {
     "x1": 0.3,
