@@ -82,6 +82,8 @@
   },
   "maxstacksize": 1,
   "lightabsorption": 0,
+	"heldRightTpIdleAnimation": "holdinglanternrighthand",
+	"heldLeftTpIdleAnimation": "holdinglanternlefthand",
   "fpHandTransform": {
     "translation": {
       "x": -0.35,
