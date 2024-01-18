@@ -8,7 +8,7 @@
       "problemMatcher": "$msCompile",
       "type": "process",
       "command": "dotnet",
-      "args": [ "build", "-c", "Debug", "${workspaceFolderBasename}.sln" ],
+      "args": [ "build", "-c", "Debug" ],
       "dependsOn":[
         "Create build directory (Debug)"
       ]
@@ -20,7 +20,7 @@
       "problemMatcher": "$msCompile",
       "type": "process",
       "command": "dotnet",
-      "args": [ "build", "-c", "Release", "${workspaceFolderBasename}.sln" ],
+      "args": [ "build", "-c", "Release" ],
       "dependsOn":[
         "Create build directory (Release)"
       ]
