@@ -20,7 +20,7 @@
       "problemMatcher": "$msCompile",
       "type": "process",
       "command": "dotnet",
-      "args": [ "build", "-c", "Release" ],
+      "args": [ "build", "-c", "Release", "${workspaceFolderBasename}.sln" ],
       "dependsOn":[
         "Create build directory (Release)"
       ]
