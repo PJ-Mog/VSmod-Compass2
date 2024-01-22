@@ -18,16 +18,16 @@
   * Crafted with 1 Magnetic Compass and 2 Temporal Gears.
 * Relative Compass
   * Points to the location where it was created.
-  * **\*\*NEW\*\*** Can only be crafted in low stability areas.
+  * Can only be crafted in low stability areas, as measured at sea level. (configurable)
   * Crafted with 1 Origin Compass and 2 Temporal Gears.
 * Seraph Compass
   * Points to the player who first picks it up (usually the one who crafted it).
   * Does not track an offline player.
   * No crafting recipe yet. Feel free to add your own!
 
-### **\*\*NEW\*\*** Mechanics
-* Active temporal storms interfere with compasses
-* Approching temporal storms interfere with compasses
+### Mechanics
+* Active temporal storms interfere with compasses (configurable)
+* Approching temporal storms interfere with compasses (configurable)
 
 ### Storage
 * Compasses can be held in your offhand.
@@ -75,12 +75,12 @@ If an individual setting is deleted from a config file, it will be added back in
 | OriginCompassGears | 2 | 1 | 8 | Number of Temporal Gears required to craft an Origin Compass. |
 | EnableRelativeRecipe | true ||| Allow crafting a Relative Compass |
 | RelativeCompassGears | 2 | 1 | 8 | Number of Temporal Gears required to craft a Relative Compass. |
-| **\*\*NEW\*\*** RestrictRelativeCompassCraftingByStability | true ||| Prevent crafting a Relative Compass based on temporal stability. Must be enabled for `AllowRelativeCompassCraftingBelowStability` to have any effect. |
-| **\*\*NEW\*\*** AllowRelativeCompassCraftingBelowStability | 0.9 | 0.1 || Temporal stability at or above this value (as measured at sea level) will prevent the crafting of a Relative Compass. NOTES: Vanilla stability values range from 0 to 1.5 (2 if temporal stability is disabled). Stability values below 1 cause a reduction in player stability. |
+| RestrictRelativeCompassCraftingByStability | true ||| Prevent crafting a Relative Compass based on temporal stability. Must be enabled for `AllowRelativeCompassCraftingBelowStability` to have any effect. |
+|AllowRelativeCompassCraftingBelowStability | 0.9 | 0.1 || Temporal stability at or above this value (as measured at sea level) will prevent the crafting of a Relative Compass. NOTES: Vanilla stability values range from 0 to 1.5 (2 if temporal stability is disabled). Stability values below 1 cause a reduction in player stability. |
 | -_Gameplay Options_- |-|-|-|-|
-| **\*\*NEW\*\*** ActiveTemporalStormsAffectCompasses | true ||| During active temporal storms, compasses will be distorted. |
-| **\*\*NEW\*\*** ApproachingTemporalStormsAffectCompasses | false ||| When a temporal storm is approaching, compasses will be distorted. |
-| **\*\*NEW\*\*** ApproachingTemporalStormInterferenceBeginsDays | 0.35 | 0.1 || Number of days before a storm that compasses will be affected by an approaching temporal storm. |
+| ActiveTemporalStormsAffectCompasses | true ||| During active temporal storms, compasses will be distorted. |
+| ApproachingTemporalStormsAffectCompasses | false ||| When a temporal storm is approaching, compasses will be distorted. |
+| ApproachingTemporalStormInterferenceBeginsDays | 0.35 | 0.1 || Number of days before a storm that compasses will be affected by an approaching temporal storm. |
 | -_Other_- |-|-|-|-|
 | AllowCompassesInOffhand | true ||| Allow compasses to be placed in the offhand slot. |
 
@@ -92,7 +92,7 @@ If an individual setting is deleted from a config file, it will be added back in
 |-|:-:|:-:|:-:|-|
 | MaximumPreGeneratedMeshes | 120 | 8 || Maximum number of meshes to use for animating needle movement of held compasses. |
 | ThirdPersonRenderUpdateTickIntervalMs | 1 | 1 || Milliseconds between updates to compasses rendered in another player's hand. Only updates on game ticks. |
-| **\*\*NEW\*\*** PlacedCompassRenderUpdateTickIntervalMs | 500 | 1 || Milliseconds between updates to compasses which are placed as blocks or displayed inside another. Only affects compasses with moving targets and only updates on game ticks. |
+| PlacedCompassRenderUpdateTickIntervalMs | 500 | 1 || Milliseconds between updates to compasses which are placed as blocks or displayed inside another. Only affects compasses with moving targets and only updates on game ticks. |
 
 </details>
 

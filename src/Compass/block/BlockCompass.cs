@@ -1,8 +1,10 @@
 using Compass.ConfigSystem;
 using Compass.Rendering;
 using Compass.Utility;
+using RiceConfig;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
@@ -239,7 +241,7 @@ namespace Compass {
       else {
         renderedAngle = (float)desiredAngle + GetAngleDistortion();
       }
-      renderinfo.ModelRef = GetBestMeshRef(capi, renderedAngle, trackerOrientation);
+      renderinfo.ModelRef.meshrefs[0] = GetBestMeshRef(capi, renderedAngle, trackerOrientation);
     }
 
     public IAdjustableItemStackRenderer CreateRendererFromStack(ICoreClientAPI capi, ItemStack displayableStack, BlockPos blockPos) {
@@ -401,7 +403,7 @@ namespace Compass {
       var y = compassStack?.Attributes.TryGetInt(AttrInt_TargetPosY);
       var z = compassStack?.Attributes.TryGetInt(AttrInt_TargetPosZ);
       if (x == null || y == null || z == null) { return null; }
-      return new BlockPos((int)x, (int)y, (int)z);
+      return new BlockPos((int)x, (int)y, (int)z, Vintagestory.API.Config.Dimensions.NormalWorld);
     }
 
     protected virtual void SetCompassEntityPos(ItemStack compassStack, BlockPos entityPos) {
@@ -416,7 +418,7 @@ namespace Compass {
       var y = compassStack?.TempAttributes.TryGetInt(AttrTempInt_EntityPosY);
       var z = compassStack?.TempAttributes.TryGetInt(AttrTempInt_EntityPosZ);
       if (x == null || y == null || z == null) { return null; }
-      return new BlockPos((int)x, (int)y, (int)z);
+      return new BlockPos((int)x, (int)y, (int)z, Vintagestory.API.Config.Dimensions.NormalWorld);
     }
 
     protected virtual void SetCompassEntityYaw(ItemStack compassStack, float entityYaw) {

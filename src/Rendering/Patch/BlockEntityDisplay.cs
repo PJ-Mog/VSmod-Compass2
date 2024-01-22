@@ -168,7 +168,7 @@ namespace Compass.Rendering {
       else {
         result = Vec3f.Zero;
       }
-      return Rotate(result, 0f - blockEntityGroundStorage.MeshAngle);
+      return Rotate(result, blockEntityGroundStorage.MeshAngle);
     }
 
     private static Vec3f Rotate(Vec3f offset, float rotateYRad) {

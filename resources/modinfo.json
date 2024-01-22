@@ -2,7 +2,7 @@
   "type": "code",
   "name": "Compass2",
   "modid": "compass2",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "A variety of compasses to guide you.",
   "website": "https://github.com/PJ-Mog/VSMod-Compass2",
   "authors": [
@@ -11,7 +11,7 @@
   ],
   "contributors": [],
   "dependency": {
-    "game": "1.18.0-pre.3",
+    "game": "1.19.0",
     "survival": ""
   },
   "side": "Universal",
