@@ -1,10 +1,8 @@
 using Compass.ConfigSystem;
 using Compass.Rendering;
 using Compass.Utility;
-using RiceConfig;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
@@ -68,7 +66,7 @@ namespace Compass {
       if (Attributes != null && Attributes["XZTrackerProps"].Exists) {
         Props = Attributes["XZTrackerProps"].AsObject<XZTrackerProps>(null, Code.Domain);
       }
-      Props = Props == null ? new XZTrackerProps() : Props;
+      Props ??= new XZTrackerProps();
 
       if (Props.NeedleShapeLocation == null) {
         Props.NeedleShapeLocation = DefaultNeedleShapeLocation;
@@ -219,7 +217,6 @@ namespace Compass {
       float trackerOrientation = 0;
       switch (renderTarget) {
         case EnumItemRenderTarget.Gui:
-        case EnumItemRenderTarget.HandFp:
           fromPos = viewingPlayer.Entity.Pos.AsBlockPos;
           trackerOrientation = (viewingPlayer as ClientPlayer).CameraYaw;
           break;
@@ -250,10 +247,10 @@ namespace Compass {
         renderer.TrackerTargetAngle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
       }
       else {
-        System.Action<float> rendererUpdater = (float dt) => {
+        void rendererUpdater(float dt) {
           if (renderer == null) { return; }
           renderer.TrackerTargetAngle = (displayableStack?.Collectible as IRenderableXZTracker)?.GetXZAngleToPoint(blockPos, displayableStack);
-        };
+        }
         renderer.TickListenerId = capi.World.RegisterGameTickListener(rendererUpdater, RendererUpdateIntervalMs);
       }
       renderer.AngleDistortionDelegate = GetAngleDistortion;

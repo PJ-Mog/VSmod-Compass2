@@ -20,7 +20,6 @@ namespace Compass {
       float trackerOrientation = 0;
       switch (renderTarget) {
         case EnumItemRenderTarget.Gui:
-        case EnumItemRenderTarget.HandFp:
           trackerOrientation = (capi.World.Player as ClientPlayer).CameraYaw;
           break;
         case EnumItemRenderTarget.HandTp:
