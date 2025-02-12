@@ -58,6 +58,10 @@ namespace Compass.Prepatch {
         patches.Add(GetRelativeCompassHandbookPatch());
       }
 
+      if (settings.DamageTakenToCraftSeraphCompass.Value <= 0.0f) {
+        patches.Add(GetSeraphCompassHandbookPatch());
+      }
+
       int applied = 0;
       int notFound = 0;
       int errorCount = 0;
@@ -143,6 +147,14 @@ namespace Compass.Prepatch {
         Op = EnumJsonPatchOp.Remove,
         File = new AssetLocation(CompassMod.Domain, CompassBlockPath),
         Path = "/attributes/handbookByType/*-relative/extraSections/1"
+      };
+    }
+
+    protected Vintagestory.ServerMods.NoObf.JsonPatch GetSeraphCompassHandbookPatch() {
+      return new Vintagestory.ServerMods.NoObf.JsonPatch() {
+        Op = EnumJsonPatchOp.Remove,
+        File = new AssetLocation(CompassMod.Domain, CompassBlockPath),
+        Path = "/attributes/handbookByType/*-player/extraSections/1"
       };
     }
 

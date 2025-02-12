@@ -55,6 +55,12 @@
           { "title": "compass2:compass-relative-handbook-help-use-title", "text": "compass2:compass-relative-handbook-help-use-text" },
           { "title": "compass2:compass-relative-handbook-help-craft-title", "text": "compass2:compass-relative-handbook-help-craft-text" }
         ]
+      },
+      "*-player": {
+        "extraSections": [
+          { "title": "compass2:compass-seraph-handbook-help-use-title", "text": "compass2:compass-seraph-handbook-help-use-text" },
+          { "title": "compass2:compass-seraph-handbook-help-craft-title", "text": "compass2:compass-seraph-handbook-help-craft-text" }
+        ]
       }
     }
   },

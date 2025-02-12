@@ -41,7 +41,7 @@ namespace Compass {
       if (DamageTakenToCraft > 0.0f) {
         var playerUid = inventory.InventoryID.Replace(GlobalConstants.craftingInvClassName + "-", "");
         var player = api.World.PlayerByUid(playerUid);
-        (player as IServerPlayer)?.SendIngameError(NotificationWillTakeDamage);
+        (player as IServerPlayer)?.SendIngameError(NotificationWillTakeDamage, langparams: DamageTakenToCraft);
       }
     }
 
