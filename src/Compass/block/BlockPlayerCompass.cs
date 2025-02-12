@@ -1,3 +1,4 @@
+using Compass.ConfigSystem;
 using Compass.PlayerPos;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -9,7 +10,15 @@ namespace Compass {
   public class BlockPlayerCompass : BlockCompass {
     protected static readonly string NotificationWillTakeDamage = CompassMod.Domain + "-will-take-damage";
 
+    protected float DamageTakenToCraft { get; set; } = 0.0f;
+
     public override EnumTargetType TargetType { get; protected set; } = EnumTargetType.Moving;
+
+    protected override void LoadServerSettings(CompassServerConfig serverSettings) {
+      base.LoadServerSettings(serverSettings);
+
+      DamageTakenToCraft = serverSettings.DamageTakenToCraftSeraphCompass.Value;
+    }
 
     protected override BlockPos GetTargetPos(ItemStack compassStack) {
       return GetCachedPos(GetCraftedByPlayerUID(compassStack));
@@ -28,20 +37,25 @@ namespace Compass {
         return;
       }
 
-      var playerUid = inventory.InventoryID.Replace(GlobalConstants.craftingInvClassName + "-", "");
-      var player = api.World.PlayerByUid(playerUid);
-      (player as IServerPlayer)?.SendIngameError(NotificationWillTakeDamage);
+      if (DamageTakenToCraft > 0.0f) {
+        var playerUid = inventory.InventoryID.Replace(GlobalConstants.craftingInvClassName + "-", "");
+        var player = api.World.PlayerByUid(playerUid);
+        (player as IServerPlayer)?.SendIngameError(NotificationWillTakeDamage);
+      }
     }
 
     protected override void OnSuccessfullyCrafted(IServerWorldAccessor world, IServerPlayer byPlayer, ItemSlot slot) {
       base.OnSuccessfullyCrafted(world, byPlayer, slot);
-      var damageSource = new DamageSource() {
-        Source = EnumDamageSource.Internal,
-        Type = EnumDamageType.Injury,
-        KnockbackStrength = 0f,
-        YDirKnockbackDiv = 0f
-      };
-      byPlayer.Entity.ReceiveDamage(damageSource, 0.5f);
+
+      if (DamageTakenToCraft > 0.0f) {
+        var damageSource = new DamageSource() {
+          Source = EnumDamageSource.Internal,
+          Type = EnumDamageType.Injury,
+          KnockbackStrength = 0f,
+          YDirKnockbackDiv = 0f
+        };
+        byPlayer.Entity.ReceiveDamage(damageSource, DamageTakenToCraft);
+      }
     }
 
     public override bool ShouldPointToTarget(BlockPos fromPos, ItemStack compassStack) {

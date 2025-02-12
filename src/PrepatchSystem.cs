@@ -22,6 +22,8 @@ namespace Compass.Prepatch {
     protected static readonly string ScrapRecipePath = "recipes/grid/compass-magnetic-from-scrap.json";
     protected static readonly string OriginRecipePath = "recipes/grid/compass-origin.json";
     protected static readonly string RelativeRecipePath = "recipes/grid/compass-relative.json";
+    protected static readonly string SeraphRecipeFromOriginPath = "recipes/grid/compass-player-from-origin.json";
+    protected static readonly string SeraphRecipeFromRelativePath = "recipes/grid/compass-player-from-relative.json";
 
     public override bool ShouldLoad(EnumAppSide forSide) {
       return forSide == EnumAppSide.Server;
@@ -34,13 +36,15 @@ namespace Compass.Prepatch {
     public override void AssetsLoaded(ICoreAPI api) {
       var settings = api.ModLoader.GetModSystem<CompassConfigurationSystem>().ServerSettings;
 
-      var patches = new List<Vintagestory.ServerMods.NoObf.JsonPatch>();
-
-      patches.Add(GetMagneticRecipeEnabledPatch(settings.EnableMagneticRecipe.Value));
-      patches.Add(GetScrapRecipeEnabledPatch(settings.EnableScrapRecipe.Value));
-      patches.Add(GetOriginRecipeEnabledPatch(settings.EnableOriginRecipe.Value));
-      patches.Add(GetRelativeRecipeEnabledPatch(settings.EnableRelativeRecipe.Value));
-      patches.Add(GetCompassOffhandPatch(api, settings.AllowCompassesInOffhand.Value));
+      var patches = new List<Vintagestory.ServerMods.NoObf.JsonPatch> {
+        GetMagneticRecipeEnabledPatch(settings.EnableMagneticRecipe.Value),
+        GetScrapRecipeEnabledPatch(settings.EnableScrapRecipe.Value),
+        GetOriginRecipeEnabledPatch(settings.EnableOriginRecipe.Value),
+        GetRelativeRecipeEnabledPatch(settings.EnableRelativeRecipe.Value),
+        GetSeraphRecipeFromOriginEnabledPatch(settings.EnableSeraphRecipe.Value),
+        GetSeraphRecipeFromRelativeEnabledPatch(settings.EnableSeraphRecipe.Value),
+        GetCompassOffhandPatch(api, settings.AllowCompassesInOffhand.Value)
+      };
 
       if (settings.EnableOriginRecipe.Value) {
         patches.Add(GetOriginGearQuantityPatch(settings.OriginCompassGears.Value));
@@ -77,6 +81,14 @@ namespace Compass.Prepatch {
 
     protected Vintagestory.ServerMods.NoObf.JsonPatch GetRelativeRecipeEnabledPatch(bool isEnabled) {
       return GetEnabledPatch(new AssetLocation(CompassMod.Domain, RelativeRecipePath), isEnabled);
+    }
+
+    protected Vintagestory.ServerMods.NoObf.JsonPatch GetSeraphRecipeFromOriginEnabledPatch(bool isEnabled) {
+      return GetEnabledPatch(new AssetLocation(CompassMod.Domain, SeraphRecipeFromOriginPath), isEnabled);
+    }
+
+    protected Vintagestory.ServerMods.NoObf.JsonPatch GetSeraphRecipeFromRelativeEnabledPatch(bool isEnabled) {
+      return GetEnabledPatch(new AssetLocation(CompassMod.Domain, SeraphRecipeFromRelativePath), isEnabled);
     }
 
     protected Vintagestory.ServerMods.NoObf.JsonPatch GetEnabledPatch(AssetLocation assetToPatch, bool isEnabled) {

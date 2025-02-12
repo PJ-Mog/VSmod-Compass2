@@ -28,7 +28,7 @@ namespace Compass.ConfigSystem {
     [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
     public Setting<bool> EnableOriginRecipe { get; set; } = new Setting<bool> {
       Default = true,
-      Description = "Allow crafting a Relative Compass."
+      Description = "Allow crafting an Origin Compass."
     };
 
     [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
@@ -98,6 +98,20 @@ namespace Compass.ConfigSystem {
       Default = 0.9f,
       Min = 0.1f,
       Description = "Temporal stability at or above this value (as measured at sea level) will prevent the crafting of a Relative Compass. NOTES: Vanilla stability values range from 0 to 1.5 (2 if temporal stability is disabled). Stability values below 1 cause a reduction in player stability."
+    };
+
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    public Setting<bool> EnableSeraphRecipe { get; set; } = new Setting<bool> {
+      Default = true,
+      Description = "Allow crafting a Seraph Compass."
+    };
+
+    [ProtoMember(6)]
+    [JsonProperty, JsonConverter(typeof(SettingConverter<float>))]
+    public Setting<float> DamageTakenToCraftSeraphCompass { get; set; } = new Setting<float> {
+      Default = 0.5f,
+      Description = "How much damage you will take to craft a Seraph Compass.",
+      Min = 0.0f
     };
   }
 
