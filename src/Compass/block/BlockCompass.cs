@@ -1,3 +1,4 @@
+using System;
 using Compass.ConfigSystem;
 using Compass.Rendering;
 using Compass.Utility;
@@ -355,7 +356,7 @@ namespace Compass {
 
     public virtual void SetHoldingEntityData(ItemStack compassStack, EntityAgent byEntity) {
       SetCompassEntityPos(compassStack, byEntity.Pos.AsBlockPos);
-      SetCompassEntityYaw(compassStack, byEntity.BodyYaw);
+      SetCompassEntityYaw(compassStack, byEntity.BodyYaw - GameMath.PIHALF);
     }
 
     #endregion
