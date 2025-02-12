@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Compass.ConfigSystem;
 using Compass.PlayerPos;
 using Vintagestory.API.Client;
@@ -61,6 +62,22 @@ namespace Compass {
     public override bool ShouldPointToTarget(BlockPos fromPos, ItemStack compassStack) {
       return base.ShouldPointToTarget(fromPos, compassStack)
              && GetTargetPos(compassStack) != null;
+    }
+
+    public override List<ItemStack> GetHandBookStacks(ICoreClientAPI capi) {
+      var list = base.GetHandBookStacks(capi);
+      foreach (var compassStack in list) {
+        SetCraftedByPlayerUID(compassStack, "handbook");
+      }
+      return list;
+    }
+
+    public override BlockDropItemStack[] GetDropsForHandbook(ItemStack handbookStack, IPlayer forPlayer) {
+      var list = base.GetDropsForHandbook(handbookStack, forPlayer);
+      foreach (var compassDrop in list) {
+        SetCraftedByPlayerUID(compassDrop.ResolvedItemstack, "handbook");
+      }
+      return list;
     }
   }
 }
