@@ -10,5 +10,6 @@
   "compass-relative-handbook-help-craft-title": "How to Craft",
   "compass-relative-handbook-help-craft-text": "The current area must have sufficient temporal turbulence (as measured at sea level) for the compass to attune and 'attach' to a given location. Rifts, while causing high turbulence, are too localized to allow the compass to attune properly.<br><br>If in possession of an unattuned compass, travel to an area with sufficient instability, throw the compass to the ground, and pick it back up.<br><br>(The compass will not appear in the output slot of the crafting grid if the area is too stable. The output slot only updates when a crafting ingredient is added or removed. When populated in the output slot, the compass will indicate it is 'unattuned', and should attune once collected.)",
 
-  "game:ingameerror-compass2-stability-too-high": "There is not enough temporal instability in this land for the compass to attune."
+  "game:ingameerror-compass2-stability-too-high": "There is not enough temporal instability in this land for the compass to attune.",
+  "game:ingameerror-compass2-will-take-damage": "I just need a few drops of blood. It will only hurt a little."
 }

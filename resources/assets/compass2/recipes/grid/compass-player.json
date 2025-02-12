@@ -1,0 +1,33 @@
+[
+  {
+    "ingredientPattern": "CKGG_____",
+    "width": 3,
+    "height": 3,
+    "ingredients": {
+      "G": { "type": "item", "code": "game:gear-temporal" },
+      "C": { "type": "block", "code": "compass2:compass-origin" },
+      "K": { "type": "item", "code": "game:knife-*", "isTool": true }
+    },
+    "shapeless": true,
+    "output": {
+      "type": "block",
+      "code": "compass2:compass-player"
+    },
+    "enabled": true
+  },
+  {
+    "ingredientPattern": "CK_______",
+    "width": 3,
+    "height": 3,
+    "ingredients": {
+      "C": { "type": "block", "code": "compass2:compass-relative" },
+      "K": { "type": "item", "code": "game:knife-*", "isTool": true }
+    },
+    "shapeless": true,
+    "output": {
+      "type": "block",
+      "code": "compass2:compass-player"
+    },
+    "enabled": true
+  }
+]
