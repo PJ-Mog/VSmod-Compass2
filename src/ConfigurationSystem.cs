@@ -113,6 +113,12 @@ namespace Compass.ConfigSystem {
       Description = "How much damage you will take to craft a Seraph Compass.",
       Min = 0.0f
     };
+
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    public Setting<bool> EnableSeraphReattunementRecipe { get; set; } = new Setting<bool> {
+      Default = true,
+      Description = "Allow reattuning a Seraph Compass."
+    };
   }
 
   public class CompassClientConfig : ClientConfig {

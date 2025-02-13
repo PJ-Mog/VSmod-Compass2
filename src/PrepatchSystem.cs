@@ -24,6 +24,7 @@ namespace Compass.Prepatch {
     protected static readonly string RelativeRecipePath = "recipes/grid/compass-relative.json";
     protected static readonly string SeraphRecipeFromOriginPath = "recipes/grid/compass-player-from-origin.json";
     protected static readonly string SeraphRecipeFromRelativePath = "recipes/grid/compass-player-from-relative.json";
+    protected static readonly string SeraphReattunementRecipePath = "recipes/grid/reattunement/compass-player.json";
 
     public override bool ShouldLoad(EnumAppSide forSide) {
       return forSide == EnumAppSide.Server;
@@ -43,7 +44,8 @@ namespace Compass.Prepatch {
         GetRelativeRecipeEnabledPatch(settings.EnableRelativeRecipe.Value),
         GetSeraphRecipeFromOriginEnabledPatch(settings.EnableSeraphRecipe.Value),
         GetSeraphRecipeFromRelativeEnabledPatch(settings.EnableSeraphRecipe.Value),
-        GetCompassOffhandPatch(api, settings.AllowCompassesInOffhand.Value)
+        GetCompassOffhandPatch(api, settings.AllowCompassesInOffhand.Value),
+        GetSeraphReattunementPatch(settings.EnableSeraphReattunementRecipe.Value)
       };
 
       if (settings.EnableOriginRecipe.Value) {
@@ -93,6 +95,10 @@ namespace Compass.Prepatch {
 
     protected Vintagestory.ServerMods.NoObf.JsonPatch GetSeraphRecipeFromRelativeEnabledPatch(bool isEnabled) {
       return GetEnabledPatch(new AssetLocation(CompassMod.Domain, SeraphRecipeFromRelativePath), isEnabled);
+    }
+
+    protected Vintagestory.ServerMods.NoObf.JsonPatch GetSeraphReattunementPatch(bool isEnabled) {
+      return GetEnabledPatch(new AssetLocation(CompassMod.Domain, SeraphReattunementRecipePath), isEnabled);
     }
 
     protected Vintagestory.ServerMods.NoObf.JsonPatch GetEnabledPatch(AssetLocation assetToPatch, bool isEnabled) {
