@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using Compass.ConfigSystem;
 using Compass.PlayerPos;
 using Vintagestory.API.Client;
@@ -78,6 +79,21 @@ namespace Compass {
         SetCraftedByPlayerUID(compassDrop.ResolvedItemstack, "handbook");
       }
       return list;
+    }
+
+    public override void GetHeldItemInfo(ItemSlot inSlot, StringBuilder dsc, IWorldAccessor world, bool withDebugInfo) {
+      base.GetHeldItemInfo(inSlot, dsc, world, withDebugInfo);
+
+      if (!IsCrafted(inSlot.Itemstack)) {
+        return;
+      }
+
+      var player = world.PlayerByUid(GetCraftedByPlayerUID(inSlot.Itemstack));
+      if (player == null) {
+        return;
+      }
+
+      dsc.AppendLine(Lang.Get(CompassMod.Domain + ":attuned-to-player", player.PlayerName));
     }
   }
 }

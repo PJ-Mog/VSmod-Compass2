@@ -5,6 +5,8 @@
   "block-compass-origin": "Origin Compass",
   "block-compass-player": "Seraph Compass",
 
+  "attuned-to-player": "Attuned to {0}",
+
   "compass-relative-handbook-help-use-title": "Use",
   "compass-relative-handbook-help-use-text": "Attunes to the location in which it was created, always pointing to that spot.",
   "compass-relative-handbook-help-craft-title": "How to Craft",
