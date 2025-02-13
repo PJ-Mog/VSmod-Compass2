@@ -40,7 +40,7 @@ namespace Compass.ConfigSystem {
     [JsonProperty, JsonConverter(typeof(SettingConverter<int>))]
     public Setting<int> OriginCompassGears { get; set; } = new Setting<int> {
       Default = 2,
-      Min = 1,
+      Min = 0,
       Max = 8,
       Description = "Number of Temporal Gears required to craft an Origin Compass."
     };
@@ -48,7 +48,7 @@ namespace Compass.ConfigSystem {
     [JsonProperty, JsonConverter(typeof(SettingConverter<int>))]
     public Setting<int> RelativeCompassGears { get; set; } = new Setting<int> {
       Default = 2,
-      Min = 1,
+      Min = 0,
       Max = 8,
       Description = "Number of Temporal Gears required to craft a Relative Compass."
     };
@@ -79,7 +79,7 @@ namespace Compass.ConfigSystem {
     [JsonProperty, JsonConverter(typeof(SettingConverter<float>))]
     public Setting<float> ApproachingTemporalStormInterferenceBeginsDays { get; set; } = new Setting<float> {
       Default = 0.35f,
-      Min = 0.1f,
+      Min = 0.01f,
       Description = "Number of days before a storm that compasses will be affected by an approaching temporal storm."
     };
     private bool ShouldSerializeApproachingTemporalStormInterferenceBeginsDays() => true;
@@ -115,13 +115,13 @@ namespace Compass.ConfigSystem {
     };
 
     [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
-    public Setting<bool> EnableSeraphReattunementRecipe { get; set; } = new Setting<bool> {
+    public Setting<bool> EnableReattuneSeraphRecipe { get; set; } = new Setting<bool> {
       Default = true,
       Description = "Allow reattuning a Seraph Compass."
     };
 
     [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
-    public Setting<bool> EnableRelativeReattunementRecipe { get; set; } = new Setting<bool> {
+    public Setting<bool> EnableReattuneRelativeCompass { get; set; } = new Setting<bool> {
       Default = true,
       Description = "Allow reattuning a Relative Compass."
     };
