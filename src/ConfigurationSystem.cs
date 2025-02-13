@@ -119,6 +119,20 @@ namespace Compass.ConfigSystem {
       Default = true,
       Description = "Allow reattuning a Seraph Compass."
     };
+
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    public Setting<bool> EnableRelativeReattunementRecipe { get; set; } = new Setting<bool> {
+      Default = true,
+      Description = "Allow reattuning a Relative Compass."
+    };
+
+    [JsonProperty, JsonConverter(typeof(SettingConverter<int>))]
+    public Setting<int> ReattuneRelativeCompassGears { get; set; } = new Setting<int> {
+      Default = 1,
+      Min = 0,
+      Max = 8,
+      Description = "Number of Temporal Gears required to reattune a Relative Compass to a new location."
+    };
   }
 
   public class CompassClientConfig : ClientConfig {

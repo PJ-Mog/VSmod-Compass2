@@ -25,6 +25,7 @@ namespace Compass.Prepatch {
     protected static readonly string SeraphRecipeFromOriginPath = "recipes/grid/compass-player-from-origin.json";
     protected static readonly string SeraphRecipeFromRelativePath = "recipes/grid/compass-player-from-relative.json";
     protected static readonly string SeraphReattunementRecipePath = "recipes/grid/reattunement/compass-player.json";
+    protected static readonly string RelativeReattunementRecipePath = "recipes/grid/reattunement/compass-relative.json";
 
     public override bool ShouldLoad(EnumAppSide forSide) {
       return forSide == EnumAppSide.Server;
@@ -45,7 +46,8 @@ namespace Compass.Prepatch {
         GetSeraphRecipeFromOriginEnabledPatch(settings.EnableSeraphRecipe.Value),
         GetSeraphRecipeFromRelativeEnabledPatch(settings.EnableSeraphRecipe.Value),
         GetCompassOffhandPatch(api, settings.AllowCompassesInOffhand.Value),
-        GetSeraphReattunementPatch(settings.EnableSeraphReattunementRecipe.Value)
+        GetSeraphReattunementPatch(settings.EnableSeraphReattunementRecipe.Value),
+        GetRelativeReattunementPatch(settings.EnableRelativeReattunementRecipe.Value)
       };
 
       if (settings.EnableOriginRecipe.Value) {
@@ -62,6 +64,10 @@ namespace Compass.Prepatch {
 
       if (settings.DamageTakenToCraftSeraphCompass.Value <= 0.0f) {
         patches.Add(GetSeraphCompassHandbookPatch());
+      }
+
+      if (settings.EnableRelativeReattunementRecipe.Value) {
+        patches.Add(GetReattuneRelativeGearQuantityPatch(settings.ReattuneRelativeCompassGears.Value));
       }
 
       int applied = 0;
@@ -101,6 +107,10 @@ namespace Compass.Prepatch {
       return GetEnabledPatch(new AssetLocation(CompassMod.Domain, SeraphReattunementRecipePath), isEnabled);
     }
 
+    protected Vintagestory.ServerMods.NoObf.JsonPatch GetRelativeReattunementPatch(bool isEnabled) {
+      return GetEnabledPatch(new AssetLocation(CompassMod.Domain, RelativeReattunementRecipePath), isEnabled);
+    }
+
     protected Vintagestory.ServerMods.NoObf.JsonPatch GetEnabledPatch(AssetLocation assetToPatch, bool isEnabled) {
       return new Vintagestory.ServerMods.NoObf.JsonPatch() {
         Op = EnumJsonPatchOp.Replace,
@@ -116,6 +126,10 @@ namespace Compass.Prepatch {
 
     protected Vintagestory.ServerMods.NoObf.JsonPatch GetRelativeGearQuantityPatch(int quantityGears) {
       return GetGearsPatch(new AssetLocation(CompassMod.Domain, RelativeRecipePath), quantityGears);
+    }
+
+    protected Vintagestory.ServerMods.NoObf.JsonPatch GetReattuneRelativeGearQuantityPatch(int quantityGears) {
+      return GetGearsPatch(new AssetLocation(CompassMod.Domain, RelativeReattunementRecipePath), quantityGears);
     }
 
     protected Vintagestory.ServerMods.NoObf.JsonPatch GetGearsPatch(AssetLocation assetToPatch, int quantityGears) {
