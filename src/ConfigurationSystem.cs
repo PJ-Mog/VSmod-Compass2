@@ -125,10 +125,17 @@ namespace Compass.ConfigSystem {
     };
 
     [JsonProperty, JsonConverter(typeof(SettingConverter<int>))]
-    public Setting<int> ReattuneRelativeCompassGears { get; set; } = new Setting<int> {
+    public Setting<int> RelativeCompassGearsToReattune { get; set; } = new Setting<int> {
       Default = 1,
       Min = 0,
       Description = "Number of Temporal Gears required to reattune a Relative Compass to a new location."
+    };
+
+    [JsonProperty, JsonConverter(typeof(SettingConverter<int>))]
+    public Setting<int> SeraphCompassGearsToReattune { get; set; } = new Setting<int> {
+      Default = 0,
+      Min = 0,
+      Description = "Number of Temporal Gears required to reattune a Seraph Compass to a new seraph."
     };
   }
 

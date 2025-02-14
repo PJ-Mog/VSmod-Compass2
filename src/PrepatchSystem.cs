@@ -87,7 +87,7 @@ namespace Compass.Prepatch {
 
       AddEnablePatchFor(relativeRecipeReattune, CompassModServerSettings.EnableReattuneRelativeCompass.Value, jsonPatches);
       if (CompassModServerSettings.EnableReattuneRelativeCompass.Value) {
-        AddGearQuantityPatchesFor(relativeRecipeReattune, CompassModServerSettings.ReattuneRelativeCompassGears.Value, jsonPatches);
+        AddGearQuantityPatchesFor(relativeRecipeReattune, CompassModServerSettings.RelativeCompassGearsToReattune.Value, jsonPatches);
       }
     }
 
@@ -98,9 +98,13 @@ namespace Compass.Prepatch {
 
       AddEnablePatchFor(seraphRecipeFromOrigin, CompassModServerSettings.EnableSeraphRecipe.Value, jsonPatches);
       AddEnablePatchFor(seraphRecipeFromRelative, CompassModServerSettings.EnableSeraphRecipe.Value, jsonPatches);
-      AddEnablePatchFor(seraphRecipeReattune, CompassModServerSettings.EnableReattuneSeraphRecipe.Value, jsonPatches);
       if (CompassModServerSettings.DamageTakenToCraftSeraphCompass.Value <= 0.0f) {
         jsonPatches.Add(GetSeraphCompassHandbookPatch());
+      }
+
+      AddEnablePatchFor(seraphRecipeReattune, CompassModServerSettings.EnableReattuneSeraphRecipe.Value, jsonPatches);
+      if (CompassModServerSettings.EnableSeraphRecipe.Value) {
+        AddGearQuantityPatchesFor(seraphRecipeReattune, CompassModServerSettings.SeraphCompassGearsToReattune.Value, jsonPatches);
       }
     }
 
