@@ -41,7 +41,6 @@ namespace Compass.ConfigSystem {
     public Setting<int> OriginCompassGears { get; set; } = new Setting<int> {
       Default = 2,
       Min = 0,
-      Max = 8,
       Description = "Number of Temporal Gears required to craft an Origin Compass."
     };
 
@@ -49,7 +48,6 @@ namespace Compass.ConfigSystem {
     public Setting<int> RelativeCompassGears { get; set; } = new Setting<int> {
       Default = 2,
       Min = 0,
-      Max = 8,
       Description = "Number of Temporal Gears required to craft a Relative Compass."
     };
 
@@ -130,7 +128,6 @@ namespace Compass.ConfigSystem {
     public Setting<int> ReattuneRelativeCompassGears { get; set; } = new Setting<int> {
       Default = 1,
       Min = 0,
-      Max = 8,
       Description = "Number of Temporal Gears required to reattune a Relative Compass to a new location."
     };
   }

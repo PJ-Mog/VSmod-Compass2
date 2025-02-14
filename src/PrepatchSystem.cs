@@ -6,7 +6,6 @@ using JsonPatch.Operations;
 using JsonPatch.Operations.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using RiceConfig;
 using Tavis;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -66,67 +65,87 @@ namespace Compass.Prepatch {
     }
 
     protected void AddMagneticCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
-      jsonPatches.Add(GenerateEnablePatchFor(new AssetLocation(CompassMod.Domain, MagneticRecipePath), CompassModServerSettings.EnableMagneticRecipe.Value));
-      jsonPatches.Add(GenerateEnablePatchFor(new AssetLocation(CompassMod.Domain, ScrapRecipePath), CompassModServerSettings.EnableScrapRecipe.Value));
+      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, MagneticRecipePath), CompassModServerSettings.EnableMagneticRecipe.Value, jsonPatches);
+      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, ScrapRecipePath), CompassModServerSettings.EnableScrapRecipe.Value, jsonPatches);
     }
 
     protected void AddOriginCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
-      jsonPatches.Add(GenerateEnablePatchFor(new AssetLocation(CompassMod.Domain, OriginRecipePath), CompassModServerSettings.EnableOriginRecipe.Value));
+      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, OriginRecipePath), CompassModServerSettings.EnableOriginRecipe.Value, jsonPatches);
       if (CompassModServerSettings.EnableOriginRecipe.Value) {
-        jsonPatches.Add(GenerateGearsQuantityPatchFor(new AssetLocation(CompassMod.Domain, OriginRecipePath), CompassModServerSettings.OriginCompassGears));
+        AddGearQuantityPatchesFor(new AssetLocation(CompassMod.Domain, OriginRecipePath), CompassModServerSettings.OriginCompassGears.Value, jsonPatches);
       }
     }
 
     protected void AddRelativeCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
-      jsonPatches.Add(GenerateEnablePatchFor(new AssetLocation(CompassMod.Domain, RelativeRecipePath), CompassModServerSettings.EnableRelativeRecipe.Value));
-      jsonPatches.Add(GenerateEnablePatchFor(new AssetLocation(CompassMod.Domain, ReattuneRelativeRecipePath), CompassModServerSettings.EnableReattuneRelativeCompass.Value));
+      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, RelativeRecipePath), CompassModServerSettings.EnableRelativeRecipe.Value, jsonPatches);
+      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, ReattuneRelativeRecipePath), CompassModServerSettings.EnableReattuneRelativeCompass.Value, jsonPatches);
       if (CompassModServerSettings.EnableRelativeRecipe.Value) {
-        jsonPatches.Add(GenerateGearsQuantityPatchFor(new AssetLocation(CompassMod.Domain, RelativeRecipePath), CompassModServerSettings.RelativeCompassGears));
+        AddGearQuantityPatchesFor(new AssetLocation(CompassMod.Domain, RelativeRecipePath), CompassModServerSettings.RelativeCompassGears.Value, jsonPatches);
       }
       if (!CompassModServerSettings.RestrictRelativeCompassCraftingByStability.Value || !Api.World.Config.GetBool("temporalStability", true)) {
         jsonPatches.Add(GetRelativeCompassHandbookPatch());
       }
       if (CompassModServerSettings.EnableReattuneRelativeCompass.Value) {
-        jsonPatches.Add(GenerateGearsQuantityPatchFor(new AssetLocation(CompassMod.Domain, ReattuneRelativeRecipePath), CompassModServerSettings.ReattuneRelativeCompassGears));
+        AddGearQuantityPatchesFor(new AssetLocation(CompassMod.Domain, ReattuneRelativeRecipePath), CompassModServerSettings.ReattuneRelativeCompassGears.Value, jsonPatches);
       }
     }
 
     protected void AddSeraphCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
-      jsonPatches.Add(GenerateEnablePatchFor(new AssetLocation(CompassMod.Domain, SeraphRecipeFromOriginPath), CompassModServerSettings.EnableSeraphRecipe.Value));
-      jsonPatches.Add(GenerateEnablePatchFor(new AssetLocation(CompassMod.Domain, SeraphRecipeFromRelativePath), CompassModServerSettings.EnableSeraphRecipe.Value));
-      jsonPatches.Add(GenerateEnablePatchFor(new AssetLocation(CompassMod.Domain, ReattuneSeraphRecipePath), CompassModServerSettings.EnableReattuneSeraphRecipe.Value));
+      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, SeraphRecipeFromOriginPath), CompassModServerSettings.EnableSeraphRecipe.Value, jsonPatches);
+      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, SeraphRecipeFromRelativePath), CompassModServerSettings.EnableSeraphRecipe.Value, jsonPatches);
+      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, ReattuneSeraphRecipePath), CompassModServerSettings.EnableReattuneSeraphRecipe.Value, jsonPatches);
       if (CompassModServerSettings.DamageTakenToCraftSeraphCompass.Value <= 0.0f) {
         jsonPatches.Add(GetSeraphCompassHandbookPatch());
       }
     }
 
-    protected Vintagestory.ServerMods.NoObf.JsonPatch GenerateEnablePatchFor(AssetLocation assetToPatch, bool isEnabled) {
-      return new Vintagestory.ServerMods.NoObf.JsonPatch() {
+    protected void AddEnablePatchFor(AssetLocation assetToPatch, bool isEnabled, List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
+      jsonPatches.Add(new() {
         Op = EnumJsonPatchOp.Replace,
         File = assetToPatch,
         Path = "/enabled",
         Value = JsonObject.FromJson(JsonConvert.SerializeObject(isEnabled))
-      };
+      });
     }
 
     protected class AssetWithIngredientPattern {
       public string IngredientPattern = "";
     }
 
-    // Assumes a max size (3x3), shapeless grid recipe with 'G' as the ingredient key for temporal gears and the given setting's Max value correctly set
-    protected Vintagestory.ServerMods.NoObf.JsonPatch GenerateGearsQuantityPatchFor(AssetLocation assetLocation, Setting<int> gearQuantitySetting) {
+    // Assumes a grid recipe of max size (3x3), shapeless, with 'G' as the ingredient key for temporal gears and has an explicit quantity for those gears.
+    protected void AddGearQuantityPatchesFor(AssetLocation assetLocation, int gearQuantity, List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
       // Extract current ingredient pattern and erase all 'G' and '_' from it
       var asset = Api.Assets.TryGet(assetLocation);
-      var baseIngredientPattern = asset.ToObject<AssetWithIngredientPattern>().IngredientPattern.Replace("G", "").Replace("_", "");
-      // Generate 'G' and '_' pattern based on setting's chosen value and maximum allowable value
-      string newGearPattern = "".PadRight(gearQuantitySetting.Value, 'G').PadRight(gearQuantitySetting.Max, '_');
-      // Append new G_ string to end of modified initial string
-      return new Vintagestory.ServerMods.NoObf.JsonPatch() {
+      var ingredientPattern = asset.ToObject<AssetWithIngredientPattern>().IngredientPattern.Replace("G", "").Replace("_", "");
+      if (ingredientPattern.Length >= 9) {
+        Api.Logger.ModError("Could not modify temporal gears in {0}. Not enough space in the pattern '{1}'. Skipping.", assetLocation, ingredientPattern);
+        return;
+      }
+
+      // For general user acceptance purposes, temporal gears in the recipes are spread out, 1 per slot, unless the configured quantity is not possible without stacking.
+      // Shapeless recipes that require multiple of the same item do not care if those items are stacked or spread out.
+      // A recipe with 9 of the same item in a single stack and a recipe with 9 of the same item, 1 in each slot of the grid are the same,
+      // and each one can be crafted with the other's arrangement.
+      // A user configuring the required gears beyond what can fit into the grid without stacking is assumed to have external modifications that allow this.
+      if (ingredientPattern.Length + gearQuantity > 9) {
+        ingredientPattern = (ingredientPattern + "G").PadRight(9, '_');
+        jsonPatches.Add(new() {
+          Op = EnumJsonPatchOp.Replace,
+          File = assetLocation,
+          Path = "/ingredients/G/quantity",
+          Value = JsonObject.FromJson(JsonConvert.SerializeObject(gearQuantity))
+        });
+      }
+      else {
+        ingredientPattern = (ingredientPattern + "".PadRight(gearQuantity, 'G')).PadRight(9, '_');
+      }
+
+      jsonPatches.Add(new() {
         Op = EnumJsonPatchOp.Replace,
         File = assetLocation,
         Path = "/ingredientPattern",
-        Value = JsonObject.FromJson(JsonConvert.SerializeObject(baseIngredientPattern + newGearPattern))
-      };
+        Value = JsonObject.FromJson(JsonConvert.SerializeObject(ingredientPattern))
+      });
     }
 
     protected class AssetWithStorageFlags {
