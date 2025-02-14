@@ -4,12 +4,14 @@
   "height": 3,
   "ingredients": {
     "C": { "type": "block", "code": "compass2:compass-relative" },
-    "K": { "type": "item", "code": "game:knife-*", "isTool": true }
+    "K": { "type": "item", "code": "game:knife-*", "isTool": true },
+    "G": { "type": "item", "code": "game:gear-temporal", "quantity": 1 }
   },
   "shapeless": true,
   "output": {
     "type": "block",
     "code": "compass2:compass-player"
   },
-  "enabled": true
+  "enabled": true,
+  "recipeGroup": 2
 }

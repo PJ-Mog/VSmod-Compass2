@@ -3,7 +3,7 @@
   "width": 3,
   "height": 3,
   "ingredients": {
-    "G": { "type": "item", "code": "game:gear-temporal" },
+    "G": { "type": "item", "code": "game:gear-temporal", "quantity": 1 },
     "C": { "type": "block", "code": "compass2:compass-origin" }
   },
   "shapeless": true,
@@ -11,5 +11,6 @@
     "type": "block",
     "code": "compass2:compass-relative"
   },
-  "enabled": true
+  "enabled": true,
+  "recipeGroup": 1
 }

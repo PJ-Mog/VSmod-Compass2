@@ -11,5 +11,6 @@
     "type": "block",
     "code": "compass2:compass-magnetic"
   },
-  "enabled": true
+  "enabled": true,
+  "recipeGroup": 2
 }
