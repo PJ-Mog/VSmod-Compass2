@@ -13,15 +13,7 @@ using Vintagestory.ServerMods.NoObf;
 
 namespace Compass.Prepatch {
   public class CompassPrepatchSystem : ModSystem {
-    protected static readonly string CompassBlockPath = "blocktypes/compass.json";
-    protected static readonly string MagneticRecipePath = "recipes/grid/compass-magnetic.json";
-    protected static readonly string ScrapRecipePath = "recipes/grid/compass-magnetic-from-scrap.json";
-    protected static readonly string OriginRecipePath = "recipes/grid/compass-origin.json";
-    protected static readonly string RelativeRecipePath = "recipes/grid/compass-relative.json";
-    protected static readonly string SeraphRecipeFromOriginPath = "recipes/grid/compass-player-from-origin.json";
-    protected static readonly string SeraphRecipeFromRelativePath = "recipes/grid/compass-player-from-relative.json";
-    protected static readonly string ReattuneSeraphRecipePath = "recipes/grid/reattunement/compass-player.json";
-    protected static readonly string ReattuneRelativeRecipePath = "recipes/grid/reattunement/compass-relative.json";
+    protected static readonly AssetLocation CompassBlock = new(CompassMod.Domain, "blocktypes/compass.json");
 
     protected ICoreAPI Api;
     protected CompassServerConfig CompassModServerSettings => Api.ModLoader.GetModSystem<CompassConfigurationSystem>().ServerSettings;
@@ -61,39 +53,52 @@ namespace Compass.Prepatch {
     }
 
     protected void AddGeneralPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
-      jsonPatches.Add(GenerateOffhandPatchFor(new AssetLocation(CompassMod.Domain, CompassBlockPath), CompassModServerSettings.AllowCompassesInOffhand.Value));
+      jsonPatches.Add(GenerateOffhandPatchFor(CompassBlock, CompassModServerSettings.AllowCompassesInOffhand.Value));
     }
 
     protected void AddMagneticCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
-      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, MagneticRecipePath), CompassModServerSettings.EnableMagneticRecipe.Value, jsonPatches);
-      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, ScrapRecipePath), CompassModServerSettings.EnableScrapRecipe.Value, jsonPatches);
+      var magnetiteRecipe = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-magnetic.json");
+      var scrapRecipe = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-magnetic-from-scrap.json");
+
+      AddEnablePatchFor(magnetiteRecipe, CompassModServerSettings.EnableMagneticRecipe.Value, jsonPatches);
+      AddEnablePatchFor(scrapRecipe, CompassModServerSettings.EnableScrapRecipe.Value, jsonPatches);
     }
 
     protected void AddOriginCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
-      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, OriginRecipePath), CompassModServerSettings.EnableOriginRecipe.Value, jsonPatches);
+      var originRecipe = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-origin.json");
+
+      AddEnablePatchFor(originRecipe, CompassModServerSettings.EnableOriginRecipe.Value, jsonPatches);
       if (CompassModServerSettings.EnableOriginRecipe.Value) {
-        AddGearQuantityPatchesFor(new AssetLocation(CompassMod.Domain, OriginRecipePath), CompassModServerSettings.OriginCompassGears.Value, jsonPatches);
+        AddGearQuantityPatchesFor(originRecipe, CompassModServerSettings.OriginCompassGears.Value, jsonPatches);
       }
     }
 
     protected void AddRelativeCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
-      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, RelativeRecipePath), CompassModServerSettings.EnableRelativeRecipe.Value, jsonPatches);
-      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, ReattuneRelativeRecipePath), CompassModServerSettings.EnableReattuneRelativeCompass.Value, jsonPatches);
+      var relativeRecipe = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-relative.json");
+      var relativeRecipeReattune = new AssetLocation(CompassMod.Domain, "recipes/grid/reattunement/compass-relative.json");
+
+      AddEnablePatchFor(relativeRecipe, CompassModServerSettings.EnableRelativeRecipe.Value, jsonPatches);
       if (CompassModServerSettings.EnableRelativeRecipe.Value) {
-        AddGearQuantityPatchesFor(new AssetLocation(CompassMod.Domain, RelativeRecipePath), CompassModServerSettings.RelativeCompassGears.Value, jsonPatches);
+        AddGearQuantityPatchesFor(relativeRecipe, CompassModServerSettings.RelativeCompassGears.Value, jsonPatches);
       }
       if (!CompassModServerSettings.RestrictRelativeCompassCraftingByStability.Value || !Api.World.Config.GetBool("temporalStability", true)) {
         jsonPatches.Add(GetRelativeCompassHandbookPatch());
       }
+
+      AddEnablePatchFor(relativeRecipeReattune, CompassModServerSettings.EnableReattuneRelativeCompass.Value, jsonPatches);
       if (CompassModServerSettings.EnableReattuneRelativeCompass.Value) {
-        AddGearQuantityPatchesFor(new AssetLocation(CompassMod.Domain, ReattuneRelativeRecipePath), CompassModServerSettings.ReattuneRelativeCompassGears.Value, jsonPatches);
+        AddGearQuantityPatchesFor(relativeRecipeReattune, CompassModServerSettings.ReattuneRelativeCompassGears.Value, jsonPatches);
       }
     }
 
     protected void AddSeraphCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
-      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, SeraphRecipeFromOriginPath), CompassModServerSettings.EnableSeraphRecipe.Value, jsonPatches);
-      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, SeraphRecipeFromRelativePath), CompassModServerSettings.EnableSeraphRecipe.Value, jsonPatches);
-      AddEnablePatchFor(new AssetLocation(CompassMod.Domain, ReattuneSeraphRecipePath), CompassModServerSettings.EnableReattuneSeraphRecipe.Value, jsonPatches);
+      var seraphRecipeFromOrigin = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-player-from-origin.json");
+      var seraphRecipeFromRelative = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-player-from-relative.json");
+      var seraphRecipeReattune = new AssetLocation(CompassMod.Domain, "recipes/grid/reattunement/compass-player.json");
+
+      AddEnablePatchFor(seraphRecipeFromOrigin, CompassModServerSettings.EnableSeraphRecipe.Value, jsonPatches);
+      AddEnablePatchFor(seraphRecipeFromRelative, CompassModServerSettings.EnableSeraphRecipe.Value, jsonPatches);
+      AddEnablePatchFor(seraphRecipeReattune, CompassModServerSettings.EnableReattuneSeraphRecipe.Value, jsonPatches);
       if (CompassModServerSettings.DamageTakenToCraftSeraphCompass.Value <= 0.0f) {
         jsonPatches.Add(GetSeraphCompassHandbookPatch());
       }
@@ -176,7 +181,7 @@ namespace Compass.Prepatch {
     protected Vintagestory.ServerMods.NoObf.JsonPatch GetRelativeCompassHandbookPatch() {
       return new Vintagestory.ServerMods.NoObf.JsonPatch() {
         Op = EnumJsonPatchOp.Remove,
-        File = new AssetLocation(CompassMod.Domain, CompassBlockPath),
+        File = CompassBlock,
         Path = "/attributes/handbookByType/*-relative/extraSections/1"
       };
     }
@@ -184,7 +189,7 @@ namespace Compass.Prepatch {
     protected Vintagestory.ServerMods.NoObf.JsonPatch GetSeraphCompassHandbookPatch() {
       return new Vintagestory.ServerMods.NoObf.JsonPatch() {
         Op = EnumJsonPatchOp.Remove,
-        File = new AssetLocation(CompassMod.Domain, CompassBlockPath),
+        File = CompassBlock,
         Path = "/attributes/handbookByType/*-player/extraSections/1"
       };
     }
