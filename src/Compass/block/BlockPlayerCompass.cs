@@ -34,8 +34,7 @@ namespace Compass {
     public override void OnCreatedByCrafting(ItemSlot[] allInputslots, ItemSlot outputSlot, GridRecipe byRecipe) {
       var inventory = outputSlot.Inventory;
       if (inventory == null) {
-        // Player is viewing an item in the handbook which is a crafting ingredient for this.
-        SetCraftedByPlayerUID(outputSlot.Itemstack, "handbook");
+        // Probably a handbook/creative instance.
         return;
       }
 
@@ -63,22 +62,6 @@ namespace Compass {
     public override bool ShouldPointToTarget(BlockPos fromPos, ItemStack compassStack) {
       return base.ShouldPointToTarget(fromPos, compassStack)
              && GetTargetPos(compassStack) != null;
-    }
-
-    public override List<ItemStack> GetHandBookStacks(ICoreClientAPI capi) {
-      var list = base.GetHandBookStacks(capi);
-      foreach (var compassStack in list) {
-        SetCraftedByPlayerUID(compassStack, "handbook");
-      }
-      return list;
-    }
-
-    public override BlockDropItemStack[] GetDropsForHandbook(ItemStack handbookStack, IPlayer forPlayer) {
-      var list = base.GetDropsForHandbook(handbookStack, forPlayer);
-      foreach (var compassDrop in list) {
-        SetCraftedByPlayerUID(compassDrop.ResolvedItemstack, "handbook");
-      }
-      return list;
     }
 
     public override void GetHeldItemInfo(ItemSlot inSlot, StringBuilder dsc, IWorldAccessor world, bool withDebugInfo) {
