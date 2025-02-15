@@ -2,10 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <TargetGameVersion>1.20</TargetGameVersion>
-    <EnvironmentStyle>Rice</EnvironmentStyle>
-    <!-- <EnvironmentStyle>Copygirl</EnvironmentStyle> -->
-    <VSPath Condition="'$(EnvironmentStyle)' == 'Copygirl'">$(VINTAGE_STORY)</VSPath>
-    <VSPath Condition="'$(EnvironmentStyle)' == 'Rice'">$(VINTAGE_STORY_DEV)/$(TargetGameVersion)</VSPath>
+    <VSPath>$(VINTAGE_STORY_DEV)/$(TargetGameVersion)</VSPath>
   </PropertyGroup>
   
   <ItemGroup>

@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Client (.NET)",
+      "name": "Launch Singleplayer",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "Build (Debug)",
@@ -10,7 +10,7 @@
       "args": [
         "--playStyle" , "preset-surviveandbuild",
         "--openWorld" , "modding test world ${input:vsVersion} ${workspaceFolderBasename}",
-        "--dataPath", "${env:VINTAGE_STORY_DEV}/../VintagestoryDevDataUS",
+        "--dataPath", "${env:VINTAGE_STORY_DEV_DATA_US}",
         "--addModPath", "${workspaceFolder}/bin/Debug/zip"
       ],
       "env": {
@@ -21,18 +21,45 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Client (.NET) [Copygirl style]",
+      "name": "Launch Server",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "Build (Debug)",
-      "program": "${env:VINTAGE_STORY}/Vintagestory.exe",
+      "program": "${env:VINTAGE_STORY_DEV}/${input:vsVersion}/VintagestoryServer.exe",
       "args": [
-        "--playStyle" , "preset-surviveandbuild",
-        "--openWorld" , "modding test world cpg",
+        "--dataPath", "${env:VINTAGE_STORY_DEV_DATA_SERVER}",
         "--addModPath", "${workspaceFolder}/bin/Debug/zip"
       ],
+      "env": {
+        // "TEXTURE_DEBUG_DISPOSE": "1",
+        // "VAO_DEBUG_DISPOSE": "1"
+      },
       "console": "internalConsole",
       "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": "Launch Client",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Build (Debug)",
+      "program": "${env:VINTAGE_STORY_DEV}/${input:vsVersion}/Vintagestory.exe",
+      "args": [
+        "--connect" , "localhost:42420",
+        "--dataPath", "${env:VINTAGE_STORY_DEV_DATA_US}",
+        "--addModPath", "${workspaceFolder}/bin/Debug/zip"
+      ],
+      "env": {
+        // "TEXTURE_DEBUG_DISPOSE": "1",
+        // "VAO_DEBUG_DISPOSE": "1"
+      },
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnSessionStart"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Compound",
+      "configurations": ["Launch Server", "Launch Client"]
     }
   ],
   "inputs": [
