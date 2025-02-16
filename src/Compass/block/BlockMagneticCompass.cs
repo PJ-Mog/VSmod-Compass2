@@ -1,11 +1,38 @@
+using System.Linq;
+using Compass.ConfigSystem;
 using Compass.Utility;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.Client.NoObf;
+using Vintagestory.GameContent;
 
 namespace Compass {
   public class BlockMagneticCompass : BlockCompass {
+    protected CompassClientConfig ClientSettings;
+    protected override void LoadClientSettings(ICoreClientAPI capi) {
+      base.LoadClientSettings(capi);
+      ClientSettings = capi.ModLoader.GetModSystem<CompassConfigurationSystem>()?.ClientSettings;
+    }
+
+    protected override MeshData GenNeedleMesh(ICoreClientAPI capi, float YRotationDegrees) {
+      if (ClientSettings.EnableColorTippedMagneticCompass.Value) {
+        CompositeTexture texture = new(Base: this.Textures["needle"].Base);
+        texture.BlendedOverlays ??= new BlendedOverlayTexture[] { new() };
+        texture.BlendedOverlays[0].Base = new AssetLocation("compass2", "needle_overlay_test");
+        texture.BlendedOverlays[0].BlendMode = EnumColorBlendMode.Overlay;
+        texture.Bake(capi.Assets);
+
+        ShapeTextureSource textureSource = new(capi, NeedleShape, this.ToString());
+        textureSource.textures["needle"] = texture;
+
+        var mesh = GenMesh(capi, NeedleShape, new Vec3f(0f, YRotationDegrees, 0f), textureSource);
+        SetGlowFlags(mesh, Props.NeedleGlowLevel);
+        return mesh;
+      }
+      return base.GenNeedleMesh(capi, YRotationDegrees);
+    }
+
     protected override float? GetXZAngleToTargetRadians(BlockPos fromPos, ItemStack compass) {
       return 0f;
     }

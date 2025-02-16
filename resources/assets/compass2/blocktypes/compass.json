@@ -90,19 +90,6 @@
   "lightabsorption": 0,
 	"heldRightTpIdleAnimation": "holdinglanternrighthand",
 	"heldLeftTpIdleAnimation": "holdinglanternlefthand",
-  "fpHandTransform": {
-    "translation": {
-      "x": -0.35,
-      "y": 0.7,
-      "z": 0.25
-    },
-    "rotation": {
-      "x": 180,
-      "y": 45,
-      "z": -165
-    },
-    "scale": 2.0
-  },
   "guiTransform": {
     "translation": {
       "x": 0,

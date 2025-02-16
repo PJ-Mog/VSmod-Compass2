@@ -140,6 +140,12 @@ namespace Compass.ConfigSystem {
   }
 
   public class CompassClientConfig : ClientConfig {
+    [JsonProperty, JsonConverter(typeof(SettingConverter<bool>))]
+    public Setting<bool> EnableColorTippedMagneticCompass { get; set; } = new Setting<bool> {
+      Default = true,
+      Description = "Whether a magnetic compass should have a colored tip for contrast/visibility."
+    };
+
     [JsonProperty, JsonConverter(typeof(SettingConverter<int>))]
     public Setting<int> MaximumPreGeneratedMeshes { get; set; } = new Setting<int> {
       Default = 120,

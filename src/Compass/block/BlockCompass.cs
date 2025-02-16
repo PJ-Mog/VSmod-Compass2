@@ -1,4 +1,3 @@
-using System;
 using Compass.ConfigSystem;
 using Compass.Rendering;
 using Compass.Utility;
@@ -204,11 +203,24 @@ namespace Compass {
       return shape;
     }
 
-    protected virtual MeshData GenMesh(ICoreClientAPI capi, Shape shape, Vec3f rotationDeg = null) {
+    protected virtual MeshData GenMesh(ICoreClientAPI capi, Shape shape, Vec3f rotationDeg = null, ITexPositionSource textureSource = null) {
       if (shape == null) {
         return new MeshData(4, 3);
       }
-      capi.Tesselator.TesselateShape(this, shape, out MeshData mesh, rotationDeg);
+      var asdf = capi.Tesselator.GetTextureSource(this);
+      var compositeTexture = new CompositeTexture();
+      compositeTexture.Base = this.Textures["needle"].Base;
+      compositeTexture.BlendedOverlays ??= new BlendedOverlayTexture[] { new() };
+      compositeTexture.BlendedOverlays[0].Base = new AssetLocation(CompassMod.Domain, "needle_overlay_test");
+      compositeTexture.BlendedOverlays[0].BlendMode = EnumColorBlendMode.Overlay;
+      compositeTexture.Bake(capi.Assets);
+      MeshData mesh;
+      if (textureSource == null) {
+        capi.Tesselator.TesselateShape(this, shape, out mesh, rotationDeg);
+      }
+      else {
+        capi.Tesselator.TesselateShape(Code, shape, out mesh, textureSource, rotationDeg);
+      }
       return mesh;
     }
 
