@@ -22,7 +22,7 @@
 				"east": { "texture": "#needle", "uv": [ 11.0, 1.0, 11.5, 1.5 ] },
 				"south": { "texture": "#needle", "uv": [ 12.0, 1.0, 14.0, 1.5 ] },
 				"west": { "texture": "#needle", "uv": [ 15.0, 1.0, 15.5, 1.5 ] },
-				"up": { "texture": "#needle", "uv": [ 8.0, 0.0, 10.0, 0.5 ] },
+				"up": { "texture": "#needle", "uv": [ 7.0, 0.0, 9.0, 0.5 ] },
 				"down": { "texture": "#needle", "uv": [ 11.0, 0.0, 13.0, 0.5 ], "enabled": false }
 			}
 		}
