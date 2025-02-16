@@ -72,7 +72,13 @@
   },
   "textures": { "shell": { "base": "game:block/clay/ceramic-dark" } },
   "texturesByType": {
-    "*-magnetic": { "needle": { "base": "game:item/resource/nugget/magnetite" } },
+    "*-magnetic": {
+      "needle": { "base": "game:item/resource/nugget/magnetite" },
+      "alt_needle": {
+        "base": "game:item/resource/nugget/magnetite",
+        "blendedOverlays": [{"base": "compass2:needle_overlay_test", "blendMode": "Overlay"}]
+      }
+    },
     "*-relative": { "needle": { "base": "game:block/metal/plate/gold" } },
     "*-origin": { "needle": { "base": "game:block/fire-blue" } },
     "*-player": { "needle": { "base": "game:item/resource/nugget/malachite" } }

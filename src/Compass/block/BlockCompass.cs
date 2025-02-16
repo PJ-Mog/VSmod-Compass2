@@ -136,7 +136,7 @@ namespace Compass {
       return ObjectCacheUtil.GetOrCreate(capi, MeshRefsCacheKey, () => {
         var meshRefs = new MeshRef[PreGeneratedMeshCount];
         for (var angleIndex = 0; angleIndex < PreGeneratedMeshCount; angleIndex++) {
-          float angleDegrees = ((float)angleIndex / PreGeneratedMeshCount * 360);
+          float angleDegrees = (float)angleIndex / PreGeneratedMeshCount * 360;
           meshRefs[angleIndex] = capi.Render.UploadMesh(GenFullMesh(capi, angleDegrees));
         }
         return meshRefs;
@@ -203,24 +203,12 @@ namespace Compass {
       return shape;
     }
 
-    protected virtual MeshData GenMesh(ICoreClientAPI capi, Shape shape, Vec3f rotationDeg = null, ITexPositionSource textureSource = null) {
+    protected virtual MeshData GenMesh(ICoreClientAPI capi, Shape shape, Vec3f rotationDeg = null) {
       if (shape == null) {
         return new MeshData(4, 3);
       }
-      var asdf = capi.Tesselator.GetTextureSource(this);
-      var compositeTexture = new CompositeTexture();
-      compositeTexture.Base = this.Textures["needle"].Base;
-      compositeTexture.BlendedOverlays ??= new BlendedOverlayTexture[] { new() };
-      compositeTexture.BlendedOverlays[0].Base = new AssetLocation(CompassMod.Domain, "needle_overlay_test");
-      compositeTexture.BlendedOverlays[0].BlendMode = EnumColorBlendMode.Overlay;
-      compositeTexture.Bake(capi.Assets);
-      MeshData mesh;
-      if (textureSource == null) {
-        capi.Tesselator.TesselateShape(this, shape, out mesh, rotationDeg);
-      }
-      else {
-        capi.Tesselator.TesselateShape(Code, shape, out mesh, textureSource, rotationDeg);
-      }
+
+      capi.Tesselator.TesselateShape(this, shape, out MeshData mesh, rotationDeg);
       return mesh;
     }
 
