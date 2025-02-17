@@ -3,6 +3,7 @@ using Compass.Rendering;
 using Compass.Utility;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
@@ -51,6 +52,9 @@ namespace Compass {
         var capi = api as ICoreClientAPI;
         LoadClientSettings(capi);
         GetMeshRefs(capi);
+      }
+      else {
+        RegisterServerCommands(api);
       }
     }
 
@@ -428,28 +432,150 @@ namespace Compass {
     }
 
     #endregion
-    #region Admin
+    #region Commands
 
-    internal virtual void AdminReset(ItemStack compassStack) {
-      SetCraftedByPlayerUID(compassStack, null);
-      SetTargetPos(compassStack, null);
+    protected static void RegisterServerCommands(ICoreAPI api) {
+      var baseCommand = api.ChatCommands.GetOrCreate("compass2")
+        .WithDescription("Commands for the Compass2 mod.")
+        .RequiresPrivilege(Privilege.chat);
+
+      baseCommand.BeginSubCommand("show")
+        .WithDescription("View data for the currently held compass")
+        .RequiresPrivilege(Privilege.controlserver)
+        .HandleWith(OnShow)
+        .EndSubCommand();
+
+      baseCommand.BeginSubCommand("set")
+        .WithDescription("Change data for the currently held compass.")
+        .RequiresPrivilege(Privilege.controlserver)
+        .BeginSubCommand("craftedBy")
+          .WithDescription("Change who originally created the compass. Can use a player's Name or UID or a made-up value.")
+          .WithArgs(api.ChatCommands.Parsers.Word("newCrafter"))
+          .HandleWith(OnSetCraftedBy)
+          .EndSubCommand()
+        .BeginSubCommand("target")
+          .WithDescription("Change the compass's targeted position to the provided coordinates (current position if not provided).")
+          .WithArgs(api.ChatCommands.Parsers.OptionalWorldPosition("pos"))
+          .HandleWith(OnSetTarget)
+          .EndSubCommand()
+        .EndSubCommand();
+
+      baseCommand.BeginSubCommand("reset")
+        .WithDescription("Reset the currently held compass. The compass will act as if it had just been crafted.")
+        .RequiresPrivilege(Privilege.controlserver)
+        .HandleWith(OnReset)
+        .EndSubCommand();
+
+      baseCommand.BeginSubCommand("remove")
+        .WithAlias("delete")
+        .WithDescription("Delete specific data for the currently held compass.")
+        .RequiresPrivilege(Privilege.controlserver)
+        .BeginSubCommand("craftedBy")
+          .WithDescription("Deletes the reference to the original crafter. Will immediately change to the current holder.")
+          .HandleWith(OnRemoveCraftedBy)
+          .EndSubCommand()
+        .BeginSubCommand("target")
+          .WithDescription("Deletes the target position.")
+          .HandleWith(OnRemoveTarget)
+          .EndSubCommand();
     }
 
-    internal void AdminSetTargetPos(ItemStack compassStack, BlockPos targetPos) {
-      SetTargetPos(compassStack, targetPos);
+    protected static TextCommandResult OnShow(TextCommandCallingArgs args) {
+      var activeStack = args.Caller.Player?.InventoryManager?.ActiveHotbarSlot?.Itemstack;
+      if (activeStack?.Collectible is not BlockCompass compassBlock) {
+        return NotHoldingCompassError(args);
+      }
+
+      var craftedByUid = compassBlock.GetCraftedByPlayerUID(activeStack);
+      var craftedByName = (args.Caller.Entity.Api as ICoreServerAPI).PlayerData.GetPlayerDataByUid(craftedByUid)?.LastKnownPlayername;
+      var targetPos = compassBlock.GetTargetPos(activeStack);
+      return TextCommandResult.Success(Lang.Get("{0} held by {1} has a target pos of {2} and was crafted by '{3}' (UID: {4})", compassBlock.Code, args.Caller.Player.PlayerName, targetPos, craftedByName, craftedByUid));
     }
 
-    internal BlockPos AdminGetTargetPos(ItemStack compassStack) {
-      return GetTargetPos(compassStack);
+    protected static TextCommandResult OnSetCraftedBy(TextCommandCallingArgs args) {
+      var activeSlot = args.Caller.Player?.InventoryManager?.ActiveHotbarSlot;
+      var activeStack = activeSlot?.Itemstack;
+      if (activeStack?.Collectible is not BlockCompass compassBlock) {
+        return NotHoldingCompassError(args);
+      }
+
+      var sapi = args.Caller.Entity.Api as ICoreServerAPI;
+      var newCrafter = args[0] as string;
+      var playerData = sapi.PlayerData.GetPlayerDataByLastKnownName(newCrafter) ?? sapi.PlayerData.GetPlayerDataByUid(newCrafter);
+      string newValueOutput;
+      if (playerData != null) {
+        newCrafter = playerData.PlayerUID;
+        newValueOutput = $"'{playerData.LastKnownPlayername}' (UID: {newCrafter})";
+      }
+      else {
+        newValueOutput = $"'{newCrafter}' (not a valid/known player on this server)";
+      }
+
+      compassBlock.SetCraftedByPlayerUID(activeStack, newCrafter);
+      activeSlot.MarkDirty();
+      args.Caller.Player.InventoryManager.BroadcastHotbarSlot();
+      return TextCommandResult.Success(Lang.Get("Successfully set Crafter for {0} held by {1} to {2}.", compassBlock.Code, args.Caller.Player.PlayerName, newValueOutput));
     }
 
-    internal void AdminSetCraftedByPlayerUID(ItemStack compassStack, string craftedByPlayerUID) {
-      SetCraftedByPlayerUID(compassStack, craftedByPlayerUID);
+    protected static TextCommandResult OnSetTarget(TextCommandCallingArgs args) {
+      var mapMiddle = args.Caller.Entity?.Api.World.DefaultSpawnPosition.XYZ.Clone();
+      mapMiddle.Y = 0;
+      var newPos = (args[0] as Vec3d)?.AsBlockPos;
+      var activeSlot = args.Caller.Player.InventoryManager.ActiveHotbarSlot;
+      var activeStack = activeSlot.Itemstack;
+      if (activeStack?.Collectible is not BlockCompass compassBlock) {
+        return NotHoldingCompassError(args);
+      }
+
+      compassBlock.SetTargetPos(activeStack, newPos);
+      activeSlot.MarkDirty();
+      args.Caller.Player.InventoryManager.BroadcastHotbarSlot();
+      return TextCommandResult.Success(Lang.Get("Successfully set TargetPos for {0} held by {1} to {2}.", compassBlock.Code, args.Caller.Player.PlayerName, newPos));
     }
 
-    internal string AdminGetCraftedByPlayerUID(ItemStack compassStack) {
-      return GetCraftedByPlayerUID(compassStack);
+    protected static TextCommandResult OnReset(TextCommandCallingArgs args) {
+      var activeSlot = args.Caller.Player.InventoryManager?.ActiveHotbarSlot;
+      var activeStack = activeSlot?.Itemstack;
+      if (activeStack?.Collectible is not BlockCompass compassBlock) {
+        return NotHoldingCompassError(args);
+      }
+
+      compassBlock.SetCraftedByPlayerUID(activeStack, null);
+      compassBlock.SetTargetPos(activeStack, null);
+      activeSlot.MarkDirty();
+      return TextCommandResult.Success(Lang.Get("Successfully reset {0} held by {1}.", compassBlock.Code, args.Caller.Player.PlayerName));
     }
+
+    protected static TextCommandResult OnRemoveCraftedBy(TextCommandCallingArgs args) {
+      var activeSlot = args.Caller.Player?.InventoryManager?.ActiveHotbarSlot;
+      var activeStack = activeSlot?.Itemstack;
+      if (activeStack?.Collectible is not BlockCompass compassBlock) {
+        return NotHoldingCompassError(args);
+      }
+
+      compassBlock.SetCraftedByPlayerUID(activeStack, null);
+      activeSlot.MarkDirty();
+      args.Caller.Player.InventoryManager.BroadcastHotbarSlot();
+      return TextCommandResult.Success(Lang.Get("Successfully removed Crafter for {0} held by {1}.", compassBlock.Code, args.Caller.Player.PlayerName));
+    }
+
+    protected static TextCommandResult OnRemoveTarget(TextCommandCallingArgs args) {
+      var activeSlot = args.Caller.Player?.InventoryManager?.ActiveHotbarSlot;
+      var activeStack = activeSlot?.Itemstack;
+      if (activeStack?.Collectible is not BlockCompass compassBlock) {
+        return NotHoldingCompassError(args);
+      }
+
+      compassBlock.SetTargetPos(activeStack, null);
+      activeSlot.MarkDirty();
+      args.Caller.Player.InventoryManager.BroadcastHotbarSlot();
+      return TextCommandResult.Success(Lang.Get("Successfully removed Target for {0} held by {1}.", compassBlock.Code, args.Caller.Player.PlayerName));
+    }
+
+    protected static TextCommandResult NotHoldingCompassError(TextCommandCallingArgs args) {
+      return TextCommandResult.Error(Lang.Get("{0} needs to be holding a compass in their active hotbar slot.", args.Caller.Player.PlayerName));
+    }
+
     #endregion
   }
 }
