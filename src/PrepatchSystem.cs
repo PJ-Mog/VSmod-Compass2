@@ -10,6 +10,7 @@ using Tavis;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.ServerMods.NoObf;
+using VSJsonPatch = Vintagestory.ServerMods.NoObf.JsonPatch;
 
 namespace Compass.Prepatch {
   public class CompassPrepatchSystem : ModSystem {
@@ -40,8 +41,8 @@ namespace Compass.Prepatch {
       }
     }
 
-    protected List<Vintagestory.ServerMods.NoObf.JsonPatch> GetJsonPatches() {
-      List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches = new();
+    protected List<VSJsonPatch> GetJsonPatches() {
+      List<VSJsonPatch> jsonPatches = new();
 
       AddGeneralPatches(jsonPatches);
       AddMagneticCompassPatches(jsonPatches);
@@ -52,11 +53,11 @@ namespace Compass.Prepatch {
       return jsonPatches;
     }
 
-    protected void AddGeneralPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
+    protected void AddGeneralPatches(List<VSJsonPatch> jsonPatches) {
       jsonPatches.Add(GenerateOffhandPatchFor(CompassBlock, CompassModServerSettings.AllowCompassesInOffhand.Value));
     }
 
-    protected void AddMagneticCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
+    protected void AddMagneticCompassPatches(List<VSJsonPatch> jsonPatches) {
       var magnetiteRecipe = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-magnetic.json");
       var scrapRecipe = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-magnetic-from-scrap.json");
 
@@ -64,7 +65,7 @@ namespace Compass.Prepatch {
       AddEnablePatchFor(scrapRecipe, CompassModServerSettings.EnableScrapRecipe.Value, jsonPatches);
     }
 
-    protected void AddOriginCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
+    protected void AddOriginCompassPatches(List<VSJsonPatch> jsonPatches) {
       var originRecipe = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-origin.json");
 
       AddEnablePatchFor(originRecipe, CompassModServerSettings.EnableOriginRecipe.Value, jsonPatches);
@@ -73,7 +74,7 @@ namespace Compass.Prepatch {
       }
     }
 
-    protected void AddRelativeCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
+    protected void AddRelativeCompassPatches(List<VSJsonPatch> jsonPatches) {
       var relativeRecipe = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-relative.json");
       var relativeRecipeReattune = new AssetLocation(CompassMod.Domain, "recipes/grid/reattunement/compass-relative.json");
 
@@ -91,7 +92,7 @@ namespace Compass.Prepatch {
       }
     }
 
-    protected void AddSeraphCompassPatches(List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
+    protected void AddSeraphCompassPatches(List<VSJsonPatch> jsonPatches) {
       var seraphRecipeFromOrigin = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-player-from-origin.json");
       var seraphRecipeFromRelative = new AssetLocation(CompassMod.Domain, "recipes/grid/compass-player-from-relative.json");
       var seraphRecipeReattune = new AssetLocation(CompassMod.Domain, "recipes/grid/reattunement/compass-player.json");
@@ -108,7 +109,7 @@ namespace Compass.Prepatch {
       }
     }
 
-    protected void AddEnablePatchFor(AssetLocation assetToPatch, bool isEnabled, List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
+    protected void AddEnablePatchFor(AssetLocation assetToPatch, bool isEnabled, List<VSJsonPatch> jsonPatches) {
       jsonPatches.Add(new() {
         Op = EnumJsonPatchOp.Replace,
         File = assetToPatch,
@@ -122,7 +123,7 @@ namespace Compass.Prepatch {
     }
 
     // Assumes a grid recipe of max size (3x3), shapeless, with 'G' as the ingredient key for temporal gears and has an explicit quantity for those gears.
-    protected void AddGearQuantityPatchesFor(AssetLocation assetLocation, int gearQuantity, List<Vintagestory.ServerMods.NoObf.JsonPatch> jsonPatches) {
+    protected void AddGearQuantityPatchesFor(AssetLocation assetLocation, int gearQuantity, List<VSJsonPatch> jsonPatches) {
       // Extract current ingredient pattern and erase all 'G' and '_' from it
       var asset = Api.Assets.TryGet(assetLocation);
       var ingredientPattern = asset.ToObject<AssetWithIngredientPattern>().IngredientPattern.Replace("G", "").Replace("_", "");
@@ -161,7 +162,7 @@ namespace Compass.Prepatch {
       public EnumItemStorageFlags StorageFlags = EnumItemStorageFlags.General;
     }
 
-    protected Vintagestory.ServerMods.NoObf.JsonPatch GenerateOffhandPatchFor(AssetLocation assetLocation, bool isEnabled) {
+    protected VSJsonPatch GenerateOffhandPatchFor(AssetLocation assetLocation, bool isEnabled) {
       // Retrieve the asset as it was initially loaded from JSON.
       // Convert it to a simple object to extract the current StorageFlags so that the offhand flag can be manipulated without affecting other settings.
       var asset = Api.Assets.TryGet(assetLocation);
@@ -174,7 +175,7 @@ namespace Compass.Prepatch {
         storageFlags = ~(~storageFlags | EnumItemStorageFlags.Offhand);
       }
 
-      return new Vintagestory.ServerMods.NoObf.JsonPatch() {
+      return new VSJsonPatch() {
         Op = EnumJsonPatchOp.Replace,
         File = assetLocation,
         Path = "/storageFlags",
@@ -182,16 +183,16 @@ namespace Compass.Prepatch {
       };
     }
 
-    protected Vintagestory.ServerMods.NoObf.JsonPatch GetRelativeCompassHandbookPatch() {
-      return new Vintagestory.ServerMods.NoObf.JsonPatch() {
+    protected VSJsonPatch GetRelativeCompassHandbookPatch() {
+      return new VSJsonPatch() {
         Op = EnumJsonPatchOp.Remove,
         File = CompassBlock,
         Path = "/attributes/handbookByType/*-relative/extraSections/1"
       };
     }
 
-    protected Vintagestory.ServerMods.NoObf.JsonPatch GetSeraphCompassHandbookPatch() {
-      return new Vintagestory.ServerMods.NoObf.JsonPatch() {
+    protected VSJsonPatch GetSeraphCompassHandbookPatch() {
+      return new VSJsonPatch() {
         Op = EnumJsonPatchOp.Remove,
         File = CompassBlock,
         Path = "/attributes/handbookByType/*-player/extraSections/1"
@@ -199,7 +200,7 @@ namespace Compass.Prepatch {
     }
 
     // This function is wholesale copied from vanilla's ModJsonPatchLoader#ApplyPatch(), I couldn't get reflection to work to be able to call it externally (private field 'api' isn't set at this point)
-    protected void ApplyPatch(ICoreAPI api, int patchIndex, AssetLocation patchSourcefile, Vintagestory.ServerMods.NoObf.JsonPatch jsonPatch, ref int applied, ref int notFound, ref int errorCount) {
+    protected void ApplyPatch(ICoreAPI api, int patchIndex, AssetLocation patchSourcefile, VSJsonPatch jsonPatch, ref int applied, ref int notFound, ref int errorCount) {
       EnumAppSide targetSide = jsonPatch.Side == null ? jsonPatch.File.Category.SideType : (EnumAppSide)jsonPatch.Side;
 
       if (targetSide != EnumAppSide.Universal && jsonPatch.Side != api.Side) return;
