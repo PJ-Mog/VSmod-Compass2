@@ -1,0 +1,20 @@
+{
+  "type": "code",
+  "name": "Compass2",
+  "modid": "compass2",
+  "version": "5.0.0",
+  "description": "A variety of compasses to guide you.",
+  "website": "https://github.com/PJ-Mog/VSMod-Compass2",
+  "authors": [
+    "JapanHasRice",
+    "goxmeor"
+  ],
+  "contributors": [],
+  "dependency": {
+    "game": "1.21.0-rc.1",
+    "survival": ""
+  },
+  "side": "Universal",
+  "requiredOnClient": true,
+  "requiredOnServer": true
+}
