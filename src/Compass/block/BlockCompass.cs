@@ -7,7 +7,6 @@ using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
-using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
 
 namespace Compass {
@@ -223,7 +222,7 @@ namespace Compass {
       switch (renderTarget) {
         case EnumItemRenderTarget.Gui:
           fromPos = viewingPlayer.Entity.Pos.AsBlockPos;
-          trackerOrientation = (viewingPlayer as ClientPlayer).CameraYaw;
+          trackerOrientation = viewingPlayer.CameraYaw;
           break;
         case EnumItemRenderTarget.HandTp:
         case EnumItemRenderTarget.HandTpOff:
